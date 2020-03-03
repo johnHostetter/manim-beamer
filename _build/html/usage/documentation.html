@@ -152,6 +152,15 @@ of the graph, but large values will lead to performance issues.</p>
 <dt id="fuzzyset.OrdinaryFuzzySet">
 <em class="property">class </em><code class="sig-prename descclassname">fuzzyset.</code><code class="sig-name descname">OrdinaryFuzzySet</code><span class="sig-paren">(</span><em class="sig-param">formulas</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.OrdinaryFuzzySet" title="Permalink to this definition">¶</a></dt>
 <dd><p>An ordinary fuzzy set that is of type 1 and level 1.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">Interval</span><span class="o">.</span><span class="n">Lopen</span><span class="p">(</span><span class="o">-</span><span class="n">oo</span><span class="p">,</span><span class="mi">20</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="mi">35</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="mi">15</span><span class="p">,</span><span class="n">Interval</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">35</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">Interval</span><span class="o">.</span><span class="n">Ropen</span><span class="p">(</span><span class="mi">35</span><span class="p">,</span><span class="n">oo</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OrdinaryFuzzySet</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="s1">&#39;A1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="field-list">
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl>

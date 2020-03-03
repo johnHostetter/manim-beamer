@@ -93,6 +93,15 @@ class OrdinaryFuzzySet(FuzzySet):
         Calculates the height of the fuzzy set.
     graph(lower=0, upper=100, samples=100)
         Graphs the fuzzy set in the universe of elements.
+        
+    Examples
+    --------
+        >>> formulas = []
+        >>> x = Symbol('x')
+        >>> formulas.append((1, Interval.Lopen(-oo,20)))
+        >>> formulas.append(((35-x)/15,Interval.open(20,35)))
+        >>> formulas.append((0, Interval.Ropen(35,oo)))
+        >>> OrdinaryFuzzySet(formulas, 'A1')
     """
     
     def __init__(self, formulas, name=None):
