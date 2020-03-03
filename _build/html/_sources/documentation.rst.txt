@@ -1,0 +1,5 @@
+Documentation
+=============
+
+.. automodule:: fuzzyset
+   :members:

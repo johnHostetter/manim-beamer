@@ -6,8 +6,7 @@ Created on Sun Mar  1 23:03:47 2020
 """
 
 from fuzzyset import OrdinaryFuzzySet, FuzzyVariable
-from fuzzysetoperations import *
-from sympy.solvers import solve
+from fuzzysetoperations import AlphaCut, SpecialFuzzySet, StandardIntersection
 from sympy import Symbol, Interval, oo # oo is infinity
 from pynverse import inversefunc
 from sympy import lambdify
@@ -54,15 +53,38 @@ unknown = Unknown()
 known = Known()
 unsatisfactoryUnknown = UnsatisfactoryUnknown()
 learned = Learned()
+terms = [unknown, known, unsatisfactoryUnknown, learned]
 
-fuzzyVariable = FuzzyVariable([unknown, known, unsatisfactoryUnknown, learned], 'Student Knowledge')
-#fuzzyVariable.graph(samples=50)
-z = fuzzyVariable.degree(87)
-#StandardIntersection(fuzzyVariable.fuzzySets[1:2]).graph()
+fuzzyVariable = FuzzyVariable(terms, 'Student Knowledge')
+fuzzyVariable.graph(samples=150)
 
-print(isinstance(unknown.formulas[1][0], sympy.Expr))
 
-y = inversefunc(lambdify(Symbol('x'), unknown.formulas[1][0], 'numpy'), y_values=0.001)
+# --- DEMO --- Classify 'x' 
 
-alphacut = AlphaCut(known, 0.5, 'AlphaCut')
-alphacut.graph(60,100)
+x = 83
+
+z = fuzzyVariable.degree(x)
+
+#alphacut = AlphaCut(known, 0.6, 'AlphaCut')
+#alphacut.graph(samples=250)
+#specialFuzzySet = SpecialFuzzySet(known, 0.5, 'Special')
+#specialFuzzySet.graph()
+
+cuts = []
+max_height = 0
+idx_of_max = 0
+for i in range(len(z)):
+    if z[i] > 0:
+        specialFuzzySet = SpecialFuzzySet(terms[i], z[i], terms[i].name)
+        cuts.append(StandardIntersection([specialFuzzySet,terms[i]]))
+        
+        # maximum membership principle
+        if z[i] > max_height:
+            max_height = z[i]
+            idx_of_max = i
+
+Z = FuzzyVariable(cuts)
+Z.graph()
+
+# maximum membership principle
+print('Maximum Membership Principle: %s' % (terms[i].name))
