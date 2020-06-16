@@ -96,9 +96,9 @@ def unique(X):
     F = list(counter.values()) # frequencies
     return (U, F)
 
-def plotDistribution(X, Y):
+def plotDistribution(X, Y, title):
     plt.ticklabel_format(useOffset=False, style='plain')
-    plt.title('Distribution')
+    plt.title(title)
     plt.xlabel('x')
     plt.ylabel('y')
 #    plt.plot(X, Y, 'o', color='blue')
@@ -110,7 +110,7 @@ X = []
 
 env = gym.make("CartPole-v1")
 observation = env.reset()
-for _ in range(250):
+for _ in range(800):
     env.render()
     action = env.action_space.sample() # your agent here (this takes random actions)
     observation, reward, done, info = env.step(action)
@@ -227,6 +227,8 @@ dmm_p0 = {}
 for prototype_idx in p0.keys():
     dmm_p0[prototype_idx] = multimodalDensity1(X, p0[prototype_idx], distance.euclidean)
     
+print('Calculating multimodal densities of prototypes and reducing number of prototypes...')
+    
 # step 11
 runAgain = True
 iteration = 0
@@ -274,6 +276,8 @@ while(runAgain):
     runAgain = len(p1.keys()) < len(p0.keys()) # step 13
     p0 = p1 # step 12
     
+print('Calculating final prototypes and creating data clouds...')
+
 # step 14
 clouds = {} # each element is a list that is indexed by a prototype index
 labels = [] # a direct labeling where the ith element of X has an ith label
@@ -294,23 +298,129 @@ for x in X:
     except KeyError:
         clouds[min_idx] = []
         clouds[min_idx].append(x)
-    print(min_p)
     
 def gaussianMembership(x, center, sigma):
     numerator = (-1) * pow(x - center, 2)
     denominator = 2 * pow(sigma, 2)
     return pow(math.e, numerator / denominator)
 
-x_lst = []
-mu_lst = []
-for p_idx in p0.keys():
-    for x in X:
-        c = p0[p_idx][0]
-        x = x[0]
-        mu = gaussianMembership(x, c, sigma)
-        x_lst.append(x)
-        mu_lst.append(mu)
-    plotDistribution(x_lst, mu_lst)
+def mystdev(lst, i):
+    """ Calculate the standard deviation of the ith feature
+    from a list of observations that have been collected. """
+    new_lst = []
+    for item in lst:
+        new_lst.append(item[i])
+    return stdev(new_lst)
+
+def distMatrix(terms):
+    matrix = np.array([float('inf')]*len(terms)*len(terms)).reshape(len(terms), len(terms))
+    for i in terms.keys():
+        for j in terms.keys():
+            i_matrix = np.where(np.array(list(terms.keys()))==i)[0][0]
+            j_matrix = np.where(np.array(list(terms.keys()))==j)[0][0]
+            matrix[i_matrix, j_matrix] = distance.euclidean(terms[i]['center'], terms[j]['center'])
+    return matrix
+
+def identifySimilarPair(terms, distMatrix):
+    min_i = -1
+    min_j = -1
+    min_dist = float('inf')
+    for i in range(len(distMatrix)):
+        for jt in range(len(distMatrix[0])):
+            if i < jt:
+                d = distMatrix[i, jt]
+                if d < min_dist:
+                    min_dist = d
+                    min_i = i
+                    min_j = jt
+    min_i_key = list(terms.keys())[min_i]
+    min_j_key = list(terms.keys())[min_j]
+    return {'pair':(min_i_key, min_j_key), 'distance':min_dist}
+
+new_p_idxs = -1
+def reduction(clouds, terms, similarity):
+    global new_p_idxs
+    tple = similarity['pair']
+    if not(tple[0] == -1 and tple[1] == -1): # nothing found
+        A = tple[0]
+        B = tple[1]
+        c_A = terms[A]['center']
+        c_B = terms[B]['center']
+        support_A = terms[A]['support']
+        support_B = terms[B]['support']
+        support_C = support_A + support_B
+        c_new = (support_A/support_C) * c_A + (support_B/support_C) * c_B
+        clouds_new = clouds[terms[A]['p_idx']]
+        clouds_new.extend(clouds[terms[B]['p_idx']])
+        clouds[new_p_idxs] = clouds_new
+        sig = mystdev(clouds_new, feature_idx)
+    #    clouds.pop(terms[A]['p_idx'])
+    #    clouds.pop(terms[B]['p_idx'])
+        del terms[A]
+        del terms[B]
+        term_new = {'center':c_new, 'sigma':sig, 'support':support_C, 'p_idx':new_p_idxs}
+        terms[new_p_idxs] = term_new
+        new_p_idxs -= 1
+        return term_new
+    return None
+
+def compression(clouds, threshold, num_of_terms, terms, feature_idx):
+    matrix = distMatrix(terms[feature_idx])
+    similarity = identifySimilarPair(terms[feature_idx], matrix)
+    print('num of terms remaining: %s' % len(terms[feature_idx]))
+    if len(terms[feature_idx]) > num_of_terms or similarity['distance'] < threshold:
+        result = reduction(clouds, terms[feature_idx], similarity)
+        if result == None:
+            return False # stop, do not continue
+        else:
+            return True # continue
+    return False # stop, do not continue
+    
+terms = {0:{}, 1:{}, 2:{}, 3:{}}
+features = ['Cart Position', 'Cart Velocity', 'Pole Angle', 'Pole Velocity At Tip']
+for feature_idx in [0, 1, 2, 3]:
+    x_lst = []
+    mu_lst = []
+    for p_idx in p0.keys():
+        if len(clouds[p_idx]) > 20:
+            c = p0[p_idx][feature_idx]
+            sig = mystdev(clouds[p_idx], feature_idx)
+            terms[feature_idx][p_idx] = {'center':c, 'sigma':sig, 'support':len(clouds[p_idx]), 'p_idx':p_idx}
+            for x in X:
+                x = x[feature_idx]
+                mu = gaussianMembership(x, c, sig)
+                x_lst.append(x)
+                mu_lst.append(mu)
+            title = features[feature_idx]
+            plotDistribution(x_lst, mu_lst, title)
         
-#x_lst = np.array(range(len(U)))
-#print('star: %s' % u1_star)
+#print(distMatrix(terms[0]))
+#print(identifySimilarPair(terms[0], distMatrix(terms[0])))
+#print(reduction(clouds, terms[0], identifySimilarPair(terms[0], distMatrix(terms[0]))))
+
+print('--- COMPRESSING LINGUISTIC TERMS ---')
+
+thresholds = [0.1, 0.1, 0.001, 0.1] # the corresponding threshold for each feature
+for feature_idx in [0, 1, 2, 3]:
+    cont = True
+    while cont:
+        cont = compression(clouds, thresholds[feature_idx], 5, terms, feature_idx)
+
+#terms = {0:{}, 1:{}, 2:{}, 3:{}}
+features = ['Cart Position', 'Cart Velocity', 'Pole Angle', 'Pole Velocity At Tip']
+for feature_idx in [0, 1, 2, 3]:
+    x_lst = []
+    mu_lst = []
+    for p_idx in terms[feature_idx].keys():
+        c = terms[feature_idx][p_idx]['center']
+        sig = terms[feature_idx][p_idx]['sigma']
+        for x in X:
+            x = x[feature_idx]
+            mu = gaussianMembership(x, c, sig)
+            x_lst.append(x)
+            mu_lst.append(mu)
+        title = features[feature_idx]
+        plotDistribution(x_lst, mu_lst, title)
+
+x_lst = np.array(range(len(U)))
+print('star: %s' % u1_star)
