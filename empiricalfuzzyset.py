@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from collections import Counter
 from statistics import stdev 
+from continuous_cartpole import ContinuousCartPoleEnv
 
 numerator = None
 distances = powers = np.array([])
@@ -108,9 +109,22 @@ def plotDistribution(X, Y, title):
 
 X = []
 
-env = gym.make("CartPole-v1")
+#env = gym.make("CartPole-v1")
+env = ContinuousCartPoleEnv()
+env.min_action = -1
+env.max_action = 1
+env.action_space = gym.spaces.Box(
+    low=env.min_action,
+    high=env.max_action,
+    shape=(1,)
+)
+
+steps = [] # observations for the current episode
+episodes = {}
+episode_ctr = 0 # counter for which episode the environment is currently on
+total_reward = 0.0 # total reward for this episode so far
 observation = env.reset()
-for _ in range(800):
+for _ in range(250):
     env.render()
     action = env.action_space.sample() # your agent here (this takes random actions)
     observation, reward, done, info = env.step(action)
@@ -118,11 +132,25 @@ for _ in range(800):
     observation[1] = (observation[1] - (-2)) / (2 - (-2))
     observation[3] = (observation[3] - (-2)) / (2 - (-2))
     observation[2] = observation[2] * 2 * math.pi / 360
+    # add force to observation
+    observation = list(observation)
+    observation.append(action[0])
+    observation = np.array(observation)
     print(observation)
-    X.append(observation[:4])
+    X.append(np.array(observation))
+    
+    # add to episode history
+    
+    total_reward += reward
+    steps.append(observation)
     
     if done:
+        avg_reward = total_reward / len(steps)
+        episodes[episode_ctr] = {'steps':steps, 'value':avg_reward}
         observation = env.reset()
+        total_reward = 0.0
+        episode_ctr += 1
+        steps = []
 
 env.close()
 
@@ -376,16 +404,16 @@ def compression(clouds, threshold, num_of_terms, terms, feature_idx):
             return True # continue
     return False # stop, do not continue
     
-terms = {0:{}, 1:{}, 2:{}, 3:{}}
-features = ['Cart Position', 'Cart Velocity', 'Pole Angle', 'Pole Velocity At Tip']
-for feature_idx in [0, 1, 2, 3]:
+variables = {0:{}, 1:{}, 2:{}, 3:{}, 4:{}}
+features = ['Cart Position', 'Cart Velocity', 'Pole Angle', 'Pole Velocity At Tip', 'Force']
+for feature_idx in range(len(features)):
     x_lst = []
     mu_lst = []
     for p_idx in p0.keys():
-        if len(clouds[p_idx]) > 20:
+        if len(clouds[p_idx]) > 1:
             c = p0[p_idx][feature_idx]
             sig = mystdev(clouds[p_idx], feature_idx)
-            terms[feature_idx][p_idx] = {'center':c, 'sigma':sig, 'support':len(clouds[p_idx]), 'p_idx':p_idx}
+            variables[feature_idx][p_idx] = {'center':c, 'sigma':sig, 'support':len(clouds[p_idx]), 'p_idx':p_idx}
             for x in X:
                 x = x[feature_idx]
                 mu = gaussianMembership(x, c, sig)
@@ -393,27 +421,22 @@ for feature_idx in [0, 1, 2, 3]:
                 mu_lst.append(mu)
             title = features[feature_idx]
             plotDistribution(x_lst, mu_lst, title)
-        
-#print(distMatrix(terms[0]))
-#print(identifySimilarPair(terms[0], distMatrix(terms[0])))
-#print(reduction(clouds, terms[0], identifySimilarPair(terms[0], distMatrix(terms[0]))))
 
 print('--- COMPRESSING LINGUISTIC TERMS ---')
 
-thresholds = [0.1, 0.1, 0.001, 0.1] # the corresponding threshold for each feature
-for feature_idx in [0, 1, 2, 3]:
+thresholds = [0.1, 0.1, 0.001, 0.1, 0.1] # the corresponding threshold for each feature
+for feature_idx in range(len(features)):
     cont = True
     while cont:
-        cont = compression(clouds, thresholds[feature_idx], 5, terms, feature_idx)
+        cont = compression(clouds, thresholds[feature_idx], 5, variables, feature_idx)
 
-#terms = {0:{}, 1:{}, 2:{}, 3:{}}
-features = ['Cart Position', 'Cart Velocity', 'Pole Angle', 'Pole Velocity At Tip']
-for feature_idx in [0, 1, 2, 3]:
+features = ['Cart Position', 'Cart Velocity', 'Pole Angle', 'Pole Velocity At Tip', 'Force']
+for feature_idx in range(len(features)):
     x_lst = []
     mu_lst = []
-    for p_idx in terms[feature_idx].keys():
-        c = terms[feature_idx][p_idx]['center']
-        sig = terms[feature_idx][p_idx]['sigma']
+    for p_idx in variables[feature_idx].keys():
+        c = variables[feature_idx][p_idx]['center']
+        sig = variables[feature_idx][p_idx]['sigma']
         for x in X:
             x = x[feature_idx]
             mu = gaussianMembership(x, c, sig)
@@ -422,5 +445,142 @@ for feature_idx in [0, 1, 2, 3]:
         title = features[feature_idx]
         plotDistribution(x_lst, mu_lst, title)
 
-x_lst = np.array(range(len(U)))
-print('star: %s' % u1_star)
+#x_lst = np.array(range(len(U)))
+#print('star: %s' % u1_star)
+        
+# trying to incorporate empirical fuzzy sets into neuro fuzzy networks
+from neurofuzzynetwork import Term, Variable, Rule
+import itertools
+
+def NFN_gaussianMembership(params, x):
+    numerator = (-1) * pow(x - params['center'], 2)
+    denominator = 2 * pow(params['sigma'], 2)
+    return pow(math.e, numerator / denominator)
+
+NFN_variables = [] # variables meant for the neuro fuzzy network
+term_labels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High']
+all_terms = []
+for var_key in variables.keys():
+    idx = var_key
+    var_label = features[var_key]
+    terms = []
+    term_label_idx = 0
+    for term_key in variables[var_key].keys():
+        c = variables[var_key][term_key]['center']
+        sig = variables[var_key][term_key]['sigma']
+        sup = variables[var_key][term_key]['support']
+        params = {'center':c, 'sigma':sig}
+        term_label = term_labels[term_label_idx]
+        term_label_idx += 1
+        term = Term(var_key, NFN_gaussianMembership, params, sup, term_label)
+        terms.append(term)
+    all_terms.append(terms)
+    variable = Variable(idx, terms, var_label)
+    NFN_variables.append(variable)
+    
+# trying to find the rules
+    
+rule_antecedent_combinations = list(itertools.product(*all_terms))
+
+import pandas as pd
+from apyori import apriori
+
+new_X = []
+
+for x in X:
+    new_x = []
+    for inpt_idx in range(len(x)):
+        inpt = x[inpt_idx]
+        max_term = None
+        max_deg = 0
+        for term in NFN_variables[inpt_idx].terms:
+            deg = term.degree(inpt)
+            if deg > max_deg:
+                max_deg = deg
+                max_term = term
+        new_x.append(max_term.label + ' + ' + NFN_variables[inpt_idx].label)
+    new_X.append(new_x)
+
+#df = pd.DataFrame(new_X, columns=features)
+    
+association_rules = apriori(new_X, min_support=0.005, min_confidence=0.2, min_lift=2, min_length=2)
+association_results = list(association_rules)
+
+results = []
+for item in association_results:
+    lhs = " - ".join(list(item[2][0].items_base))
+    rhs = " - ".join(list(item[2][0].items_add))
+    support = item.support
+    freq = support * len(association_results)
+    confidence = item[2][0].confidence
+    lift = item[2][0].lift
+    rows = (lhs, rhs, support, confidence, lift, freq)
+    results.append(rows)
+
+labels = ['LHS','RHS','Support','Confidence','Lift', 'Frequency']
+rules_out = pd.DataFrame.from_records(results, columns = labels)
+
+force_rules = rules_out[rules_out['RHS'].str.contains("Force")]
+force_rules = force_rules.sort_values(['Support', 'Confidence', 'Lift'], ascending=False) # sort first by confidence, then by lift
+
+# organize the rules information to find the most prevalent rule antecedents
+
+lhs_to_rhs = {}
+rhs_to_lhs = {}
+for idx in force_rules.index:
+    generated_rule = force_rules.loc[idx]
+    if len(generated_rule['LHS']) > 0:
+        rhs_list = generated_rule['RHS'].split(' - ')
+        res = [i for i in rhs_list if 'Force' in i][0]
+        try:
+            if len(rhs_to_lhs[res]) < 3:
+                rhs_to_lhs[res].add(generated_rule['LHS'])
+            else:
+                continue
+        except KeyError:
+            rhs_to_lhs[res] = set()
+            rhs_to_lhs[res].add(generated_rule['LHS'])
+        try:
+            lhs_to_rhs[str(generated_rule['LHS'])]
+        except KeyError:
+            lhs_to_rhs[str(generated_rule['LHS'])] = res
+            
+# create the rules for the neuro fuzzy network   
+rules = []
+for lhs in lhs_to_rhs.keys():
+    lhs_terms = lhs.split(' - ')
+    rhs_terms = lhs_to_rhs[lhs].split(' - ')
+    antecedents = []
+    consequents = []
+    for lhs_term in lhs_terms:
+        tokens = lhs_term.split(' + ')
+        variable = tokens[1]
+        term = tokens[0]
+        # find the corresponding variable and term
+        for NFN_variable in NFN_variables[0:4]:
+            if NFN_variable.label == variable:
+                for NFN_term in NFN_variable.terms:
+                    if NFN_term.label == term:
+                        antecedents.append(NFN_term)
+            else:
+                antecedents.append(None)
+    for rhs_term in rhs_terms:
+        tokens = rhs_term.split(' + ')
+        variable = tokens[1]
+        term = tokens[0]
+        # find the corresponding variable and term
+        for NFN_variable in NFN_variables[4:]:
+            if NFN_variable.label == variable:
+                for NFN_term in NFN_variable.terms:
+                    if NFN_term.label == term:
+                        consequents.append(NFN_term)
+            else:
+                consequents.append(None)
+    rules.append(Rule(antecedents, consequents))
+
+# NOTE TO SELF:
+# find episodes that contain steps with antecedent combinations generated above in the lhs_to_rhs
+# we want to determine best consequent (rn, finding current suboptimal)
+# can do that by finding other observations that have different consequents and weighing them by how 
+# early they are in the episode and their episode's value (episodes with high value are better, 
+# but if action was done later in episode it may have led to its termination)
