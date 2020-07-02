@@ -121,10 +121,11 @@ env.action_space = gym.spaces.Box(
 
 steps = [] # observations for the current episode
 episodes = {}
+time_to_episodes = {}
 episode_ctr = 0 # counter for which episode the environment is currently on
 total_reward = 0.0 # total reward for this episode so far
 observation = env.reset()
-for _ in range(250):
+for t in range(100):
     env.render()
     action = env.action_space.sample() # your agent here (this takes random actions)
     observation, reward, done, info = env.step(action)
@@ -143,6 +144,7 @@ for _ in range(250):
     
     total_reward += reward
     steps.append(observation)
+    time_to_episodes[t] = episode_ctr
     
     if done:
         avg_reward = total_reward / len(steps)
@@ -151,6 +153,14 @@ for _ in range(250):
         total_reward = 0.0
         episode_ctr += 1
         steps = []
+        
+if not(done):
+    avg_reward = total_reward / len(steps)
+    episodes[episode_ctr] = {'steps':steps, 'value':avg_reward}
+    observation = env.reset()
+    total_reward = 0.0
+    episode_ctr += 1
+    steps = []
 
 env.close()
 
@@ -420,7 +430,7 @@ for feature_idx in range(len(features)):
                 x_lst.append(x)
                 mu_lst.append(mu)
             title = features[feature_idx]
-            plotDistribution(x_lst, mu_lst, title)
+#            plotDistribution(x_lst, mu_lst, title)
 
 print('--- COMPRESSING LINGUISTIC TERMS ---')
 
@@ -443,10 +453,7 @@ for feature_idx in range(len(features)):
             x_lst.append(x)
             mu_lst.append(mu)
         title = features[feature_idx]
-        plotDistribution(x_lst, mu_lst, title)
-
-#x_lst = np.array(range(len(U)))
-#print('star: %s' % u1_star)
+#        plotDistribution(x_lst, mu_lst, title)
         
 # trying to incorporate empirical fuzzy sets into neuro fuzzy networks
 from neurofuzzynetwork import Term, Variable, Rule
@@ -500,8 +507,6 @@ for x in X:
                 max_term = term
         new_x.append(max_term.label + ' + ' + NFN_variables[inpt_idx].label)
     new_X.append(new_x)
-
-#df = pd.DataFrame(new_X, columns=features)
     
 association_rules = apriori(new_X, min_support=0.005, min_confidence=0.2, min_lift=2, min_length=2)
 association_results = list(association_rules)
@@ -546,6 +551,7 @@ for idx in force_rules.index:
             lhs_to_rhs[str(generated_rule['LHS'])] = res
             
 # create the rules for the neuro fuzzy network   
+
 rules = []
 for lhs in lhs_to_rhs.keys():
     lhs_terms = lhs.split(' - ')
@@ -578,9 +584,49 @@ for lhs in lhs_to_rhs.keys():
                 consequents.append(None)
     rules.append(Rule(antecedents, consequents))
 
-# NOTE TO SELF:
-# find episodes that contain steps with antecedent combinations generated above in the lhs_to_rhs
-# we want to determine best consequent (rn, finding current suboptimal)
-# can do that by finding other observations that have different consequents and weighing them by how 
-# early they are in the episode and their episode's value (episodes with high value are better, 
-# but if action was done later in episode it may have led to its termination)
+# find better rule consequents
+
+rule_idx = 0
+for lhs in lhs_to_rhs.keys():
+    print(rule_idx)
+    lhs_terms = lhs.split(' - ')
+    rhs_terms = lhs_to_rhs[lhs].split(' - ')
+    antecedents = []
+    poss_consequents = {}
+    for t in range(len(new_X)):
+        x = X[t]
+        new_x = new_X[t]
+        if set(lhs_terms).issubset(new_x):
+            episode_ctr = time_to_episodes[t]
+            # find the index of the observation in the episode
+            for idx in range(len(episodes[episode_ctr]['steps'])):
+                if (episodes[episode_ctr]['steps'][idx] == x).all():  
+                    relative_time = 1 - (idx / len(episodes[episode_ctr]['steps']))
+                    action = new_x[4]
+                    try:
+                        poss_consequents[action] += relative_time * episodes[episode_ctr]['value']
+                    except KeyError:
+                        poss_consequents[action] = 0
+                        poss_consequents[action] += relative_time * episodes[episode_ctr]['value']
+                    break
+    max_action_val = 0.0
+    max_action_term = None
+    for consequent_key in poss_consequents.keys():
+        if poss_consequents[consequent_key] > max_action_val:
+            max_action_val = poss_consequents[consequent_key]
+            max_action_term = consequent_key
+       
+    consequents = []
+    tokens = max_action_term.split(' + ')
+    variable = tokens[1]
+    term = tokens[0]
+    # find the corresponding variable and term
+    for NFN_variable in NFN_variables[4:]:
+        if NFN_variable.label == variable:
+            for NFN_term in NFN_variable.terms:
+                if NFN_term.label == term:
+                    consequents.append(NFN_term)
+        else:
+            consequents.append(None)
+    rules[rule_idx].consequents = consequents
+    rule_idx += 1
