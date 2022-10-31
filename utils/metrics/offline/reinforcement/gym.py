@@ -5,6 +5,7 @@ import numpy as np
 class SummaryStatistics:
     def __init__(self, values):
         self.values = values
+        self.params = {}
 
     def min(self):
         return np.min(self.values)
@@ -20,6 +21,9 @@ class SummaryStatistics:
 
     def max(self):
         return np.max(self.values)
+
+    def to_dict(self):
+        return {'min': self.min(), 'mean': self.mean(), 'std': self.std(), 'median': self.median(), 'max': self.max()}
 
 
 """
@@ -83,7 +87,7 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
                 if render:
                     env.render()
 
-                if terminated:
+                if terminated or truncated:
                     break
             print('Episode {}: {}'.format(trial_idx + 1, episode_reward))
             episode_rewards.append(episode_reward)

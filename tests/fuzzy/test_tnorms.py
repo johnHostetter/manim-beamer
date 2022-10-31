@@ -1,7 +1,7 @@
 import torch
 import unittest
 import numpy as np
-from soft.relation.tnorm import AlgebraicProduct
+from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
 
 def algebraic_product(elements, importance):
