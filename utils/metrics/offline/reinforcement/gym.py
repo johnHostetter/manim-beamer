@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 
+from collections import deque
+
 
 class SummaryStatistics:
     def __init__(self, values):
@@ -72,7 +74,7 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
 
     def scorer(algo, *args):
         print('Evaluating online for {} episodes.'.format(n_trials))
-        episode_rewards = []
+        scores_window = deque(maxlen=100)  # last 100 scores
         for trial_idx in range(n_trials):
             observation, info = env.reset()
             episode_reward = 0.0
@@ -89,8 +91,14 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
 
                 if terminated or truncated:
                     break
-            print('Episode {}: {}'.format(trial_idx + 1, episode_reward))
-            episode_rewards.append(episode_reward)
-        return SummaryStatistics(episode_rewards)
+            # print('Episode {}: {}'.format(trial_idx + 1, episode_reward))
+            if len(scores_window) > 0:
+                print('\rEpisode: {}\tAverage Score: {:.2f}'.format(trial_idx + 1, np.mean(scores_window)), end='')
+                if trial_idx > 0 and trial_idx % 100 == 0:
+                    print('\rEpisode: {}\tAverage Score: {:.2f}'.format(trial_idx + 1, np.mean(scores_window)))
+
+            scores_window.append(episode_reward)
+        print()
+        return SummaryStatistics(scores_window)
 
     return scorer
