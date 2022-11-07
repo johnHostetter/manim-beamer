@@ -56,7 +56,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         elements = np.random.random(5)
         n_inputs = len(elements)
         sigmas = np.array([-0.1, 0.25, -0.5, 0.75, 1.0])  # any < 0 sigma values will be > 0 sigma values
-        gaussian_mf = Gaussian(n_inputs, sigmas=sigmas)
+        gaussian_mf = Gaussian(n_inputs, sigmas=sigmas, sort_by=None)
         # we will now update the sigmas to be abs. value
         sigmas = np.abs(sigmas)
         centers = gaussian_mf.centers.detach().numpy()
@@ -64,7 +64,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         mu_numpy = GaussianNumpy(elements, centers, sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
-        assert (gaussian_mf.sigmas.detach().numpy() == sigmas).all()
+        assert (gaussian_mf.widths.detach().numpy() == sigmas).all()
         assert (gaussian_mf.centers.detach().numpy() == centers).all()
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-8).all()
@@ -101,7 +101,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
                            2.53987592, 1.58646032, 1.24709336, 1.24709336, 0.10437003,
                            0.12908118, 0.08517358, 0.08517358, 1.54283158, 1.89779089,
                            1.27380911, 1.27380911])
-        gaussian_mf = Gaussian(x.shape[1], centers=centers[:x.shape[1]], sigmas=sigmas[:x.shape[1]])
+        gaussian_mf = Gaussian(x.shape[1], centers=centers[:x.shape[1]], sigmas=sigmas[:x.shape[1]], sort_by=None)
         mu_pytorch = gaussian_mf(torch.tensor(x[0]))
 
         # make sure the Gaussian parameters are still identical afterwards

@@ -56,7 +56,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         elements = np.random.random(5)
         n_inputs = len(elements)
         widths = np.array([-0.1, 0.25, -0.5, 0.75, 1.0])  # any < 0 sigma values will be > 0 sigma values
-        triangular_mf = Triangular(n_inputs, widths=widths)
+        triangular_mf = Triangular(n_inputs, widths=widths, sort_by=None)
         # we will now update the widths to be abs. value
         widths = np.abs(widths)
         centers = triangular_mf.centers.detach().numpy()
