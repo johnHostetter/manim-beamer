@@ -87,10 +87,16 @@ if __name__ == "__main__":
     n_outputs = 2
     flc = MultiFLC(len(antecedents), n_outputs, antecedents, rules, learning_rate=LEARNING_RATE, cql_alpha=CQL_ALPHA)
 
+    print(flc.flcs[0].input_terms.centers)
+    print(flc.flcs[0].input_terms.sigmas)
+
     flc, train_epoch_losses, val_epoch_losses = offline_q_learning(flc, train_data,
                                                                    val_data, MAX_EPOCHS,
                                                                    BATCH_SIZE,
                                                                    gamma=0.99)
+    print(flc.flcs[0].input_terms.centers)
+    print(flc.flcs[0].input_terms.sigmas)
+    print(flc.flcs[0].consequences)
 
     """Test your agent online! (this may take awhile if your agent is performing well)"""
 

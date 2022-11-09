@@ -146,6 +146,8 @@ class FLC(nn.Module):
                     new_term_idx = antecedents[input_variable_idx][term_idx]['id']
                     self.links_between_antecedents_and_rules[new_term_idx, rule_idx] = 1
 
+        print(self.links_between_antecedents_and_rules)
+
         # begin creating the model's layers
         self.input_terms = Gaussian(in_features=self.in_features, centers=gaussians['centers'],
                                     sigmas=gaussians['sigmas'], trainable=False)
