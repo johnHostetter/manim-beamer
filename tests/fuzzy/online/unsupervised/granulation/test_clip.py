@@ -24,6 +24,8 @@ class TestCLIP(unittest.TestCase):
         output that uses PyTorch to produce the results (i.e., the new CLIP directly induces
         Gaussian PyTorch modules).
 
+        Uses sample input from the Cart Pole FCQL demo.
+
         Returns:
 
         """

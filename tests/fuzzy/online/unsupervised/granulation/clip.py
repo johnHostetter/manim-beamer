@@ -68,12 +68,6 @@ def CLIP(X, mins, maxes, terms=[], eps=0.2, kappa=0.6, theta=1e-8):
                     except ValueError:
                         jR_p = None
 
-                    # print(SM_jps)
-                    if p == 0:
-                        print('sigmas {}'.format([term['sigma'] for term in terms[p]]))
-                    # print('L {} {}'.format(p, jL_p_differences))
-                    # print('R {} {}'.format(p, jR_p_differences))
-
                     new_c = x[p]
                     new_sigma = None
 
