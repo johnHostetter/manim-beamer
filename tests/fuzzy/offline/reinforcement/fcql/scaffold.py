@@ -1,4 +1,5 @@
 import time
+import numpy as np
 
 """
 The first algorithm we need to define is **Categorical Learning Induced Partitioning (CLIP)**. 
@@ -14,7 +15,7 @@ Evolving Clustering Method is required for fuzzy logic rule generation.
 Below we define its necessary functions.
 """
 
-from ecm import ECM
+from tests.fuzzy.online.unsupervised.cluster.ecm import ECM
 
 """
 Next, after ECM, is the Wang-Mendel method for fuzzy logic rule generation. 
@@ -59,7 +60,7 @@ def unsupervised(train_X, eps=0.2, kappa=0.6, ecm=True, Dthr=1e-3, verbose=False
         print('Creating/updating the membership functions...')
 
     start = time.time()
-    import numpy as np
+
     np.save('clip_input', train_X)
     antecedents = CLIP(train_X, train_X_mins, train_X_maxes,
                        [], eps=eps, kappa=kappa)
@@ -72,11 +73,15 @@ def unsupervised(train_X, eps=0.2, kappa=0.6, ecm=True, Dthr=1e-3, verbose=False
         if verbose:
             print('\nReducing the data observations to clusters using ECM...')
         start = time.time()
+        np.save('ecm_input', train_X)
         clusters = ECM(train_X, [], Dthr)
         if verbose:
             print('%d clusters were found with ECM from %d observations...' % (
                 len(clusters), train_X.shape[0]))
         reduced_X = [cluster.center for cluster in clusters]
+        np.save('ecm_output_centers', reduced_X)
+        np.save('ecm_output_widths', [cluster.radius for cluster in clusters])
+
         end = time.time()
         if verbose:
             print('done; the ECM algorithm completed in %.2f seconds.' %
