@@ -8,10 +8,6 @@ from d3rlpy.dataset import MDPDataset
 Create a class that will assist in quickly loading the data for offline training.
 """
 
-from fql import FQLModel
-from fis import mountain_car_fis
-
-
 class Agent:
     def __init__(self, model):
         self.model = model
@@ -27,31 +23,6 @@ class Agent:
 
     def learn(self, state, reward, trajectories):
         return self.model.run(state, reward)
-
-
-def mountain_car():
-    # --- online & static Fuzzy Q-Learning ---
-
-    fis = mountain_car_fis()
-
-    model = FQLModel(gamma=0.99,
-                     alpha=0.1,
-                     ee_rate=1.,
-                     action_set_length=3,
-                     fis=fis)
-
-    parameters = {
-        'environment': 'MountainCar-v0',
-        'seed': 0, 'max episodes': 100,
-        'agent': Agent(model), 'verbose': True, 'render': False
-    }
-    game = Game(parameters)
-
-    print('Observation shape:', game.env.observation_space.shape)
-    print('Action length:', game.env.action_space.n)
-    action_set_length = game.env.action_space.n
-
-    return game, game.play(True, False)
 
 
 class Game:
