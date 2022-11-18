@@ -39,12 +39,10 @@ class TestCLIP(unittest.TestCase):
 
     def test_find_indices_to_closest_neighbors(self):
         # a new cluster is created in the input dimension based on the presented value
-        jL_p = None
-        jR_p = None
         dimension = 1
         x = torch.tensor([0., 3., 2., 3])
         terms = [[], Gaussian(in_features=4, centers=torch.tensor([-2., 2., 4., 6]))]
-        left_neighbor_idx, right_neighbor_idx = find_indices_to_closest_neighbors(dimension, terms, x)
+        left_neighbor_idx, right_neighbor_idx = find_indices_to_closest_neighbors(x, terms, dimension)
 
         assert left_neighbor_idx == 1
         assert right_neighbor_idx == 2
