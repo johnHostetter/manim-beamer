@@ -1,3 +1,4 @@
+import torch
 import unittest
 import numpy as np
 
@@ -18,13 +19,14 @@ class TestECM(unittest.TestCase):
         """
         x = np.array([0.5, 0.8])
         y = np.array([0.9, 2.5])
-        assert np.isclose(oldDistance(x, y), newDistance(x, y))
+        assert np.isclose(oldDistance(x, y), newDistance(torch.tensor([x]), y))
 
-    def test_clip_output(self):
+    def test_ecm_output(self):
         """
-        The CLIP that is originally defined without using PyTorch should match the newly defined
-        output that uses PyTorch to produce the results (i.e., the new CLIP directly induces
-        Gaussian PyTorch modules).
+        The ECM that is originally defined without using PyTorch should identify the same
+        number of exemplars as the PyTorch implementation (i.e., the new ECM directly induces
+        Fuzzy Set Base PyTorch modules). However, the identified CENTERS and WIDTHS should
+        be UNEQUAL, since the original implementation had some minor mistakes.
 
         Uses sample input from the Cart Pole FCQL demo.
 
@@ -34,14 +36,14 @@ class TestECM(unittest.TestCase):
         Dthr = 0.4
         train_X = np.load('ecm_input.npy')
         old_clusters = oldECM(train_X, [], Dthr)
-        old_centers = [cluster.center for cluster in old_clusters]
+        old_centers = np.array([cluster.center.tolist() for cluster in old_clusters])
         old_widths = [cluster.radius for cluster in old_clusters]
 
-        new_clusters = newECM(train_X, [], Dthr)
+        new_clusters = newECM(train_X, Dthr=Dthr)
         # new_centers = [cluster.center for cluster in new_clusters]
         # new_widths = [cluster.radius for cluster in new_clusters]
 
         assert len(old_centers) == len(new_clusters.centers.detach().numpy())  # results should be of same size
-        assert np.isclose(old_centers, new_clusters.centers.detach().numpy()).all()  # approx equal centers
+        assert not np.isclose(old_centers, new_clusters.centers.detach().numpy()).all()  # approx unequal centers
         assert len(old_widths) == len(new_clusters.widths.detach().numpy())  # results should be of same size
-        assert np.isclose(old_widths, new_clusters.widths.detach().numpy()).all()  # approx equal sigmas
+        assert not np.isclose(old_widths, new_clusters.widths.detach().numpy()).all()  # approx equal sigmas
