@@ -16,8 +16,11 @@ import random
 import warnings
 import numpy as np
 
-from control import MultiFLC
-from scaffold import unsupervised
+from control import MultiFLC as oldMultiFLC
+from soft.fuzzy.logic.control.new_tsk import MultipleOutputFLC as newMultiFLC
+from soft.fuzzy.logic.control.creation import self_organize as newScaffold
+
+from scaffold import unsupervised as oldScaffold
 from fcql import offline_q_learning
 from d3rlpy.datasets import get_cartpole
 from env_datasets import CartPoleDataset
@@ -77,31 +80,74 @@ if __name__ == "__main__":
     val_data = CartPoleDataset(val_episodes)
 
     # get replay results
-    rules, _, antecedents = unsupervised(train_data.unique_states, ecm=True, Dthr=4e-1)
+    old_rules, _, old_antecedents = oldScaffold(train_data.unique_states, ecm=True, Dthr=4e-1)
+    new_rules, new_antecedents = newScaffold(train_data.unique_states, val_data.unique_states,
+                                             algorithms=('clip', 'ecm', 'wm-method'), Dthr=4e-1)
 
-    print('There are {} rules'.format(len(rules)))
+    print('There are {} rules'.format(len(old_rules)))
 
-    for input_idx, input_variable in enumerate(antecedents):
+    for input_idx, input_variable in enumerate(old_antecedents):
         print('There are {} antecedent terms for the {}\'th input variable.'.format(len(input_variable), input_idx + 1))
 
     n_outputs = 2
-    flc = MultiFLC(len(antecedents), n_outputs, antecedents, rules, learning_rate=LEARNING_RATE, cql_alpha=CQL_ALPHA)
+    old_antecedents = []
+    for var_idx, variable in enumerate(new_antecedents):
+        old_antecedents.append([])
+        for idx, center in enumerate(variable.centers.detach().numpy()):
+            value = {'center': center, 'sigma': variable.sigmas[idx].item(), 'support': 1}
+            old_antecedents[var_idx].append(value)
 
-    print(flc.flcs[0].input_terms.centers)
-    print(flc.flcs[0].input_terms.sigmas)
+    from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
+    from soft.fuzzy.logic.rules.creation import wang_mendel_method as new_WM_method
+    from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
+    from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP
 
-    flc, train_epoch_losses, val_epoch_losses = offline_q_learning(flc, train_data,
-                                                                   val_data, MAX_EPOCHS,
-                                                                   BATCH_SIZE,
-                                                                   gamma=0.99)
-    print(flc.flcs[0].input_terms.centers)
-    print(flc.flcs[0].input_terms.sigmas)
-    print(flc.flcs[0].consequences)
+    Dthr = 0.4
+    new_clusters = newECM(train_data.unique_states, Dthr=Dthr)
+    reduced_X = new_clusters.centers
+    old_antecedents, old_rules, _ = old_WM_method(reduced_X.detach().numpy(), old_antecedents, [], [],
+                                                  consistency_check=False)
+
+    old_flc = oldMultiFLC(len(old_antecedents), n_outputs, old_antecedents, old_rules, learning_rate=LEARNING_RATE,
+                          cql_alpha=CQL_ALPHA)
+    try:
+        # for input_idx, input_variable in enumerate(antecedents):
+        #     print('There are {} antecedent terms for the {}\'th input variable.'.format(len(input_variable.centers),
+        #                                                                                 input_idx + 1))
+
+        n_outputs = 2
+        new_flc = newMultiFLC(len(new_antecedents), n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
+                              cql_alpha=CQL_ALPHA, input_trainable=False)
+
+    except TypeError:
+        n_outputs = 2
+        new_flc = newMultiFLC(4, n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
+                              cql_alpha=CQL_ALPHA, input_trainable=False)
+
+    print(old_flc.flcs[0].input_terms.centers)
+    print(old_flc.flcs[0].input_terms.sigmas)
+
+    old_rules_matrix = np.array([rule['A'] for rule in old_rules])
+    old_rules_matrix.sort()
+    print(old_rules_matrix)
+    new_rules_matrix = np.array([rule.antecedents for rule in new_rules])
+    new_rules_matrix.sort()
+    print(new_rules_matrix)
+
+    # assert old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.flcs[0].links_between_antecedents_and_rules
+
+    old_flc, _, _ = offline_q_learning(old_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
+
+    # new_flc, _, _ = offline_q_learning(new_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
+
+    print(old_flc.flcs[0].input_terms.centers)
+    print(old_flc.flcs[0].input_terms.sigmas)
+    print(old_flc.flcs[0].consequences)
 
     """Test your agent online! (this may take awhile if your agent is performing well)"""
 
     # evaluate
-    summary_statistics = evaluate_on_environment(env, render=False)(flc)
+    summary_statistics = evaluate_on_environment(env, render=False)(old_flc)
     avg_score = summary_statistics.mean()
     std_score = summary_statistics.std()
     print((avg_score, std_score))

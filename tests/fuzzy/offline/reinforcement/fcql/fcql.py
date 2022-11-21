@@ -75,7 +75,12 @@ def offline_q_learning(model, training_dataset, validation_dataset, max_epochs=1
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
         avg_loss = train_one_epoch(train_loader, model, epoch_number, writer, gamma)
-
+        try:
+            print(model.flcs[0].input_terms.centers)
+            print(model.flcs[0].input_terms.sigmas)
+        except AttributeError:
+            print(model.flcs[0].input_granules.centers)
+            print(model.flcs[0].input_granules.sigmas)
         # We don't need gradients on to do reporting
         model.train(False)
 

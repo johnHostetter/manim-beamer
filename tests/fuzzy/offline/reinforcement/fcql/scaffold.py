@@ -24,7 +24,7 @@ because it is a general implementation. Specifically, it includes certainty fact
 described in the HyFIS paper. These certainty factors are ignored in our current procedure.
 """
 
-from wang_mendel import rule_creation
+from tests.fuzzy.logic.rules.wang_mendel import rule_creation
 
 
 def unsupervised(train_X, eps=0.2, kappa=0.6, ecm=True, Dthr=1e-3, verbose=False):
