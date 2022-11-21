@@ -134,7 +134,9 @@ if __name__ == "__main__":
     new_rules_matrix.sort()
     print(new_rules_matrix)
 
-    # assert old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.flcs[0].links_between_antecedents_and_rules
+    assert old_rules_matrix.shape == new_rules_matrix.shape
+    assert (old_rules_matrix == new_rules_matrix).all()
+    assert (old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.flcs[0].links_between_antecedents_and_rules).all()
 
     old_flc, _, _ = offline_q_learning(old_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
