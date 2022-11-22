@@ -16,17 +16,17 @@ import random
 import warnings
 import numpy as np
 
-from soft.fuzzy.logic.control.tsk import MultiFLC as oldMultiFLC
-from soft.fuzzy.logic.control.new_tsk import MultipleOutputFLC as newMultiFLC
-from soft.fuzzy.logic.control.creation import self_organize as newScaffold
-
-from scaffold import unsupervised as oldScaffold
 from fcql import offline_q_learning
 from d3rlpy.datasets import get_cartpole
 from env_datasets import CartPoleDataset
 from utils.reproducibility import env_seed
+from scaffold import unsupervised as oldScaffold
 from sklearn.model_selection import train_test_split
+from tests.fuzzy.logic.control.old_tsk import MultiFLC as oldMultiFLC
+from soft.fuzzy.logic.control.tsk import MultipleOutputFLC as newMultiFLC
+from soft.fuzzy.logic.control.creation import self_organize as newScaffold
 from utils.metrics.offline.reinforcement.gym import evaluate_on_environment
+
 
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
@@ -41,7 +41,7 @@ Note: You may need to do a fresh restart of the random number generators, enviro
 """
 
 SEED = 39  # used in the 'human-in-the-loop' example
-MAX_EPOCHS = 5  # the maximum allowed number of epochs allowed for offline training
+MAX_EPOCHS = 20  # the maximum allowed number of epochs allowed for offline training
 BATCH_SIZE = 64  # the number of training observations to sample from the data to perform a single update
 CQL_ALPHA = 0.5  # the weight given to the CQL adjustment, a lower value is better when more data is available and vice versa
 LEARNING_RATE = 1e-3  # the learning rate used in the paper, later, a better learning rate was found which was 3e-4
@@ -98,9 +98,7 @@ if __name__ == "__main__":
             old_antecedents[var_idx].append(value)
 
     from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
-    from soft.fuzzy.logic.rules.creation import wang_mendel_method as new_WM_method
     from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
-    from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP
 
     Dthr = 0.4
     new_clusters = newECM(train_data.unique_states, Dthr=Dthr)
@@ -110,29 +108,15 @@ if __name__ == "__main__":
 
     old_flc = oldMultiFLC(len(old_antecedents), n_outputs, old_antecedents, old_rules, learning_rate=LEARNING_RATE,
                           cql_alpha=CQL_ALPHA)
-    try:
-        # for input_idx, input_variable in enumerate(antecedents):
-        #     print('There are {} antecedent terms for the {}\'th input variable.'.format(len(input_variable.centers),
-        #                                                                                 input_idx + 1))
 
-        n_outputs = 2
-        new_flc = newMultiFLC(len(new_antecedents), n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
-                              cql_alpha=CQL_ALPHA, input_trainable=False)
-
-    except TypeError:
-        n_outputs = 2
-        new_flc = newMultiFLC(4, n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
-                              cql_alpha=CQL_ALPHA)
-
-    print(old_flc.flcs[0].input_terms.centers)
-    print(old_flc.flcs[0].input_terms.sigmas)
+    n_outputs = 2
+    new_flc = newMultiFLC(len(new_antecedents), n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
+                          cql_alpha=CQL_ALPHA, input_trainable=False)
 
     old_rules_matrix = np.array([rule['A'] for rule in old_rules])
     old_rules_matrix.sort()
-    print(old_rules_matrix)
     new_rules_matrix = np.array([rule.antecedents for rule in new_rules])
     new_rules_matrix.sort()
-    print(new_rules_matrix)
 
     assert old_rules_matrix.shape == new_rules_matrix.shape
     assert (old_rules_matrix == new_rules_matrix).all()
@@ -140,39 +124,28 @@ if __name__ == "__main__":
 
     new_flc.flcs[0].input_granules.requires_grad_(False)
     old_memberships = old_flc.flcs[0].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
-    # new_memberships = new_flc.flcs[0].input_granulation.granules(new_flc.flcs[0].transform(train_data.unique_states))
     new_memberships = new_flc.flcs[0].input_granulation(torch.tensor(train_data.unique_states))
 
     assert torch.isclose(old_memberships, new_memberships).all().item()
 
     old_flc, _, _ = offline_q_learning(old_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
-    print('--- NEW ---')
     new_flc, _, _ = offline_q_learning(new_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
     new_flc.flcs[1].input_granules.requires_grad_(False)
     old_memberships = old_flc.flcs[1].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
-    # new_memberships = new_flc.flcs[0].input_granulation.granules(new_flc.flcs[0].transform(train_data.unique_states))
     new_memberships = new_flc.flcs[1].input_granulation(torch.tensor(train_data.unique_states))
 
     assert torch.isclose(old_memberships, new_memberships).all().item()
 
-    print(old_flc.flcs[0].input_terms.centers)
-    print(old_flc.flcs[0].input_terms.sigmas)
-    print(old_flc.flcs[0].consequences)
-
-    print(new_flc.flcs[0].consequences)
-
     """Test your agent online! (this may take awhile if your agent is performing well)"""
 
     # evaluate
-    print('old')
     summary_statistics = evaluate_on_environment(env, render=False)(old_flc)
     avg_score = summary_statistics.mean()
     std_score = summary_statistics.std()
-    print((avg_score, std_score))
-    print('new')
+    print(('Old implementation', avg_score, std_score))
     summary_statistics = evaluate_on_environment(env, render=False)(new_flc)
     avg_score = summary_statistics.mean()
     std_score = summary_statistics.std()
-    print((avg_score, std_score))
+    print(('New implementation', avg_score, std_score))
