@@ -16,7 +16,7 @@ import random
 import warnings
 import numpy as np
 
-from control import MultiFLC as oldMultiFLC
+from soft.fuzzy.logic.control.tsk import MultiFLC as oldMultiFLC
 from soft.fuzzy.logic.control.new_tsk import MultipleOutputFLC as newMultiFLC
 from soft.fuzzy.logic.control.creation import self_organize as newScaffold
 
@@ -41,7 +41,7 @@ Note: You may need to do a fresh restart of the random number generators, enviro
 """
 
 SEED = 39  # used in the 'human-in-the-loop' example
-MAX_EPOCHS = 12  # the maximum allowed number of epochs allowed for offline training
+MAX_EPOCHS = 3  # the maximum allowed number of epochs allowed for offline training
 BATCH_SIZE = 64  # the number of training observations to sample from the data to perform a single update
 CQL_ALPHA = 0.5  # the weight given to the CQL adjustment, a lower value is better when more data is available and vice versa
 LEARNING_RATE = 1e-3  # the learning rate used in the paper, later, a better learning rate was found which was 3e-4
@@ -138,9 +138,16 @@ if __name__ == "__main__":
     assert (old_rules_matrix == new_rules_matrix).all()
     assert (old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.flcs[0].links_between_antecedents_and_rules).all()
 
+    new_flc.flcs[0].input_granules.requires_grad_(False)
+    old_memberships = old_flc.flcs[0].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
+    new_memberships = new_flc.flcs[0].input_granulation.granules(new_flc.flcs[0].transform(train_data.unique_states))
+
+    assert torch.isclose(old_memberships, new_memberships).all().item()
+
     old_flc, _, _ = offline_q_learning(old_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
-    # new_flc, _, _ = offline_q_learning(new_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
+    print('--- NEW ---')
+    new_flc, _, _ = offline_q_learning(new_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
     print(old_flc.flcs[0].input_terms.centers)
     print(old_flc.flcs[0].input_terms.sigmas)
@@ -149,7 +156,13 @@ if __name__ == "__main__":
     """Test your agent online! (this may take awhile if your agent is performing well)"""
 
     # evaluate
+    print('old')
     summary_statistics = evaluate_on_environment(env, render=False)(old_flc)
+    avg_score = summary_statistics.mean()
+    std_score = summary_statistics.std()
+    print((avg_score, std_score))
+    print('new')
+    summary_statistics = evaluate_on_environment(env, render=False)(new_flc)
     avg_score = summary_statistics.mean()
     std_score = summary_statistics.std()
     print((avg_score, std_score))
