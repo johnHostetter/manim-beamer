@@ -93,9 +93,9 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
                     break
             # print('Episode {}: {}'.format(trial_idx + 1, episode_reward))
             if len(scores_window) > 0:
-                print('\rEpisode: {}\tAverage Score: {:.2f}'.format(trial_idx + 1, np.mean(scores_window)), end='')
+                print('\rEpisode: {}\tAverage Score: {:.6f}'.format(trial_idx + 1, np.mean(scores_window)), end='')
                 if trial_idx > 0 and trial_idx % 100 == 0:
-                    print('\rEpisode: {}\tAverage Score: {:.2f}'.format(trial_idx + 1, np.mean(scores_window)))
+                    print('\rEpisode: {}\tAverage Score: {:.6f}'.format(trial_idx + 1, np.mean(scores_window)))
 
             scores_window.append(episode_reward)
         print()
