@@ -41,7 +41,7 @@ Note: You may need to do a fresh restart of the random number generators, enviro
 """
 
 SEED = 39  # used in the 'human-in-the-loop' example
-MAX_EPOCHS = 12  # the maximum allowed number of epochs allowed for offline training
+MAX_EPOCHS = 5  # the maximum allowed number of epochs allowed for offline training
 BATCH_SIZE = 64  # the number of training observations to sample from the data to perform a single update
 CQL_ALPHA = 0.5  # the weight given to the CQL adjustment, a lower value is better when more data is available and vice versa
 LEARNING_RATE = 1e-3  # the learning rate used in the paper, later, a better learning rate was found which was 3e-4
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     except TypeError:
         n_outputs = 2
         new_flc = newMultiFLC(4, n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
-                              cql_alpha=CQL_ALPHA, input_trainable=False)
+                              cql_alpha=CQL_ALPHA)
 
     print(old_flc.flcs[0].input_terms.centers)
     print(old_flc.flcs[0].input_terms.sigmas)
@@ -139,20 +139,29 @@ if __name__ == "__main__":
     assert (old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.flcs[0].links_between_antecedents_and_rules).all()
 
     new_flc.flcs[0].input_granules.requires_grad_(False)
-    # old_memberships = old_flc.flcs[0].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
+    old_memberships = old_flc.flcs[0].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
     # new_memberships = new_flc.flcs[0].input_granulation.granules(new_flc.flcs[0].transform(train_data.unique_states))
-    # new_memberships = new_flc.flcs[0].input_granulation(torch.tensor(train_data.unique_states))
+    new_memberships = new_flc.flcs[0].input_granulation(torch.tensor(train_data.unique_states))
 
-    # assert torch.isclose(old_memberships, new_memberships).all().item()
+    assert torch.isclose(old_memberships, new_memberships).all().item()
 
     old_flc, _, _ = offline_q_learning(old_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
     print('--- NEW ---')
     new_flc, _, _ = offline_q_learning(new_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
+    new_flc.flcs[1].input_granules.requires_grad_(False)
+    old_memberships = old_flc.flcs[1].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
+    # new_memberships = new_flc.flcs[0].input_granulation.granules(new_flc.flcs[0].transform(train_data.unique_states))
+    new_memberships = new_flc.flcs[1].input_granulation(torch.tensor(train_data.unique_states))
+
+    assert torch.isclose(old_memberships, new_memberships).all().item()
+
     print(old_flc.flcs[0].input_terms.centers)
     print(old_flc.flcs[0].input_terms.sigmas)
     print(old_flc.flcs[0].consequences)
+
+    print(new_flc.flcs[0].consequences)
 
     """Test your agent online! (this may take awhile if your agent is performing well)"""
 
