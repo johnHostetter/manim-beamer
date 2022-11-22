@@ -9,24 +9,22 @@ Original file is located at
 Contained within this notebook is a sample implementation and demo of the proposed **Fuzzy Conservative Q-Learning** procedure. The code is not necessarily optimal or efficient with respect to performance, but was more or less written for interpretability. Some functions that may be difficult to follow, such as ECM, actually should have a one-to-one correspondence with the original paper's notation (in the case of ECM, that would be the dynamic evolving neuro fuzzy system called DENFIS).
 """
 
-import os
 import gym
 import torch
-import random
 import warnings
 import numpy as np
 
-from fcql import offline_q_learning
 from d3rlpy.datasets import get_cartpole
 from env_datasets import CartPoleDataset
 from utils.reproducibility import env_seed
 from scaffold import unsupervised as oldScaffold
 from sklearn.model_selection import train_test_split
+from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
 from tests.fuzzy.logic.control.old_tsk import MultiFLC as oldMultiFLC
-from soft.fuzzy.logic.control.tsk import MultipleOutputFLC as newMultiFLC
 from soft.fuzzy.logic.control.creation import self_organize as newScaffold
 from utils.metrics.offline.reinforcement.gym import evaluate_on_environment
-
+from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
+from soft.fuzzy.offline.reinforcement.fcql import offline_q_learning, FuzzyConservativeQLearning as FCQL
 
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
@@ -47,24 +45,26 @@ CQL_ALPHA = 0.5  # the weight given to the CQL adjustment, a lower value is bett
 LEARNING_RATE = 1e-3  # the learning rate used in the paper, later, a better learning rate was found which was 3e-4
 NUM_OF_TRAIN_EPISODES = 60  # the amount of training episodes that should be retrieved from CartPoleDataset to do offline training
 
+
+def compare_input_memberships(old_flc, new_flc):
+    for idx, flc in enumerate(new_flc.model.flcs):
+        flc.input_granules.requires_grad_(False)
+        old_memberships = old_flc.flcs[idx].input_terms(old_flc.flcs[idx].transform(train_data.unique_states))
+        new_memberships = flc.input_granulation(torch.tensor(train_data.unique_states))
+        assert torch.isclose(old_memberships, new_memberships).all().item()
+
+
 if __name__ == "__main__":
     """Add reproducibility by setting the environment seed."""
 
     print('Using seed {}'.format(SEED))
-    os.environ['PYTHONHASHSEED'] = str(SEED)
-    torch.manual_seed(SEED)
-    random.seed(SEED)
-    np.random.seed(SEED)
     env = gym.make('CartPole-v1')
     env_seed(env, SEED)
-    env.action_space.seed(SEED)
 
     # Number of states
     n_state = env.observation_space.shape[0]
     # Number of actions
     n_action = env.action_space.n
-
-    seed_df = None
 
     print('num of epochs to be trained for: {}'.format(MAX_EPOCHS))
 
@@ -97,9 +97,6 @@ if __name__ == "__main__":
             value = {'center': center, 'sigma': variable.sigmas[idx].item(), 'support': 1}
             old_antecedents[var_idx].append(value)
 
-    from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
-    from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
-
     Dthr = 0.4
     new_clusters = newECM(train_data.unique_states, Dthr=Dthr)
     reduced_X = new_clusters.centers
@@ -110,8 +107,8 @@ if __name__ == "__main__":
                           cql_alpha=CQL_ALPHA)
 
     n_outputs = 2
-    new_flc = newMultiFLC(len(new_antecedents), n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
-                          cql_alpha=CQL_ALPHA, input_trainable=False)
+    new_flc = FCQL(len(new_antecedents), n_outputs, new_antecedents, new_rules, learning_rate=LEARNING_RATE,
+                   cql_alpha=CQL_ALPHA, input_trainable=False)
 
     old_rules_matrix = np.array([rule['A'] for rule in old_rules])
     old_rules_matrix.sort()
@@ -120,32 +117,22 @@ if __name__ == "__main__":
 
     assert old_rules_matrix.shape == new_rules_matrix.shape
     assert (old_rules_matrix == new_rules_matrix).all()
-    assert (old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.flcs[0].links_between_antecedents_and_rules).all()
+    assert (old_flc.flcs[0].links_between_antecedents_and_rules == new_flc.model.flcs[
+        0].links_between_antecedents_and_rules).all()
 
-    new_flc.flcs[0].input_granules.requires_grad_(False)
-    old_memberships = old_flc.flcs[0].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
-    new_memberships = new_flc.flcs[0].input_granulation(torch.tensor(train_data.unique_states))
-
-    assert torch.isclose(old_memberships, new_memberships).all().item()
+    compare_input_memberships(old_flc, new_flc)  # check that the input memberships are equal
 
     old_flc, _, _ = offline_q_learning(old_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
     new_flc, _, _ = offline_q_learning(new_flc, train_data, val_data, MAX_EPOCHS, BATCH_SIZE, gamma=0.99)
 
-    new_flc.flcs[1].input_granules.requires_grad_(False)
-    old_memberships = old_flc.flcs[1].input_terms(old_flc.flcs[0].transform(train_data.unique_states))
-    new_memberships = new_flc.flcs[1].input_granulation(torch.tensor(train_data.unique_states))
-
-    assert torch.isclose(old_memberships, new_memberships).all().item()
+    compare_input_memberships(old_flc, new_flc)  # check that the input memberships haven't changed
 
     """Test your agent online! (this may take awhile if your agent is performing well)"""
 
     # evaluate
-    summary_statistics = evaluate_on_environment(env, render=False)(old_flc)
-    avg_score = summary_statistics.mean()
-    std_score = summary_statistics.std()
-    print(('Old implementation', avg_score, std_score))
-    summary_statistics = evaluate_on_environment(env, render=False)(new_flc)
-    avg_score = summary_statistics.mean()
-    std_score = summary_statistics.std()
-    print(('New implementation', avg_score, std_score))
+    names = ['Old', 'New']
+    for idx, flc in enumerate([old_flc, new_flc]):
+        summary_statistics = evaluate_on_environment(env, render=False)(old_flc)
+        avg_score, std_score = summary_statistics.mean(), summary_statistics.std()
+        print(('{} implementation'.format(names[idx]), avg_score, std_score))
