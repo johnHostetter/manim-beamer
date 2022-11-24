@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 
 from soft.fuzzy.sets import Gaussian
+from soft.fuzzy.information.granulation import GranulesMap
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, fitness_function, \
     most_quantifier as Q
@@ -82,9 +83,10 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         assert torch.isclose(summary.summarizer_membership(x), torch.tensor(0.5272924900054932))
 
     def test_summarizer_membership_query(self):
@@ -95,9 +97,10 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
         query = Query(Gaussian(1, centers=0.3, sigmas=0.3), 1)
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.5272924900054932))  # it should
@@ -107,9 +110,10 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
 
     def test_degree_of_truth(self):
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
         # the given x does not match as well with the (fuzzy) query
@@ -119,9 +123,10 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.degree_of_truth(X, query=query), torch.tensor(0.49662184715270996))
 
     def test_degree_of_imprecision(self):
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
         # the given x does not match as well with the (fuzzy) query
@@ -130,9 +135,10 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.degree_of_imprecision(X, alpha=0.3), torch.tensor(1 / 4))
 
     def test_degree_of_covering(self):
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
         # the given x does not match as well with the (fuzzy) query
@@ -141,9 +147,10 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.degree_of_covering(X, alpha=0.3, query=query), torch.tensor(2 / 3))
 
     def test_degree_of_appropriateness(self):
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
         # the given x does not match as well with the (fuzzy) query
@@ -153,14 +160,16 @@ class TestSummary(unittest.TestCase):
                              torch.tensor(0.006944441236555576))
 
     def test_length(self):
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1/2))
 
     def test_degree_of_validity(self):
-        summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
+        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
         summary = Summary(summarizer, Q, None)
-        x = torch.tensor([1., 0.5])
+        x = torch.tensor([[1., 0.5]])
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
         # the given x does not match as well with the (fuzzy) query
