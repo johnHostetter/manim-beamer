@@ -10,6 +10,16 @@ from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummar
     most_quantifier as Q
 
 
+def make_scenario_1():
+    terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
+    summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
+    summary = Summary(summarizer, Q, None)
+    # we want the second attribute to satisfy this
+    query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
+    X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+    return X, query, summary
+
+
 class TestSummary(unittest.TestCase):
     def test_most_quantifier(self):
         assert Q(1.0) == 1.0
@@ -110,52 +120,20 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
 
     def test_degree_of_truth(self):
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
-        summary = Summary(summarizer, Q, None)
-        x = torch.tensor([[1., 0.5]])
-        # we want the second attribute to satisfy this
-        query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
-        # the given x does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
-        X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+        X, query, summary = make_scenario_1()
         assert torch.isclose(summary.r(X, query=query), torch.tensor(0.5483109354972839))
         assert torch.isclose(summary.degree_of_truth(X, query=query), torch.tensor(0.49662184715270996))
 
     def test_degree_of_imprecision(self):
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
-        summary = Summary(summarizer, Q, None)
-        x = torch.tensor([[1., 0.5]])
-        # we want the second attribute to satisfy this
-        query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
-        # the given x does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
-        X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+        X, query, summary = make_scenario_1()
         assert torch.isclose(summary.degree_of_imprecision(X, alpha=0.3), torch.tensor(1 / 4))
 
     def test_degree_of_covering(self):
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
-        summary = Summary(summarizer, Q, None)
-        x = torch.tensor([[1., 0.5]])
-        # we want the second attribute to satisfy this
-        query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
-        # the given x does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
-        X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+        X, query, summary = make_scenario_1()
         assert torch.isclose(summary.degree_of_covering(X, alpha=0.3, query=query), torch.tensor(2 / 3))
 
     def test_degree_of_appropriateness(self):
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
-        summary = Summary(summarizer, Q, None)
-        x = torch.tensor([[1., 0.5]])
-        # we want the second attribute to satisfy this
-        query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
-        # the given x does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
-        X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+        X, query, summary = make_scenario_1()
         assert torch.isclose(summary.degree_of_appropriateness(X, alpha=0.3, query=query),
                              torch.tensor(0.006944441236555576))
 
@@ -166,32 +144,27 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.length(), torch.tensor(1/2))
 
     def test_degree_of_validity(self):
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
-        summary = Summary(summarizer, Q, None)
-        x = torch.tensor([[1., 0.5]])
-        # we want the second attribute to satisfy this
-        query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
-        # the given x does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
-        X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+        X, query, summary = make_scenario_1()
         assert torch.isclose(summary.degree_of_validity(X, alpha=0.3, query=query),
                              torch.tensor(0.3840465843677521))
 
     def test_genetic_algorithm_summary_search(self):
         antecedents = [Gaussian(4), Gaussian(4)]
         gass = GeneticAlgorithmSummarySearch(in_features=2, antecedents=antecedents, input_trainable=False)
-        ga_instance = pygad.GA(num_generations=3,
+        ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=5,
                                fitness_func=fitness_function,
                                sol_per_pop=10,
                                num_genes=gass.in_features,
+                               mutation_num_genes=1,
                                gene_space=gass.local_gene_space)
 
         ga_instance.run()
+        print('Initial population:')
         print(ga_instance.initial_population)
+        print('Population after {} generations:'.format(ga_instance.num_generations))
         print(ga_instance.population)
         solution, solution_fitness, solution_idx = ga_instance.best_solution()
-        print("Parameters of the best solution : {solution}".format(solution=solution))
-        print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
-        print("Index of the best solution : {solution_idx}".format(solution_idx=solution_idx))
+        print('Parameters of the best solution : {solution}'.format(solution=solution))
+        print('Fitness value of the best solution = {solution_fitness}'.format(solution_fitness=solution_fitness))
+        print('Index of the best solution : {solution_idx}'.format(solution_idx=solution_idx))
