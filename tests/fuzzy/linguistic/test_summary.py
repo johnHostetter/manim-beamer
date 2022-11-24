@@ -127,7 +127,7 @@ class TestSummary(unittest.TestCase):
         # the given x does not match as well with the (fuzzy) query
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
         X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
-        assert torch.isclose(summary.degree_of_imprecision(X, alpha=0.3, query=query), torch.tensor(1 / 4))
+        assert torch.isclose(summary.degree_of_imprecision(X, alpha=0.3), torch.tensor(1 / 4))
 
     def test_degree_of_covering(self):
         summarizer = [Gaussian(1, centers=0.8, sigmas=0.25), Gaussian(1, centers=0.4, sigmas=0.25)]
