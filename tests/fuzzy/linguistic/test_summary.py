@@ -1,10 +1,12 @@
 import torch
+import pygad
 import unittest
 import numpy as np
 
 from soft.fuzzy.sets import Gaussian
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
-from soft.fuzzy.linguistic.summary import Summary, Query, most_quantifier as Q
+from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, fitness_function, \
+    most_quantifier as Q
 
 
 class TestSummary(unittest.TestCase):
@@ -166,3 +168,21 @@ class TestSummary(unittest.TestCase):
         X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
         assert torch.isclose(summary.degree_of_validity(X, alpha=0.3, query=query),
                              torch.tensor(0.3840465843677521))
+
+    def test_genetic_algorithm_summary_search(self):
+        antecedents = [Gaussian(4), Gaussian(4)]
+        gass = GeneticAlgorithmSummarySearch(in_features=2, antecedents=antecedents, input_trainable=False)
+        ga_instance = pygad.GA(num_generations=3,
+                               num_parents_mating=5,
+                               fitness_func=fitness_function,
+                               sol_per_pop=10,
+                               num_genes=gass.in_features,
+                               gene_space=gass.local_gene_space)
+
+        ga_instance.run()
+        print(ga_instance.initial_population)
+        print(ga_instance.population)
+        solution, solution_fitness, solution_idx = ga_instance.best_solution()
+        print("Parameters of the best solution : {solution}".format(solution=solution))
+        print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
+        print("Index of the best solution : {solution_idx}".format(solution_idx=solution_idx))
