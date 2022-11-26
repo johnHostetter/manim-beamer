@@ -203,6 +203,8 @@ class TestSummary(unittest.TestCase):
                                on_start=check_initial_population,
                                on_mutation=prevent_no_fuzzy_sets)
         prevent_no_fuzzy_sets(ga_instance=ga_instance, offspring_mutation=offspring_mutation)
+        indices_that_contain_no_chosen_fuzzy_sets = np.where((offspring_mutation < 0).all(axis=1))[0]
+        assert len(indices_that_contain_no_chosen_fuzzy_sets) == 0
 
     def test_genetic_algorithm_summary_search(self):
         ga_instance = pygad.GA(num_generations=10,
