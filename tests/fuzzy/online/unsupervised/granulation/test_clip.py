@@ -11,6 +11,7 @@ from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP, reg
 # local implementations of CLIP that we know work but are written in Numpy
 from tests.fuzzy.online.unsupervised.granulation.clip import CLIP as oldCLIP, R as oldR
 
+
 set_rng(0)
 
 
