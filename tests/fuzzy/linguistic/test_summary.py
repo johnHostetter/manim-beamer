@@ -17,11 +17,11 @@ gass = GeneticAlgorithmSummarySearch(in_features=2, antecedents=antecedents, inp
 
 
 def make_scenario_1():
-    terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-    summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
+    terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
+    summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
     summary = Summary(summarizer, Q, None)
     # we want the second attribute to satisfy this
-    query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
+    query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
     X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
     return X, query, summary
 
@@ -51,7 +51,7 @@ def fitness_function(solution, solution_idx):
                            for variable_index, term_index in enumerate(solution)]
     gass.input_granulation.select(candidate_selection)
     candidate = Summary(gass.input_granulation, quantifier=Q, truth=None)
-    query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
+    query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
     return candidate.degree_of_validity(X, alpha=0.3, query=query).item()
 
 
@@ -66,7 +66,7 @@ class TestSummary(unittest.TestCase):
         with torch.no_grad():
             elements = torch.tensor([0.7, 0.6, 0.8, 0.9, 0.74, 0.45, 0.64, 0.2])
             n_inputs = 1
-            property_mf = Gaussian(n_inputs, centers=[0.8], sigmas=[0.4])
+            property_mf = Gaussian(n_inputs, centers=[0.8], widths=[0.4])
             assert property_mf.centers.detach().numpy() == 0.8
             assert property_mf.sigmas.detach().numpy() == 0.4
             mu = property_mf(elements)
@@ -79,8 +79,8 @@ class TestSummary(unittest.TestCase):
         with torch.no_grad():
             elements = torch.tensor([0.7, 0.6, 0.8, 0.9, 0.74, 0.45, 0.64, 0.2])
             n_inputs = 1
-            property_mf = Gaussian(n_inputs, centers=[0.8], sigmas=[0.4])
-            importance_mf = Gaussian(n_inputs, centers=[0.6], sigmas=[0.2])
+            property_mf = Gaussian(n_inputs, centers=[0.8], widths=[0.4])
+            importance_mf = Gaussian(n_inputs, centers=[0.6], widths=[0.2])
             assert property_mf.centers.detach().numpy() == 0.8
             assert property_mf.sigmas.detach().numpy() == 0.4
             assert importance_mf.centers.detach().numpy() == 0.6
@@ -128,8 +128,8 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
+        terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
         summary = Summary(summarizer, Q, None)
         x = torch.tensor([[1., 0.5]])
         assert torch.isclose(summary.summarizer_membership(x), torch.tensor(0.5272924900054932))
@@ -142,15 +142,15 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
+        terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
         summary = Summary(summarizer, Q, None)
         x = torch.tensor([[1., 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
-        query = Query(Gaussian(1, centers=0.3, sigmas=0.3), 1)
+        query = Query(Gaussian(1, centers=0.3, widths=0.3), 1)
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.5272924900054932))  # it should
         # we want the second attribute to satisfy this
-        query = Query(Gaussian(1, centers=0.25, sigmas=0.3), 1)
+        query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
         # the given x does not match as well with the (fuzzy) query
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
 
@@ -173,8 +173,8 @@ class TestSummary(unittest.TestCase):
                              torch.tensor(0.006944441236555576))
 
     def test_length(self):
-        terms = [Gaussian(1, centers=[0.8], sigmas=[0.25]), Gaussian(1, centers=[0.4], sigmas=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, trainable=False)
+        terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
+        summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
         summary = Summary(summarizer, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
