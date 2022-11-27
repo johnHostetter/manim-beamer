@@ -4,49 +4,13 @@ import numpy as np
 
 from soft.fuzzy.sets import Gaussian
 from utils.reproducibility import set_rng
-from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.information.granulation import GranulesMap
 from soft.fuzzy.logic.inference.engines import ProductInference
+from soft.fuzzy.logic.rules.knowledge import Rule, FuzzyRuleBase
 from soft.fuzzy.logic.control.tsk import make_links_from_antecedents_to_rules
 
+
 set_rng(0)
-
-
-class FuzzyRuleBase:
-    def __init__(self, rules):
-        self.rules = rules
-        self.antecedents_matrix_form = np.array([rule.antecedents for rule in self.rules])
-        for col_idx in reversed(range(self.antecedents_matrix_form.shape[1])):
-            indices = self.antecedents_matrix_form[:, col_idx].argsort()
-            self.rules = [self.rules[idx] for idx in indices]
-            self.antecedents_matrix_form = self.antecedents_matrix_form[indices]
-
-    def num_of_rules(self):
-        return self.antecedents_matrix_form.shape[0]
-
-    def num_of_input_variables(self):
-        return self.antecedents_matrix_form.shape[1]
-
-
-def make_sparse_links(input_granulation, rules):
-    frb = FuzzyRuleBase(rules)
-    links = np.zeros((input_granulation.num_of_granules.sum(), len(rules)))
-    col = np.zeros(input_granulation.num_of_granules.sum())  # where we are starting from
-    row = np.zeros(len(rules))  # where we are going to
-    for rule_idx, rule in enumerate(rules):
-        for input_variable_idx, term_idx in enumerate(rule.antecedents):
-            if isinstance(rule, Rule):
-                actual_term_idx = input_granulation.iloc(input_variable_idx, term_idx)
-            elif isinstance(rule, tuple):
-                actual_term_idx = term_idx  # in this case, tuples have the correct index (FTARM algorithm)
-            links[actual_term_idx, rule_idx] = 1
-
-    # num_connections = 10
-    col = torch.arange(frb.num_of_input_variables()).repeat_interleave(frb.num_of_rules()).view(1, -1).long()
-    # row = torch.randint(low=0, high=2000, size=(784 * num_connections,)).view(1, -1).long()
-    row = torch.tensor(frb.antecedents_matrix_form).transpose(1, 0).flatten().view(1, -1).long()
-    connections = torch.cat((row, col), dim=0)
-    return connections
 
 
 class TestProductInference(unittest.TestCase):
