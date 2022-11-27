@@ -1,6 +1,5 @@
 import torch
 import unittest
-import numpy as np
 
 from soft.fuzzy.sets import Gaussian
 from utils.reproducibility import set_rng
