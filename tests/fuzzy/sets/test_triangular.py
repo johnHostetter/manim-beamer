@@ -11,14 +11,14 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         element = 0.
         n_inputs = 1
         triangular_mf = Triangular(n_inputs)
-        width = triangular_mf.widths.detach().numpy()
         center = triangular_mf.centers.detach().numpy()
+        width = triangular_mf.widths.detach().numpy()
         mu_pytorch = triangular_mf(torch.tensor(element))
         mu_numpy = TriangularNumpy(element, center, width)
 
         # make sure the Gaussian parameters are still identical afterwards
-        assert (triangular_mf.widths.detach().numpy() == width).all()
         assert (triangular_mf.centers.detach().numpy() == center).all()
+        assert (triangular_mf.widths.detach().numpy() == width).all()
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-4).all()
 
@@ -26,14 +26,14 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         elements = np.random.random(10)
         n_inputs = len(elements)
         triangular_mf = Triangular(n_inputs)
-        widths = triangular_mf.widths.detach().numpy()
         centers = triangular_mf.centers.detach().numpy()
+        widths = triangular_mf.widths.detach().numpy()
         mu_pytorch = triangular_mf(torch.tensor(elements))
         mu_numpy = TriangularNumpy(elements, centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
-        assert (triangular_mf.widths.detach().numpy() == widths).all()
         assert (triangular_mf.centers.detach().numpy() == centers).all()
+        assert (triangular_mf.widths.detach().numpy() == widths).all()
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-4).all()
 
@@ -47,8 +47,8 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         mu_numpy = TriangularNumpy(elements, centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
-        assert (triangular_mf.widths.detach().numpy() == widths).all()
         assert (triangular_mf.centers.detach().numpy() == centers).all()
+        assert (triangular_mf.widths.detach().numpy() == widths).all()
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-4).all()
 
@@ -64,8 +64,8 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         mu_numpy = TriangularNumpy(elements, centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
-        assert (triangular_mf.widths.detach().numpy() == widths).all()
         assert (triangular_mf.centers.detach().numpy() == centers).all()
+        assert np.isclose(triangular_mf.widths.detach().numpy(), widths).all()
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-4).all()
 
@@ -81,7 +81,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         mu_numpy = TriangularNumpy(elements, centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
-        assert (triangular_mf.widths.detach().numpy() == widths).all()
         assert (triangular_mf.centers.detach().numpy() == centers).all()
+        assert np.isclose(triangular_mf.widths.detach().numpy(), widths).all()
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-4).all()
