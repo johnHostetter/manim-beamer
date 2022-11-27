@@ -12,7 +12,7 @@ set_rng(0)
 
 
 def make_scenario_1():
-    in_features, out_features = 2, 2
+    in_features, out_features = 2, 1
     antecedents = [
         Gaussian(3, centers=torch.tensor([-1, 0., 1.]), widths=torch.tensor([1., 1., 1.])),
         Gaussian(3, centers=torch.tensor([-1., 0., 1.]), widths=torch.tensor([1., 1., 1.]))]

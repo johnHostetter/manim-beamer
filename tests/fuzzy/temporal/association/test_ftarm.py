@@ -2,10 +2,12 @@ import torch
 import unittest
 import numpy as np
 
-from soft.fuzzy.logic.control.tsk import make_links_from_antecedents_to_rules
 from soft.fuzzy.sets import Triangular
+from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.information.granulation import GranulesMap
+from soft.fuzzy.logic.inference.engines import MinimumInference
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
+from soft.fuzzy.logic.control.tsk import make_links_from_antecedents_to_rules
 from soft.fuzzy.temporal.association.ftarm import FTARM, TemporalInformationTable as TI
 
 
@@ -24,7 +26,7 @@ class TestFTARM(unittest.TestCase):
                                              0.0000],
                                             [0.6000, 0.0000, 0.7500, 0.2500, 0.0000, 0.0000, 0.0000, 1.0000, 1.0000,
                                              0.0000]])
-        assert (torch.isclose(mus, expected_membership)).all()
+        assert (torch.isclose(mus.reshape(5, 10), expected_membership)).all()
 
     def test_temporal_information_table(self):
         dataframe, terms = make_example()
@@ -45,7 +47,7 @@ class TestFTARM(unittest.TestCase):
         expected_scalar_cardinality = torch.tensor(
             [2.8000, 0.0000, 1.7500, 0.2500, 4 / 3, 2 / 3, 0.0000, 2.0000, 1.0000,
              0.0000])
-        assert torch.isclose(mus.sum(dim=0), expected_scalar_cardinality).all()
+        assert torch.isclose(mus.sum(dim=0).flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
         dataframe, terms = make_example()
@@ -58,12 +60,18 @@ class TestFTARM(unittest.TestCase):
             [2.8000, 0.0000, 1.7500, 0.2500, 4 / 3, 2 / 3, 0.0000, 2.0000, 1.0000,
              0.0000])
         numerator = mus.sum(dim=0)
-        assert torch.isclose(numerator, expected_scalar_cardinality).all()
+        assert torch.isclose(numerator.flatten(), expected_scalar_cardinality).all()
         ti_table = TI(dataframe, terms)
         num_of_possible_transactions_per_temporal_item = [ti_table.size_of_transactions_per_time_granule.values[idx:]
                                                           .sum() for idx in ti_table.starting_periods.values[0]]
-        denominator = granulation.linear_map(torch.tensor(num_of_possible_transactions_per_temporal_item).float())
+        denominator = torch.tensor(num_of_possible_transactions_per_temporal_item)[:, None]
         fuzzy_temporal_supports = numerator / denominator
+        expected_output = torch.tensor([[0.56000006, 0.],  # low A, high A
+                                        [0.35, 0.05],  # low B, high B
+                                        [0.26666665, 0.13333333],  # low C, high C
+                                        [0., 1.],  # low D, high D
+                                        [0.5, 0.]])  # low E, high E
+        assert torch.isclose(fuzzy_temporal_supports, expected_output).all()
 
     def test_step_4(self):
         dataframe, terms = make_example()
@@ -76,64 +84,50 @@ class TestFTARM(unittest.TestCase):
         ti_table = TI(dataframe, terms)
         num_of_possible_transactions_per_temporal_item = [ti_table.size_of_transactions_per_time_granule.values[idx:]
                                                           .sum() for idx in ti_table.starting_periods.values[0]]
-        denominator = granulation.linear_map(torch.tensor(num_of_possible_transactions_per_temporal_item).float())
+        denominator = torch.tensor(num_of_possible_transactions_per_temporal_item)[:, None]
         fuzzy_temporal_supports = numerator / denominator
         # start of step 4
         minimum_support = 0.3
         fuzzy_temporal_supports >= minimum_support  # L1 --> low A, low B, high D, and low E
         assert ((fuzzy_temporal_supports >= minimum_support) ==
-                torch.tensor([True, False, True, False, False, False, False, True, True, False])).all()
+                torch.tensor([[True, False], [True, False], [False, False], [False, True], [True, False]])).all()
 
         if torch.count_nonzero(fuzzy_temporal_supports >= minimum_support).item() > 0:  # step 5
             r = 1  # then we continue (with step 6), where r is the number of items in the current itemsets
 
-        L1_indices = torch.where(fuzzy_temporal_supports >= minimum_support)[0]  # the indices for the L1 items
+        L1_row_indices, L1_col_indices = torch.where(fuzzy_temporal_supports >= minimum_support)  # L1 items' indices
+        L1_indices = list(zip(L1_row_indices.tolist(), L1_col_indices.tolist()))
 
         from itertools import combinations
 
-        # (low A, low B), (low A, high D), (low A, low E), (low B, high D), (low B, low E), (high D, low E)
-        C2_indices = list(combinations(L1_indices.tolist(), r=r+1))
+        # step 7: (low A, low B), (low A, high D), (low A, low E), (low B, high D), (low B, low E), (high D, low E)
+        C2_indices = list(combinations(L1_indices, r=r + 1))
 
-        from collections import namedtuple
-        FakeRule = namedtuple('FakeRule', 'antecedents')
-        fake_rules = [FakeRule(candidate_indices) for candidate_indices in C2_indices]
-        links = make_links_from_antecedents_to_rules(granulation, fake_rules)
+        # step 8:
 
-        (mus[:, :, None] * torch.tensor(links).float())
-    # def test_step_1(self):
-    #     dataframe, terms = make_example()
-    #     ftarm = FTARM(dataframe, terms, ALPHA=0.3, LAMBDA=0.6)  # using default values for ALPHA and LAMBDA
-    #     actual_output = ftarm._FTARM__step_1()
-    #     with open('data/step_1_output.npy', 'rb') as file:
-    #         expected_output = np.load(file)
-    #     assert np.isclose(actual_output, expected_output, rtol=1e-8, equal_nan=True).all()
-    #
-    # def test_step_2(self):
-    #     dataframe, terms = make_example()
-    #     ftarm = FTARM(dataframe, terms, ALPHA=0.3, LAMBDA=0.6)  # using default values for ALPHA and LAMBDA
-    #     f = ftarm._FTARM__step_1()
-    #     actual_output = ftarm._FTARM__step_2(f)
-    #     with open('data/step_2_output.npy', 'rb') as file:
-    #         expected_output = np.load(file)
-    #     assert np.isclose(actual_output, expected_output, rtol=1e-8, equal_nan=True).all()
-    #
-    # def test_step_3(self):
-    #     dataframe, terms = make_example()
-    #     ftarm = FTARM(dataframe, terms, ALPHA=0.3, LAMBDA=0.6)  # using default values for ALPHA and LAMBDA
-    #     f = ftarm._FTARM__step_1()
-    #     count = ftarm._FTARM__step_2(f)
-    #     actual_output = ftarm._FTARM__step_3(count)
-    #     with open('data/step_3_output.npy', 'rb') as file:
-    #         expected_output = np.load(file)
-    #     assert np.isclose(actual_output, expected_output, rtol=1e-8, equal_nan=True).all()
-    #
-    # def test_step_4(self):
-    #     dataframe, terms = make_example()
-    #     ftarm = FTARM(dataframe, terms, ALPHA=0.3, LAMBDA=0.6)  # using default values for ALPHA and LAMBDA
-    #     f = ftarm._FTARM__step_1()
-    #     count = ftarm._FTARM__step_2(f)
-    #     tFuzzySupport = ftarm._FTARM__step_3(count)
-    #     actual_output = ftarm._FTARM__step_4(tFuzzySupport)
-    #     with open('data/step_4_output.npy', 'rb') as file:
-    #         expected_output = np.load(file)
-    #     assert np.isclose(actual_output, expected_output, rtol=1e-8, equal_nan=True).all()
+        # step 8.1:
+
+        special_idx = granulation.make_dont_care_membership()
+        nan_array = np.empty(len(ti_table.terms.keys()))
+        nan_array[:] = special_idx
+        from copy import deepcopy
+        rules = []
+        consequences = []
+        for candidate in C2_indices:
+            antecedents = deepcopy(nan_array)
+            for var_idx, term_idx in candidate:
+                antecedents[var_idx] = term_idx
+            consequences.append(int(0))
+            rules.append(Rule(antecedents, consequents=[0]))
+        links = make_links_from_antecedents_to_rules(granulation, rules)
+        mi = MinimumInference(in_features=len(terms.keys()), out_features=1, consequences=torch.tensor(consequences),
+                              links=links)
+        antecedents_memberships = granulation(torch.tensor(dataframe[terms.keys()].values).float())
+        actual_output = mi.calc_rules_applicability(antecedents_memberships)
+        expected_output = torch.tensor([0., 0.5, 0., 0.5, 0.6])
+        assert torch.isclose(actual_output[:, 0], expected_output).all()
+
+        # step 8.2:
+
+        expected_scalar_cardinality = torch.tensor([1.6000, 1.2000, 0.6000, 1.2500, 0.7500, 1.0000])
+        assert torch.isclose(actual_output.sum(dim=0), expected_scalar_cardinality).all()
