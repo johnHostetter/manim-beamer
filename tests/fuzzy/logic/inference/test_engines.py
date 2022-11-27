@@ -3,9 +3,9 @@ import unittest
 
 from soft.fuzzy.sets import Gaussian
 from utils.reproducibility import set_rng
+from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.information.granulation import GranulesMap
 from soft.fuzzy.logic.inference.engines import ProductInference
-from soft.fuzzy.logic.rules.knowledge import Rule, FuzzyRuleBase
 from soft.fuzzy.logic.control.tsk import make_links_from_antecedents_to_rules
 
 
