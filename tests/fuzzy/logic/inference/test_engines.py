@@ -53,14 +53,14 @@ class TestProductInference(unittest.TestCase):
     def test_output(self):
         in_features, out_features = 2, 2
         antecedents = [
-            Gaussian(3, centers=torch.tensor([-1., 0., 1.]), widths=torch.tensor([1., 1., 1.])),
+            Gaussian(3, centers=torch.tensor([-1, 0., 1.]), widths=torch.tensor([1., 1., 1.])),
             Gaussian(3, centers=torch.tensor([-1., 0., 1.]), widths=torch.tensor([1., 1., 1.]))]
         rules = [
             Rule(antecedents=[0, 0], consequents=[0]),
             Rule(antecedents=[0, 1], consequents=[0]),
             Rule(antecedents=[1, 0], consequents=[0]),
             Rule(antecedents=[1, 1], consequents=[0]),
-            Rule(antecedents=[2, 2], consequents=[0]),
+            Rule(antecedents=[1, 2], consequents=[0]),
             Rule(antecedents=[1, 2], consequents=[0]),
         ]
         input_granulation = GranulesMap(in_features=in_features, granules_params=antecedents,
@@ -75,15 +75,15 @@ class TestProductInference(unittest.TestCase):
                               links=links)
         X = torch.randn((4, 2))
         antecedents_memberships = input_granulation(X)
-        try:
-            terms_to_rules = antecedents_memberships[:, :, None] \
-                             * torch.tensor(pi.links_between_antecedents_and_rules).float()
-        except IndexError:
-            terms_to_rules = antecedents_memberships[:, None] * torch.tensor(
-                pi.links_between_antecedents_and_rules)
-
-        with torch.no_grad():
-            terms_to_rules[terms_to_rules == 0] = 1.0  # ignore zeroes, this is from the weights between terms and rules
+        # try:
+        #     terms_to_rules = antecedents_memberships[:, :, None] \
+        #                      * torch.tensor(pi.links_between_antecedents_and_rules).float()
+        # except IndexError:
+        #     terms_to_rules = antecedents_memberships[:, None] * torch.tensor(
+        #         pi.links_between_antecedents_and_rules)
+        #
+        # with torch.no_grad():
+        #     terms_to_rules[terms_to_rules == 0] = 1.0  # ignore zeroes, this is from the weights between terms and rules
         # import sparselinear as sl
         # connections = make_sparse_links(input_granulation, rules)
         frb = FuzzyRuleBase(rules)
@@ -91,17 +91,24 @@ class TestProductInference(unittest.TestCase):
         num_of_rules = frb.num_of_rules()
         num_of_variables = X.shape[1]
         num_of_terms = 3
-        actual_output = (antecedents_memberships[:, None] * links.transpose(0, 1))\
-            .reshape(num_of_observations, num_of_rules, num_of_variables, num_of_terms).sum(-1)\
-            .transpose(1, 2).prod(dim=1)
+        links = np.zeros((num_of_rules, num_of_variables, num_of_terms))
+        for rule_idx, rule in enumerate(tuple(frb.antecedents_matrix_form)):
+            for var_idx, term_idx in enumerate(tuple(rule)):
+                links[rule_idx, var_idx, term_idx] = 1
+        links = torch.tensor(links).transpose(0, 1).transpose(1, 2)  # shape is num of vars, num of terms, num of rules
+        intermediate_output = (antecedents_memberships[:, :, :, None] * links)
+        actual_output = intermediate_output.nansum(dim=2).prod(dim=1).float()
+        # actual_output = (antecedents_memberships[:, None] * links.transpose(0, 1))\
+        #     .reshape(num_of_observations, num_of_rules, num_of_variables, num_of_terms).sum(-1)\
+        #     .transpose(1, 2).prod(dim=1)
         # the shape of terms_to_rules is (num of observations, num of ALL terms, num of rules)
-        rules_applicability = terms_to_rules.prod(dim=1).float()
-        expected_output = torch.tensor([[0.00475898, 0.06913665, 0.02898348, 0.4210613, 0.68233776,
-                                         0.8278493],
-                                        [0.6473842, 0.78544694, 0.41755858, 0.5066081, 0.00726113,
-                                         0.08318364],
-                                        [0.21015427, 0.8221435, 0.17322151, 0.67765903, 0.04002269,
-                                         0.3587828],
-                                        [0.01187785, 0.291746, 0.00582015, 0.14295565, 0.03151279,
-                                         0.4752033]])
+        # rules_applicability = terms_to_rules.prod(dim=1).float()
+        expected_output = torch.tensor([[9.52992122e-04, 1.44050468e-03, 5.64775779e-02, 8.53692423e-02,
+                                         1.74637646e-02, 1.74637646e-02],
+                                        [2.12899314e-02, 1.80385602e-01, 7.41303946e-04, 6.28092951e-03,
+                                         7.20215626e-03, 7.20215626e-03],
+                                        [8.47027257e-01, 1.40406535e-01, 2.63140523e-01, 4.36191975e-02,
+                                         9.78540533e-04, 9.78540533e-04],
+                                        [4.75897548e-03, 6.91366485e-02, 2.89834770e-02, 4.21061312e-01,
+                                         8.27849315e-01, 8.27849315e-01]])
         assert torch.isclose(actual_output, expected_output).all()
