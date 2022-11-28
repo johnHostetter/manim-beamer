@@ -16,16 +16,11 @@ class TestFTARM(unittest.TestCase):
         dataframe, terms = make_example()
         granulation = GranulesMap(len(terms.keys()), list(terms.values()), Triangular)
         mus = granulation(torch.tensor(dataframe[terms.keys()].values).float())
-        expected_membership = torch.tensor([[1.0000, 0.0000, 0.0000, 0.0000, 2 / 3, 1 / 3, 0.0000, 0.0000, 0.0000,
-                                             0.0000],
-                                            [0.6000, 0.0000, 0.5000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                             0.0000],
-                                            [0.0000, 0.0000, 0.0000, 0.0000, 2 / 3, 1 / 3, 0.0000, 0.0000, 0.0000,
-                                             0.0000],
-                                            [0.6000, 0.0000, 0.5000, 0.0000, 0.0000, 0.0000, 0.0000, 1.0000, 0.0000,
-                                             0.0000],
-                                            [0.6000, 0.0000, 0.7500, 0.2500, 0.0000, 0.0000, 0.0000, 1.0000, 1.0000,
-                                             0.0000]])
+        expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
+                                            [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                            [0.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
+                                            [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                                            [0.5, 0.0, 0.75, 0.25, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]])
         assert (torch.isclose(mus.reshape(5, 10), expected_membership)).all()
 
     def test_temporal_information_table(self):
@@ -44,9 +39,7 @@ class TestFTARM(unittest.TestCase):
         # check that the variable location method is working properly (returns start and end indices)
         for variable_index in range(5):
             assert granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
-        expected_scalar_cardinality = torch.tensor(
-            [2.8000, 0.0000, 1.7500, 0.2500, 4 / 3, 2 / 3, 0.0000, 2.0000, 1.0000,
-             0.0000])
+        expected_scalar_cardinality = torch.tensor([2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
         assert torch.isclose(mus.sum(dim=0).flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
@@ -56,9 +49,7 @@ class TestFTARM(unittest.TestCase):
         # check that the variable location method is working properly (returns start and end indices)
         for variable_index in range(5):
             assert granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
-        expected_scalar_cardinality = torch.tensor(
-            [2.8000, 0.0000, 1.7500, 0.2500, 4 / 3, 2 / 3, 0.0000, 2.0000, 1.0000,
-             0.0000])
+        expected_scalar_cardinality = torch.tensor([2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
         numerator = mus.sum(dim=0)
         assert torch.isclose(numerator.flatten(), expected_scalar_cardinality).all()
         ti_table = TI(dataframe, terms)
@@ -66,7 +57,7 @@ class TestFTARM(unittest.TestCase):
                                                           .sum() for idx in ti_table.starting_periods.values[0]]
         denominator = torch.tensor(num_of_possible_transactions_per_temporal_item)[:, None]
         fuzzy_temporal_supports = numerator / denominator
-        expected_output = torch.tensor([[0.56000006, 0.],  # low A, high A
+        expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
                                         [0.26666665, 0.13333333],  # low C, high C
                                         [0., 1.],  # low D, high D
@@ -124,10 +115,40 @@ class TestFTARM(unittest.TestCase):
                               links=links)
         antecedents_memberships = granulation(torch.tensor(dataframe[terms.keys()].values).float())
         actual_output = mi.calc_rules_applicability(antecedents_memberships)
-        expected_output = torch.tensor([0., 0.5, 0., 0.5, 0.6])
+        expected_output = torch.tensor([0., 0.5, 0., 0.5, 0.5])
         assert torch.isclose(actual_output[:, 0], expected_output).all()
 
         # step 8.2:
 
-        expected_scalar_cardinality = torch.tensor([1.6000, 1.2000, 0.6000, 1.2500, 0.7500, 1.0000])
+        scalar_cardinality = actual_output.sum(dim=0)
+        expected_scalar_cardinality = torch.tensor([1.5, 1.0, 0.5, 1.25, 0.75, 1.0])
         assert torch.isclose(actual_output.sum(dim=0), expected_scalar_cardinality).all()
+
+        # step 8.3
+
+        # we need to get each temporal item's corresponding starting period
+        item_indices_in_each_candidate = [tuple([pair[0] for pair in candidate]) for candidate in C2_indices]
+        # (0, 1) means the first and second items in ti_table.terms.keys(), and so on
+        assert item_indices_in_each_candidate == [(0, 1), (0, 3), (0, 4), (1, 3), (1, 4), (3, 4)]
+
+        starting_periods_per_item_in_each_candidate = [[ti_table.starting_periods.values[0, var_idx]
+                                                        for var_idx in candidate_indices]
+                                                       for candidate_indices in item_indices_in_each_candidate]
+        assert starting_periods_per_item_in_each_candidate == [[0, 0], [0, 1], [0, 1], [0, 1], [0, 1], [1, 1]]
+
+        # get the maximum starting period within each candidate to calculate fuzzy temporal support
+        max_starting_periods = np.array(starting_periods_per_item_in_each_candidate).max(axis=1)
+
+        assert (max_starting_periods == np.array([0, 1, 1, 1, 1, 1])).all()
+
+        num_of_transactions_per_candidate = [ti_table.size_of_transactions_per_time_granule.values[idx:].sum()
+                                             for idx in max_starting_periods]
+        num_of_transactions_per_candidate = np.array(num_of_transactions_per_candidate)
+
+        assert (num_of_transactions_per_candidate == np.array([5, 2, 2, 2, 2, 2])).all()
+
+        fuzzy_temporal_supports = scalar_cardinality / torch.tensor(num_of_transactions_per_candidate)
+
+        assert torch.isclose(fuzzy_temporal_supports, torch.tensor([0.3, 0.5, 0.25, 0.625, 0.375, 0.5])).all()
+
+        L2_indices = torch.where(fuzzy_temporal_supports >= minimum_support)[0]  # L2 items' indices
