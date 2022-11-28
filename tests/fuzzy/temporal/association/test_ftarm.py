@@ -255,16 +255,13 @@ class TestFTARM(unittest.TestCase):
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
         expected_candidate_indices = [
-            ((1, 0), (4, 0), (3, 1)), ((1, 0), (4, 0), (0, 0)),
-            ((3, 1), (4, 0), (0, 0)), ((3, 1), (1, 0), (0, 0)),
-            ((1, 0), (3, 1), (0, 0))
+            {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
+            {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
         ]
         assert C3_indices == expected_candidate_indices
 
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C3_indices)
-        expected_fuzzy_temporal_supports = torch.tensor(
-            [0.5000, 0.5000, 0.2500, 0.2500, 0.3750]
-        )
+        expected_fuzzy_temporal_supports = torch.tensor([0.5000, 0.2500, 0.2500, 0.3750])
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_make_candidate_4_itemsets(self):
@@ -275,10 +272,35 @@ class TestFTARM(unittest.TestCase):
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
         C4_indices = ftarm.make_candidates(C3_indices)
-        expected_candidate_indices = [((4, 0), (0, 0), (1, 0), (3, 1))]
+        expected_candidate_indices = [{(1, 0), (4, 0), (3, 1), (0, 0)}]
         assert C4_indices == expected_candidate_indices
 
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C4_indices)
         expected_fuzzy_temporal_supports = torch.tensor([0.2500])
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
+    def test_execute(self):
+        dataframe, terms = make_example()
+        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.execute()
+        # the first item in the family should match the expected 2-itemsets
+        assert candidates_family[0] == [
+            ((0, 0), (1, 0)), ((0, 0), (3, 1)), ((0, 0), (4, 0)),
+            ((1, 0), (3, 1)), ((1, 0), (4, 0)), ((3, 1), (4, 0))
+        ]
+        # the second item in the family should match the expected 3-itemsets
+        assert candidates_family[1] == [
+            {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
+            {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
+        ]
+        # the third item in the family should match the expected 4-itemset
+        assert candidates_family[2] == [{(1, 0), (4, 0), (3, 1), (0, 0)}]
+
+    def test_find_association_rules(self):
+        dataframe, terms = make_example()
+        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.execute()
+        rules = ftarm.find_association_rules(candidates_family)
+        print(len(rules))
