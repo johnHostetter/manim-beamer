@@ -261,7 +261,7 @@ class TestFTARM(unittest.TestCase):
         assert C3_indices == expected_candidate_indices
 
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C3_indices)
-        expected_fuzzy_temporal_supports = torch.tensor([0.5000, 0.2500, 0.2500, 0.3750])
+        expected_fuzzy_temporal_supports = torch.tensor([0.2500, 0.2500, 0.5000, 0.3750])
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_make_candidate_4_itemsets(self):
@@ -304,3 +304,5 @@ class TestFTARM(unittest.TestCase):
         candidates_family = ftarm.execute()
         rules = ftarm.find_association_rules(candidates_family)
         print(len(rules))
+        for rule in rules:
+            print('{} -> {}'.format(rule.antecedents, rule.consequents))
