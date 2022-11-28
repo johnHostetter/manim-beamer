@@ -77,7 +77,7 @@ class TestFTARM(unittest.TestCase):
         assert ((actual_fuzzy_temporal_supports >= ftarm.minimum_support) ==
                 torch.tensor([[True, False], [True, False], [False, False], [False, True], [True, False]])).all()
 
-        C2_indices = ftarm.make_candidates(r=1)
+        C2_indices = ftarm.make_candidates()
 
         # step 7: (low A, low B), (low A, high D), (low A, low E), (low B, high D), (low B, low E), (high D, low E)
         assert C2_indices == [
@@ -90,7 +90,7 @@ class TestFTARM(unittest.TestCase):
         ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.6)
 
-        C2_indices = ftarm.make_candidates(r=1)
+        C2_indices = ftarm.make_candidates()
 
         # step 8.1:
 
@@ -172,7 +172,7 @@ class TestFTARM(unittest.TestCase):
         ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.6)
 
-        C2_indices = ftarm.make_candidates(r=1)
+        C2_indices = ftarm.make_candidates()
 
         # step 8.1:
 
@@ -190,7 +190,7 @@ class TestFTARM(unittest.TestCase):
         ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.6)
 
-        C2_indices = ftarm.make_candidates(r=1)
+        C2_indices = ftarm.make_candidates()
 
         # step 8.2:
 
@@ -203,7 +203,13 @@ class TestFTARM(unittest.TestCase):
         ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.6)
 
-        C2_indices = ftarm.make_candidates(r=1)
+        C2_indices = ftarm.make_candidates()
+        # the following candidate order is assumed for the following assertions
+        assert C2_indices == [
+            ((0, 0), (1, 0)), ((0, 0), (3, 1)),
+            ((0, 0), (4, 0)), ((1, 0), (3, 1)),
+            ((1, 0), (4, 0)), ((3, 1), (4, 0))
+        ]
 
         # step 8.3
 
@@ -240,3 +246,39 @@ class TestFTARM(unittest.TestCase):
         L2_indices = torch.where(fuzzy_temporal_supports >= ftarm.minimum_support)[0]  # L2 items' indices
 
         assert (L2_indices == torch.tensor([0, 1, 3, 4, 5])).all()
+
+    def test_make_candidate_3_itemsets(self):
+        dataframe, terms = make_example()
+        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.6)
+
+        C2_indices = ftarm.make_candidates()
+        C3_indices = ftarm.make_candidates(C2_indices)
+        expected_candidate_indices = [
+            ((1, 0), (4, 0), (3, 1)), ((1, 0), (4, 0), (0, 0)),
+            ((3, 1), (4, 0), (0, 0)), ((3, 1), (1, 0), (0, 0)),
+            ((1, 0), (3, 1), (0, 0))
+        ]
+        assert C3_indices == expected_candidate_indices
+
+        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C3_indices)
+        expected_fuzzy_temporal_supports = torch.tensor(
+            [0.5000, 0.5000, 0.2500, 0.2500, 0.3750]
+        )
+        assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
+
+    def test_make_candidate_4_itemsets(self):
+        dataframe, terms = make_example()
+        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.6)
+
+        C2_indices = ftarm.make_candidates()
+        C3_indices = ftarm.make_candidates(C2_indices)
+        C4_indices = ftarm.make_candidates(C3_indices)
+        expected_candidate_indices = [((4, 0), (0, 0), (1, 0), (3, 1))]
+        assert C4_indices == expected_candidate_indices
+
+        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C4_indices)
+        expected_fuzzy_temporal_supports = torch.tensor([0.2500])
+        assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
+
