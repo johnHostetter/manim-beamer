@@ -56,7 +56,7 @@ class TestFTARM(unittest.TestCase):
         for variable_index in range(5):
             assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
 
-        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(r=1)
+        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
                                         [0.26666665, 0.13333333],  # low C, high C
@@ -72,7 +72,7 @@ class TestFTARM(unittest.TestCase):
         for variable_index in range(5):
             assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
         # start of step 4
-        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(r=1)
+        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         actual_fuzzy_temporal_supports >= ftarm.minimum_support  # L1 --> low A, low B, high D, and low E
         assert ((actual_fuzzy_temporal_supports >= ftarm.minimum_support) ==
                 torch.tensor([[True, False], [True, False], [False, False], [False, True], [True, False]])).all()
@@ -174,6 +174,8 @@ class TestFTARM(unittest.TestCase):
 
         C2_indices = ftarm.make_candidates(r=1)
 
+        # step 8.1:
+
         # now checking that FTARM calculates the same as above
         expected_output = torch.tensor([[0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
                                         [0.5000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
@@ -183,11 +185,25 @@ class TestFTARM(unittest.TestCase):
 
         assert torch.isclose(ftarm.fuzzy_representation(C2_indices), expected_output).all()
 
+    def test_candidate_scalar_cardinality(self):
+        dataframe, terms = make_example()
+        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.6)
+
+        C2_indices = ftarm.make_candidates(r=1)
+
         # step 8.2:
 
         actual_scalar_cardinality = ftarm.scalar_cardinality(C2_indices)
         expected_scalar_cardinality = torch.tensor([1.5, 1.0, 0.5, 1.25, 0.75, 1.0])
         assert torch.isclose(actual_scalar_cardinality, expected_scalar_cardinality).all()
+
+    def test_candidate_fuzzy_temporal_supports(self):
+        dataframe, terms = make_example()
+        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.6)
+
+        C2_indices = ftarm.make_candidates(r=1)
 
         # step 8.3
 
@@ -212,9 +228,14 @@ class TestFTARM(unittest.TestCase):
 
         assert (num_of_transactions_per_candidate == np.array([5, 2, 2, 2, 2, 2])).all()
 
-        fuzzy_temporal_supports = actual_scalar_cardinality / torch.tensor(num_of_transactions_per_candidate)
+        fuzzy_temporal_supports = ftarm.scalar_cardinality(C2_indices) / torch.tensor(num_of_transactions_per_candidate)
+        expected_fuzzy_temporal_supports = torch.tensor([0.3, 0.5, 0.25, 0.625, 0.375, 0.5])
 
-        assert torch.isclose(fuzzy_temporal_supports, torch.tensor([0.3, 0.5, 0.25, 0.625, 0.375, 0.5])).all()
+        assert torch.isclose(fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
+
+        # now checking that FTARM calculates the same as above
+
+        assert torch.isclose(ftarm.fuzzy_temporal_supports(C2_indices), expected_fuzzy_temporal_supports).all()
 
         L2_indices = torch.where(fuzzy_temporal_supports >= ftarm.minimum_support)[0]  # L2 items' indices
 
