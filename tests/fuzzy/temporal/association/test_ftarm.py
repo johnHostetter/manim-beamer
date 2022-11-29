@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 
 from soft.fuzzy.sets import Triangular
+from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.information.granulation import GranulesMap
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import FTARM, make_fuzzy_rule_base_with_some_missing_inputs, \
@@ -160,11 +161,11 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_antecedents_memberships, expected_memberships, equal_nan=True).all()
 
         actual_rules_applicability = mi.calc_rules_applicability(actual_antecedents_memberships)
-        expected_output = torch.tensor([[0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-                                        [0.5000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-                                        [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-                                        [0.5000, 0.5000, 0.0000, 0.5000, 0.0000, 0.0000],
-                                        [0.5000, 0.5000, 0.5000, 0.7500, 0.7500, 1.0000]])
+        expected_output = torch.tensor([[0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                                        [0.50, 0.00, 0.00, 0.00, 0.00, 0.00],
+                                        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                                        [0.50, 0.50, 0.00, 0.50, 0.00, 0.00],
+                                        [0.50, 0.50, 0.50, 0.75, 0.75, 1.00]])
         assert torch.isclose(actual_rules_applicability, expected_output).all()
 
     def test_candidate_fuzzy_representation_ftarm(self):
@@ -177,11 +178,11 @@ class TestFTARM(unittest.TestCase):
         # step 8.1:
 
         # now checking that FTARM calculates the same as above
-        expected_output = torch.tensor([[0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-                                        [0.5000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-                                        [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-                                        [0.5000, 0.5000, 0.0000, 0.5000, 0.0000, 0.0000],
-                                        [0.5000, 0.5000, 0.5000, 0.7500, 0.7500, 1.0000]])
+        expected_output = torch.tensor([[0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                                        [0.50, 0.00, 0.00, 0.00, 0.00, 0.00],
+                                        [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                                        [0.50, 0.50, 0.00, 0.50, 0.00, 0.00],
+                                        [0.50, 0.50, 0.50, 0.75, 0.75, 1.00]])
 
         assert torch.isclose(ftarm.fuzzy_representation(C2_indices), expected_output).all()
 
@@ -302,7 +303,22 @@ class TestFTARM(unittest.TestCase):
         ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
-        rules = ftarm.find_association_rules(candidates_family)
-        print(len(rules))
-        for rule in rules:
-            print('{} -> {}'.format(rule.antecedents, rule.consequents))
+        actual_rules = ftarm.find_association_rules(candidates_family)
+        assert len(actual_rules) == 7
+        expected_rules = [
+            Rule(antecedents={(1, 0), (0, 0)}, consequents={(3, 1)}),
+            Rule(antecedents={(3, 1), (0, 0)}, consequents={(1, 0)}),
+            Rule(antecedents={(1, 0), (4, 0)}, consequents={(3, 1)}),
+            Rule(antecedents={(1, 0)}, consequents={(0, 0)}),
+            Rule(antecedents={(0, 0)}, consequents={(3, 1)}),
+            Rule(antecedents={(1, 0)}, consequents={(3, 1)}),
+            Rule(antecedents={(4, 0)}, consequents={(3, 1)}),
+        ]
+        expected_confidences = np.array([1.0, 1.0, 1.0, 0.8571429252624512, 1.0, 1.0, 1.0])
+        for rule, confidence in zip(expected_rules, expected_confidences):
+            rule.confidence = confidence
+
+        for actual_rule, expected_rule in zip(actual_rules, expected_rules):
+            assert actual_rule.antecedents == expected_rule.antecedents
+            assert actual_rule.consequents == expected_rule.consequents
+            assert actual_rule.confidence == expected_rule.confidence
