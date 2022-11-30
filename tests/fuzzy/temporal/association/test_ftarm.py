@@ -6,15 +6,15 @@ from soft.fuzzy.sets import Triangular
 from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.information.granulation import GranulesMap
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
-from soft.fuzzy.temporal.association.ftarm import FTARM, make_fuzzy_rule_base_with_some_missing_inputs, \
-    make_candidates_inference_engine, TemporalInformationTable as TI
+from soft.fuzzy.temporal.association.ftarm import make_fuzzy_rule_base_with_some_missing_inputs, \
+    make_candidates_inference_engine, TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM
 
 
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
-        dataframe, terms = make_example()
-        granulation = GranulesMap(len(terms.keys()), list(terms.values()), Triangular)
-        mus = granulation(torch.tensor(dataframe[terms.keys()].values).float())
+        dataframe, linguistic_variables = make_example()
+        granulation = GranulesMap(len(linguistic_variables.keys()), list(linguistic_variables.values()), Triangular)
+        mus = granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
                                             [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                                             [0.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
@@ -23,25 +23,25 @@ class TestFTARM(unittest.TestCase):
         assert (torch.isclose(mus.reshape(5, 10), expected_membership)).all()
 
     def test_temporal_information_table(self):
-        dataframe, terms = make_example()
-        ti_table = TI(dataframe, terms)
+        dataframe, linguistic_variables = make_example()
+        ti_table = TI(dataframe, linguistic_variables)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
         assert (ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
         # now checking that FTARM creates the same TI Table as above
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ftarm.ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
         assert (ftarm.ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
     def test_step_2(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
         # check that the variable location method is working properly (returns start and end indices)
         for variable_index in range(5):
             assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
@@ -50,9 +50,9 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_scalar_cardinality.flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
         # check that the variable location method is working properly (returns start and end indices)
         for variable_index in range(5):
             assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
@@ -66,9 +66,9 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_output).all()
 
     def test_step_4(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
         # check that the variable location method is working properly (returns start and end indices)
         for variable_index in range(5):
             assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
@@ -87,9 +87,9 @@ class TestFTARM(unittest.TestCase):
         ]
 
     def test_candidate_fuzzy_representation_functions(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -130,7 +130,7 @@ class TestFTARM(unittest.TestCase):
 
         assert (mi.links_between_antecedents_and_rules == expected_links).all()
 
-        actual_antecedents_memberships = ftarm.granulation(torch.tensor(dataframe[terms.keys()].values).float())
+        actual_antecedents_memberships = ftarm.granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
 
         expected_memberships = torch.tensor([[[1.0000, 0.0000, torch.nan],
                                               [0.0000, 0.0000, torch.nan],
@@ -169,9 +169,9 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_rules_applicability, expected_output).all()
 
     def test_candidate_fuzzy_representation_ftarm(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -187,9 +187,9 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(ftarm.fuzzy_representation(C2_indices), expected_output).all()
 
     def test_candidate_scalar_cardinality(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -200,9 +200,9 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_scalar_cardinality, expected_scalar_cardinality).all()
 
     def test_candidate_fuzzy_temporal_supports(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         # the following candidate order is assumed for the following assertions
@@ -249,9 +249,9 @@ class TestFTARM(unittest.TestCase):
         assert (L2_indices == torch.tensor([0, 1, 3, 4, 5])).all()
 
     def test_make_candidate_3_itemsets(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
@@ -266,9 +266,9 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_make_candidate_4_itemsets(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.6)
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
@@ -281,8 +281,8 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_execute(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
         # the first item in the family should match the expected 2-itemsets
@@ -299,8 +299,8 @@ class TestFTARM(unittest.TestCase):
         assert candidates_family[2] == [{(1, 0), (4, 0), (3, 1), (0, 0)}]
 
     def test_find_association_rules(self):
-        dataframe, terms = make_example()
-        ftarm = FTARM(dataframe, terms, membership_function=Triangular, input_trainable=False,
+        dataframe, linguistic_variables = make_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
         actual_rules = ftarm.find_association_rules(candidates_family)
