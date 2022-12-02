@@ -35,7 +35,7 @@ standard deviation of the online evaluation.
 """
 
 
-def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
+def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=False):
     """ Returns scorer function of evaluation on environment.
 
     This function returns scorer function, which is suitable to the standard
@@ -64,6 +64,7 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
         env (gym.Env): gym-styled environment.
         n_trials (int): the number of trials.
         epsilon (float): noise factor for epsilon-greedy policy.
+        text (bool): flag to render text output.
         render (bool): flag to render environment.
 
     Returns:
@@ -73,7 +74,8 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
     """
 
     def scorer(algo, *args):
-        print('Evaluating online for {} episodes.'.format(n_trials))
+        if text:
+            print('Evaluating online for {} episodes.'.format(n_trials))
         scores_window = deque(maxlen=100)  # last 100 scores
         for trial_idx in range(n_trials):
             observation, info = env.reset()
@@ -91,14 +93,15 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, render=False):
 
                 if terminated or truncated:
                     break
-            # print('Episode {}: {}'.format(trial_idx + 1, episode_reward))
-            if len(scores_window) > 0:
+
+            if text and len(scores_window) > 0:
                 print('\rEpisode: {}\tAverage Score: {:.6f}'.format(trial_idx + 1, np.mean(scores_window)), end='')
                 if trial_idx > 0 and trial_idx % 100 == 0:
                     print('\rEpisode: {}\tAverage Score: {:.6f}'.format(trial_idx + 1, np.mean(scores_window)))
 
             scores_window.append(episode_reward)
-        print()
+        if text:
+            print()
         return SummaryStatistics(scores_window)
 
     return scorer
