@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Documentation &#8212; Fuzzy 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Welcome to Fuzzy’s documentation!" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-fuzzyset">
+<span id="fuzzy-set"></span><h2>Fuzzy Set<a class="headerlink" href="#module-fuzzyset" title="Permalink to this headline">¶</a></h2>
+<p>Created on Sun Mar  1 16:40:22 2020</p>
+<p>&#64;author: jhost</p>
+<dl class="class">
+<dt id="fuzzyset.FuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzyset.</code><code class="sig-name descname">FuzzySet</code><a class="headerlink" href="#fuzzyset.FuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A parent class for all fuzzy sets to inherit. Allows the user to visualize the fuzzy set.</p>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 46%" />
+<col style="width: 54%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>graph(lower=0, upper=100, samples=100)</strong></p></td>
+<td><p>Graphs the fuzzy set in the universe of elements.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzyset.FuzzySet.graph">
+<code class="sig-name descname">graph</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">lower=0</em>, <em class="sig-param">upper=100</em>, <em class="sig-param">samples=100</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.FuzzySet.graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Graphs the fuzzy set in the universe of elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lower</strong><span class="classifier">‘float’, optional</span></dt><dd><p>Default value is 0. Specifies the infimum x value for the graph.</p>
+</dd>
+<dt><strong>upper</strong><span class="classifier">‘float’, optional</span></dt><dd><p>Default value is 100. Specifies the supremum x value for the graph.</p>
+</dd>
+<dt><strong>samples</strong><span class="classifier">‘int’, optional</span></dt><dd><p>Default value is 100. Specifies the number of x values to test in the domain
+to approximate the grpah. A higher sample value will yield a higher resolution
+of the graph, but large values will lead to performance issues.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fuzzyset.FuzzyVariable">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzyset.</code><code class="sig-name descname">FuzzyVariable</code><span class="sig-paren">(</span><em class="sig-param">fuzzySets</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.FuzzyVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fuzzy variable, or linguistic variable, that contains fuzzy sets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fuzzySets</strong><span class="classifier">‘list’</span></dt><dd><p>A list of elements each of type OrdinaryFuzzySet.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">‘str’/’None’</span></dt><dd><p>Default value is None. Allows the user to specify the name of the fuzzy set.
+This feature is useful when visualizing the fuzzy set, and its interaction with
+other fuzzy fets in the same space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 67%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>degree(x)</strong></p></td>
+<td><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>graph(lower=0, upper=100, samples=100)</strong></p></td>
+<td><p>Graphs the fuzzy set in the universe of elements.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzyset.FuzzyVariable.degree">
+<code class="sig-name descname">degree</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.FuzzyVariable.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">‘float’</span></dt><dd><p>The degree of membership for element x.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fuzzyset.FuzzyVariable.graph">
+<code class="sig-name descname">graph</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">lower=0</em>, <em class="sig-param">upper=100</em>, <em class="sig-param">samples=100</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.FuzzyVariable.graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Graphs the fuzzy set in the universe of elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lower</strong><span class="classifier">‘float’, optional</span></dt><dd><p>Default value is 0. Specifies the infimum x value for the graph.</p>
+</dd>
+<dt><strong>upper</strong><span class="classifier">‘float’, optional</span></dt><dd><p>Default value is 100. Specifies the supremum x value for the graph.</p>
+</dd>
+<dt><strong>samples</strong><span class="classifier">‘int’, optional</span></dt><dd><p>Default value is 100. Specifies the number of x values to test in the domain
+to approximate the grpah. A higher sample value will yield a higher resolution
+of the graph, but large values will lead to performance issues.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fuzzyset.OrdinaryFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzyset.</code><code class="sig-name descname">OrdinaryFuzzySet</code><span class="sig-paren">(</span><em class="sig-param">formulas</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.OrdinaryFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>An ordinary fuzzy set that is of type 1 and level 1.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">Interval</span><span class="o">.</span><span class="n">Lopen</span><span class="p">(</span><span class="o">-</span><span class="n">oo</span><span class="p">,</span><span class="mi">20</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="mi">35</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="mi">15</span><span class="p">,</span><span class="n">Interval</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">35</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formulas</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">Interval</span><span class="o">.</span><span class="n">Ropen</span><span class="p">(</span><span class="mi">35</span><span class="p">,</span><span class="n">oo</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">OrdinaryFuzzySet</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="s1">&#39;A1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<dt><strong>formulas</strong><span class="classifier">‘list’</span></dt><dd><p>A list of 2-tuples. The first element in the tuple at index 0 is the formula 
+equal to f(x) and the second element in the tuple at index 1 is the Interval 
+where the formula in the tuple is valid.</p>
+<p>Warning: Formulas should be organized in the list such that the formulas and
+their corresponding intervals are specified from the smallest possible x values
+to the largest possible x values.</p>
+<p>The list of formulas provided constitutes the piece-wise function of the
+fuzzy set’s membership function.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">‘str’/’None’</span></dt><dd><p>Default value is None. Allows the user to specify the name of the fuzzy set.
+This feature is useful when visualizing the fuzzy set, and its interaction with
+other fuzzy sets in the same space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 68%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>fetch(x)</strong></p></td>
+<td><p>Calculates the corresponding formula for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>degree(x)</strong></p></td>
+<td><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>height()</strong></p></td>
+<td><p>Calculates the height of the fuzzy set.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>graph(lower=0, upper=100, samples=100)</strong></p></td>
+<td><p>Graphs the fuzzy set in the universe of elements.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzyset.OrdinaryFuzzySet.degree">
+<code class="sig-name descname">degree</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.OrdinaryFuzzySet.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">‘float’</span></dt><dd><p>The degree of membership for element x.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fuzzyset.OrdinaryFuzzySet.fetch">
+<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.OrdinaryFuzzySet.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the corresponding formula for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>formula</strong><span class="classifier">‘tuple’/’None’</span></dt><dd><p>Returns the tuple containing the formula and corresponding Interval. Returns
+None if a formula for the element x could not be found.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fuzzyset.OrdinaryFuzzySet.height">
+<code class="sig-name descname">height</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzyset.OrdinaryFuzzySet.height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the height of the fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>height</strong><span class="classifier">‘float’</span></dt><dd><p>The height, or supremum, of the fuzzy set.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fuzzysetoperations">
+<span id="fuzzy-set-operations"></span><h2>Fuzzy Set Operations<a class="headerlink" href="#module-fuzzysetoperations" title="Permalink to this headline">¶</a></h2>
+<p>Created on Sun Mar  1 17:49:59 2020</p>
+<p>&#64;author: jhost</p>
+<dl class="class">
+<dt id="fuzzysetoperations.AlphaCut">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzysetoperations.</code><code class="sig-name descname">AlphaCut</code><span class="sig-paren">(</span><em class="sig-param">fuzzyset</em>, <em class="sig-param">alpha</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.AlphaCut" title="Permalink to this definition">¶</a></dt>
+<dd><p>The alpha cut of a fuzzy set yields a crisp set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>formulas</strong><span class="classifier">‘list’</span></dt><dd><p>A list of 2-tuples. The first element in the tuple at index 0 is the formula 
+equal to f(x) and the second element in the tuple at index 1 is the Interval 
+where the formula in the tuple is valid.</p>
+</dd>
+<dt><strong>alpha</strong><span class="classifier">‘float’</span></dt><dd><p>The alpha value that elements’ membership degree must exceed or be equal to.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">‘str’/’None’</span></dt><dd><p>Default value is None. Allows the user to specify the name of the fuzzy set.
+This feature is useful when visualizing the fuzzy set, and its interaction with
+other fuzzy sets in the same space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 87%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>fetch(x)</strong></p></td>
+<td><p>Fetch the corresponding formula for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>degree(x)</strong></p></td>
+<td><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzysetoperations.AlphaCut.degree">
+<code class="sig-name descname">degree</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.AlphaCut.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">‘float’</span></dt><dd><p>The degree of membership for element x.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fuzzysetoperations.AlphaCut.fetch">
+<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.AlphaCut.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the corresponding formula for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>formula</strong><span class="classifier">‘tuple’/’None’</span></dt><dd><p>Returns the tuple containing the formula and corresponding interval. Returns
+None if a formula for the element x could not be found.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fuzzysetoperations.SpecialFuzzySet">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzysetoperations.</code><code class="sig-name descname">SpecialFuzzySet</code><span class="sig-paren">(</span><em class="sig-param">fuzzyset</em>, <em class="sig-param">alpha</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.SpecialFuzzySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>The special fuzzy set membership function for a given element x in the universe of 
+discourse X, is defined as the alpha value multipled by the element x’s degree of 
+membership within the fuzzy set’s alpha cut.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fuzzyset</strong><span class="classifier">‘OrdinaryFuzzySet’</span></dt><dd><p>An ordinary fuzzy set to retrieve the special fuzzy set given the alpha.</p>
+</dd>
+<dt><strong>alpha</strong><span class="classifier">‘float’</span></dt><dd><p>The alpha value that elements’ membership degree must exceed or be equal to.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">‘str’/’None’</span></dt><dd><p>Default value is None. Allows the user to specify the name of the fuzzy set.
+This feature is useful when visualizing the fuzzy set, and its interaction with
+other fuzzy sets in the same space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 87%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>fetch(x)</strong></p></td>
+<td><p>Fetch the corresponding formula for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>degree(x)</strong></p></td>
+<td><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>height()</strong></p></td>
+<td><p>Calculates the height of the special fuzzy set.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzysetoperations.SpecialFuzzySet.degree">
+<code class="sig-name descname">degree</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.SpecialFuzzySet.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">‘float’</span></dt><dd><p>The degree of membership for element x.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fuzzysetoperations.SpecialFuzzySet.fetch">
+<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.SpecialFuzzySet.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch the corresponding formula for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>formula</strong><span class="classifier">‘tuple’/’None’</span></dt><dd><p>Returns the tuple containing the formula and corresponding Interval. Returns
+None if a formula for the element x could not be found.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="fuzzysetoperations.SpecialFuzzySet.height">
+<code class="sig-name descname">height</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.SpecialFuzzySet.height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the height of the special fuzzy set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>height</strong><span class="classifier">‘float’</span></dt><dd><p>The height, or supremum, of the Special Fuzzy Set.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fuzzysetoperations.StandardComplement">
+<code class="sig-prename descclassname">fuzzysetoperations.</code><code class="sig-name descname">StandardComplement</code><span class="sig-paren">(</span><em class="sig-param">fuzzySet</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.StandardComplement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains the standard complement of a fuzzy set as defined by Lotfi A. Zadeh.</p>
+<p>Returns True if successful, else returns False.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fuzzySet</strong><span class="classifier">‘OrdinaryFuzzySet’</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>success</strong><span class="classifier">‘bool’</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="fuzzysetoperations.StandardIntersection">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzysetoperations.</code><code class="sig-name descname">StandardIntersection</code><span class="sig-paren">(</span><em class="sig-param">fuzzysets</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.StandardIntersection" title="Permalink to this definition">¶</a></dt>
+<dd><p>A standard intersection of one or more ordinary fuzzy sets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fuzzySets</strong><span class="classifier">‘list’</span></dt><dd><p>A list of elements each of type OrdinaryFuzzySet.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">‘str’/’None’</span></dt><dd><p>Default value is None. Allows the user to specify the name of the fuzzy set.
+This feature is useful when visualizing the fuzzy set, and its interaction with
+other fuzzy fets in the same space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 67%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>degree(x)</strong></p></td>
+<td><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>graph(lower=0, upper=100, samples=100)</strong></p></td>
+<td><p>Graphs the fuzzy set in the universe of elements.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzysetoperations.StandardIntersection.degree">
+<code class="sig-name descname">degree</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.StandardIntersection.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">‘float’</span></dt><dd><p>The degree of membership for element x.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fuzzysetoperations.StandardUnion">
+<em class="property">class </em><code class="sig-prename descclassname">fuzzysetoperations.</code><code class="sig-name descname">StandardUnion</code><span class="sig-paren">(</span><em class="sig-param">fuzzysets</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.StandardUnion" title="Permalink to this definition">¶</a></dt>
+<dd><p>A standard union of one or more ordinary fuzzy sets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fuzzySets</strong><span class="classifier">‘list’</span></dt><dd><p>A list of elements each of type OrdinaryFuzzySet.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">‘str’/’None’</span></dt><dd><p>Default value is None. Allows the user to specify the name of the fuzzy set.
+This feature is useful when visualizing the fuzzy set, and its interaction with
+other fuzzy fets in the same space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 67%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>degree(x)</strong></p></td>
+<td><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>graph(lower=0, upper=100, samples=100)</strong></p></td>
+<td><p>Graphs the fuzzy set in the universe of elements.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fuzzysetoperations.StandardUnion.degree">
+<code class="sig-name descname">degree</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#fuzzysetoperations.StandardUnion.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the degree of membership for the provided x value where x is a(n) int/float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">‘float’</span></dt><dd><p>The parameter x is the element from the universe of discourse X.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">‘float’</span></dt><dd><p>The degree of membership for element x.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Fuzzy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-fuzzyset">Fuzzy Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-fuzzysetoperations">Fuzzy Set Operations</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to Fuzzy’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, John Wesley Hostetter.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/usage/documentation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
