@@ -86,7 +86,7 @@ class TestCLIP(unittest.TestCase):
         train_X_maxes = train_X.max(axis=0)
 
         oldCLIP_terms = oldCLIP(train_X, train_X_mins, train_X_maxes)
-        newCLIP_terms = newCLIP(train_X, train_X_mins, train_X_maxes)
+        newCLIP_terms = newCLIP(torch.tensor(train_X), train_X_mins, train_X_maxes)
 
         compare_results(oldCLIP_terms, newCLIP_terms)
 
@@ -109,6 +109,6 @@ class TestCLIP(unittest.TestCase):
         train_X_maxes = train_X.max(axis=0)
 
         oldCLIP_terms = oldCLIP(train_X, train_X_mins, train_X_maxes)
-        newCLIP_terms = newCLIP(train_X, train_X_mins, train_X_maxes)
+        newCLIP_terms = newCLIP(torch.tensor(train_X), train_X_mins, train_X_maxes)
 
         compare_results(oldCLIP_terms, newCLIP_terms, eq=False)
