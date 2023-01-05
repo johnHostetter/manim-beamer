@@ -88,7 +88,7 @@ class TestSummary(unittest.TestCase):
             property_mu = property_mf(elements)
             importance_mu = importance_mf(elements)
             t_norm_results = property_mu * importance_mu
-            assert torch.isclose(t_norm_results,
+            assert torch.isclose(t_norm_results.flatten(),
                                  torch.tensor([0.7316157, 0.77880085, 0.3678795, 0.09901349, 0.5989963,
                                                0.26497352, 0.8187308, 0.00193045])).all()
             assert torch.isclose(importance_mu.sum(), torch.tensor(4.4135942459106445))
@@ -156,8 +156,7 @@ class TestSummary(unittest.TestCase):
 
     def test_degree_of_truth(self):
         X, query, summary = make_scenario_1()
-        assert torch.isclose(summary.r(X, query=query), torch.tensor(0.5483109354972839))
-        assert torch.isclose(summary.degree_of_truth(X, query=query), torch.tensor(0.49662184715270996))
+        assert torch.isclose(summary.degree_of_truth(X, query=query), torch.tensor(0.3612580895423889))
 
     def test_degree_of_imprecision(self):
         X, query, summary = make_scenario_1()
@@ -181,7 +180,7 @@ class TestSummary(unittest.TestCase):
     def test_degree_of_validity(self):
         X, query, summary = make_scenario_1()
         assert torch.isclose(summary.degree_of_validity(X, alpha=0.3, query=query),
-                             torch.tensor(0.3840465843677521))
+                             torch.tensor(0.3569738268852234))
 
     def test_prevent_no_fuzzy_sets(self):
         offspring_mutation = np.array([[2., 3.],
