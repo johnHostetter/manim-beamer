@@ -1,5 +1,7 @@
+import os
 import torch
 import pickle
+import pathlib
 import unittest
 
 from utils.reproducibility import set_rng
@@ -15,10 +17,14 @@ class TestCriteria(unittest.TestCase):
         X = torch.randint(high=5, size=(num_of_observations, num_of_inputs))
         Y = torch.randint(high=10, size=(num_of_observations, num_of_outputs)).float()
         output_terms = CLIP(Y, Y.detach().numpy().min(axis=0), Y.detach().numpy().max(axis=0))
-        infile = open('ftarm_demo_frb', 'rb')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_location = os.path.join(directory, 'ftarm_demo_frb')
+        infile = open(file_location, 'rb')
         frb = pickle.load(infile)  # there should be 6 rules
         infile.close()
-        infile = open('ftarm_demo_granulation', 'rb')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_location = os.path.join(directory, 'ftarm_demo_granulation')
+        infile = open(file_location, 'rb')
         granulation = pickle.load(infile)
         infile.close()
         consequences = [rule.consequents for rule in

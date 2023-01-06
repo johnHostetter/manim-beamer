@@ -1,4 +1,6 @@
+import os
 import torch
+import pathlib
 import unittest
 import numpy as np
 
@@ -6,13 +8,13 @@ from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
 from soft.fuzzy.logic.rules.creation import wang_mendel_method as new_WM_method
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP
-# local implementations of CLIP that we know work but are written in Numpy
-from tests.fuzzy.online.unsupervised.granulation.clip import CLIP as oldCLIP
 
 
 class TestWangMendelMethod(unittest.TestCase):
     def test_consistency(self):
-        train_X = np.load('clip_input.npy')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_location = os.path.join(directory, 'clip_input.npy')
+        train_X = np.load(file_location)
         train_X_mins = train_X.min(axis=0)
         train_X_maxes = train_X.max(axis=0)
 
@@ -27,7 +29,9 @@ class TestWangMendelMethod(unittest.TestCase):
                 oldCLIP_terms[var_idx].append(value)
 
         Dthr = 0.4
-        train_X = np.load('ecm_input.npy')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_location = os.path.join(directory, 'ecm_input.npy')
+        train_X = np.load(file_location)
         new_clusters = newECM(train_X, Dthr=Dthr)
         reduced_X = new_clusters.centers
         old_antecedents, old_rules, _ = old_WM_method(reduced_X.detach().numpy(), oldCLIP_terms, [], [],

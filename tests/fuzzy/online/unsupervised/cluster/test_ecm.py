@@ -1,4 +1,6 @@
+import os
 import torch
+import pathlib
 import unittest
 import numpy as np
 
@@ -34,14 +36,14 @@ class TestECM(unittest.TestCase):
 
         """
         Dthr = 0.4
-        train_X = np.load('ecm_input.npy')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_location = os.path.join(directory, 'ecm_input.npy')
+        train_X = np.load(file_location)
         old_clusters = oldECM(train_X, [], Dthr)
         old_centers = np.array([cluster.center.tolist() for cluster in old_clusters])
         old_widths = [cluster.radius for cluster in old_clusters]
 
         new_clusters = newECM(train_X, Dthr=Dthr)
-        # new_centers = [cluster.center for cluster in new_clusters]
-        # new_widths = [cluster.radius for cluster in new_clusters]
 
         assert len(old_centers) == len(new_clusters.centers.detach().numpy())  # results should be of same size
         assert not np.isclose(old_centers, new_clusters.centers.detach().numpy()).all()  # approx unequal centers

@@ -1,4 +1,6 @@
+import os
 import torch
+import pathlib
 import unittest
 import numpy as np
 
@@ -104,7 +106,9 @@ class TestCLIP(unittest.TestCase):
             None
         """
 
-        train_X = np.load('clip_input.npy')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_location = os.path.join(directory, 'clip_input.npy')
+        train_X = np.load(file_location)
         train_X_mins = train_X.min(axis=0)
         train_X_maxes = train_X.max(axis=0)
 
