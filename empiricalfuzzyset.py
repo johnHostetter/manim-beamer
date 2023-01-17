@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from collections import Counter
 from statistics import stdev 
-from continuous_cartpole import ContinuousCartPoleEnv
+# from continuous_cartpole import ContinuousCartPoleEnv
 
 numerator = None
 distances = powers = np.array([])
@@ -109,8 +109,8 @@ def plotDistribution(X, Y, title):
 
 X = []
 
-#env = gym.make("CartPole-v1")
-env = ContinuousCartPoleEnv()
+env = gym.make("CartPole-v1")
+# env = ContinuousCartPoleEnv()
 env.min_action = -1
 env.max_action = 1
 env.action_space = gym.spaces.Box(
