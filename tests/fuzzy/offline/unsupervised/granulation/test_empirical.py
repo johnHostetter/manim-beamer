@@ -6,9 +6,12 @@ import numpy as np
 
 from soft.fuzzy.sets import Gaussian
 from sklearn import datasets
+from collections import namedtuple
 from utils.reproducibility import set_rng
 
 set_rng(0)
+
+MultimodalDensity = namedtuple("MultimodalDensity", "uniques frequencies distances densities")
 
 
 def example():
@@ -24,10 +27,11 @@ def example():
 
 def multimodal_density(X):
     unique_observations, frequencies = X.unique(dim=0, return_counts=True)
-    distance = torch.cdist(unique_observations, unique_observations)
-    numerator = torch.pow(distance, 2).sum()
-    denominator = 2 * X.shape[0] * distance.sum(dim=-1)
-    return frequencies * (numerator / denominator)
+    distances = torch.cdist(unique_observations, unique_observations)
+    numerator = torch.pow(distances, 2).sum()
+    denominator = 2 * X.shape[0] * distances.sum(dim=-1)
+    densities = frequencies * (numerator / denominator)
+    return MultimodalDensity(unique_observations, frequencies, distances, densities)
 
 
 class TestEDA(unittest.TestCase):
@@ -69,46 +73,62 @@ class TestEDA(unittest.TestCase):
 
     def test_multimodal_density(self):
         X = example()
-        unique_observations, frequencies = X.unique(dim=0, return_counts=True)
-        distance = torch.cdist(unique_observations, unique_observations)
-        numerator = torch.pow(distance, 2).sum()
-        denominator = 2 * X.shape[0] * distance.sum(dim=-1)
-        densities = frequencies * (numerator / denominator)
+        results = multimodal_density(X)
+        expected_densities = torch.tensor([7.656387, 4.320169, 3.8905387, 3.7994518, 2.5289514, 3.1530216,
+                                           3.5224535])
+        assert torch.isclose(results.densities, expected_densities).all()
 
+    def test_identification(self):
+        iris = datasets.load_iris()
+        X = torch.tensor(iris.data[:, :2])
+        results = multimodal_density(X)
         # finding the maximum MM density
         visited_indices = []
         cluster = set()
-        index = densities.max(dim=0).indices.item()
+        index = results.densities.max(dim=0).indices.item()
         visited_indices.append(index)
-        selected = unique_observations[index]
+        selected = results.uniques[index]
         cluster.add(selected)
-        distance.fill_diagonal_(float('inf'))
-        while len(visited_indices) < unique_observations.shape[0]:
-            temp = distance[index]
+        results.distances.fill_diagonal_(float('inf'))
+        while len(visited_indices) < results.uniques.shape[0]:
+            temp = results.distances[index]
             temp[torch.LongTensor(visited_indices)] = float('inf')
             value, index = temp.min(dim=0)
             visited_indices.append(index.item())
-            cluster.add(unique_observations[index.item()])
-            # sort_indices = distance[index].sort().indices
+            cluster.add(results.uniques[index.item()])
+
         print(visited_indices)
-        local_maxima = densities[visited_indices]
-        print(densities[visited_indices])
+        local_maxima = results.densities[visited_indices]
+        print(results.densities[visited_indices])
 
         peak_mask = torch.cat([torch.zeros(1, dtype=torch.bool), (local_maxima[:-2] < local_maxima[1:-1])
                                & (local_maxima[2:] < local_maxima[1:-1]),
                                torch.zeros(1, dtype=torch.bool)], dim=0)
         peak_mask[0] = local_maxima[0] > local_maxima[1]
         peak_mask[-1] = local_maxima[-1] > local_maxima[-2]
-        prototypes = unique_observations[peak_mask]
-        distances = torch.cdist(unique_observations, prototypes)
-        cloud_labels = distances.min(dim=1).indices
-        cloud_centers = []
-        for label in cloud_labels.unique():
-            cloud_data = unique_observations[cloud_labels == label]
-            cloud_centers.append(cloud_data.mean(dim=0).detach().numpy())
-        cloud_centers = torch.tensor(np.array(cloud_centers))
-        cloud_distances = torch.cdist(prototypes, prototypes)
-        eta = cloud_distances.mean()
-        sigma = cloud_distances.std()
-        R = sigma * (1 - sigma / eta)
-        densities = multimodal_density(cloud_centers)
+        prototypes = results.uniques[peak_mask]
+
+        continue_search = True
+        while continue_search:
+            distances = torch.cdist(results.uniques, prototypes)
+            cloud_labels = distances.min(dim=1).indices
+            cloud_centers = []
+            for label in cloud_labels.unique():
+                cloud_data = results.uniques[cloud_labels == label]
+                cloud_centers.append(cloud_data.mean(dim=0).detach().numpy())
+            cloud_centers = torch.tensor(np.array(cloud_centers))
+            cloud_distances = torch.cdist(prototypes, prototypes)
+            eta = cloud_distances.mean()
+            sigma = cloud_distances.std()
+            R = sigma * (1 - sigma / eta)
+            results = multimodal_density(cloud_centers)
+            prev_prototypes = prototypes
+            next_cloud_centers = []
+            for cloud_index in range(cloud_centers.shape[0]):
+                if results.densities[cloud_index] == results.densities[cloud_distances[cloud_index] < R].max():
+                    next_cloud_centers.append(cloud_centers[cloud_index].detach().numpy())
+            print(next_cloud_centers)
+            prototypes = torch.tensor(np.array(next_cloud_centers))
+            if prototypes.shape == prev_prototypes.shape:
+                continue_search = False
+        print(prototypes.shape)
