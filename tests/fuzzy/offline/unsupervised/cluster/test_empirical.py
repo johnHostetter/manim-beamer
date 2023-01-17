@@ -55,7 +55,7 @@ class TestEDA(unittest.TestCase):
                                            3.5224535])
         assert torch.isclose(results.densities, expected_densities).all()
 
-    def test_empirical_fuzzy_sets(self):
+    def test_local_maxima(self):
         iris = datasets.load_iris()
         X = torch.tensor(iris.data[:, :2])
         results = multimodal_density(X)
@@ -89,6 +89,11 @@ class TestEDA(unittest.TestCase):
         )
         assert torch.isclose(local_maxima.float(), expected_local_maxima.float()).all()
 
+    def test_select_prototypes(self):
+        iris = datasets.load_iris()
+        X = torch.tensor(iris.data[:, :2])
+        results = multimodal_density(X)
+        local_maxima = find_local_maxima(results)
         prototypes = select_prototypes(results, local_maxima)
 
         expected_prototypes = torch.tensor(
@@ -128,6 +133,12 @@ class TestEDA(unittest.TestCase):
         )
         assert torch.isclose(prototypes.float(), expected_prototypes.float()).all()
 
+    def test_reduce_partitioning(self):
+        iris = datasets.load_iris()
+        X = torch.tensor(iris.data[:, :2])
+        results = multimodal_density(X)
+        local_maxima = find_local_maxima(results)
+        prototypes = select_prototypes(results, local_maxima)
         prototypes = reduce_partitioning(results, prototypes)
 
         expected_prototypes_centers = torch.tensor(
@@ -160,5 +171,38 @@ class TestEDA(unittest.TestCase):
         )
         assert torch.isclose(prototypes.centers.float(), expected_prototypes_centers.float()).all()
         assert torch.isclose(prototypes.widths.float(), expected_prototypes_widths.float()).all()
-        assert torch.isclose(EFS(X).centers.float(), expected_prototypes_centers.float()).all()
-        assert torch.isclose(EFS(X).widths.float(), expected_prototypes_widths.float()).all()
+
+    def test_empirical_fuzzy_sets(self):
+        iris = datasets.load_iris()
+        X = torch.tensor(iris.data[:, :2])
+        efs = EFS(X)
+        expected_prototypes_centers = torch.tensor(
+            [[4.653333, 3.16],
+             [4.86, 2.3],
+             [5.175, 2.8],
+             [5.15, 3.51875],
+             [5.690909, 2.4636364],
+             [5.55, 4.0666666],
+             [5.9, 2.8611112],
+             [6.1833334, 3.3166666],
+             [6.5238094, 2.8809524],
+             [7.125, 3.05],
+             [7.6, 3.7333333],
+             [7.675, 2.85]]
+        )
+        expected_prototypes_widths = torch.tensor(
+            [[0.21336309, 0.18822479],
+             [0.20736441, 0.18708287],
+             [0.17078251, 0.24494897],
+             [0.17126977, 0.15152008],
+             [0.23001976, 0.168954],
+             [0.2258318, 0.21602469],
+             [0.21420166, 0.11950333],
+             [0.19407902, 0.09831921],
+             [0.18413246, 0.25023798],
+             [0.18322508, 0.15118579],
+             [0.36055513, 0.11547005],
+             [0.05, 0.19148542]]
+        )
+        assert torch.isclose(efs.centers.float(), expected_prototypes_centers.float()).all()
+        assert torch.isclose(efs.widths.float(), expected_prototypes_widths.float()).all()
