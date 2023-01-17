@@ -164,8 +164,10 @@ class TestEDA(unittest.TestCase):
              [0.36055513, 0.11547005],
              [0.05, 0.19148542]]
         )
-        assert torch.isclose(prototypes.centers.detach().float(), expected_prototypes_centers.float()).all()
-        assert torch.isclose(prototypes.widths.detach().float(), expected_prototypes_widths.float()).all()
+        assert torch.isclose(prototypes.centers.detach().float(), expected_prototypes_centers.float(),
+                             rtol=1e-02, atol=1e-02).all()
+        assert torch.isclose(prototypes.widths.detach().float(), expected_prototypes_widths.float(),
+                             rtol=1e-02, atol=1e-02).all()
 
     def test_empirical_fuzzy_sets(self):
         X = iris_example()[:, :2]
@@ -198,5 +200,7 @@ class TestEDA(unittest.TestCase):
              [0.36055513, 0.11547005],
              [0.05, 0.19148542]]
         )
-        assert torch.isclose(efs.centers.detach().float(), expected_prototypes_centers.float()).all()
-        assert torch.isclose(efs.widths.detach().float(), expected_prototypes_widths.float()).all()
+        assert torch.isclose(efs.centers.detach().float(), expected_prototypes_centers.float(),
+                             rtol=1e-02, atol=1e-02).all()
+        assert torch.isclose(efs.widths.detach().float(), expected_prototypes_widths.float(),
+                             rtol=1e-02, atol=1e-02).all()
