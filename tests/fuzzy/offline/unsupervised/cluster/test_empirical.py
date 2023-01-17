@@ -7,8 +7,6 @@ from utils.reproducibility import set_rng
 from soft.fuzzy.offline.unsupervised.cluster.empirical import multimodal_density, find_local_maxima, \
     select_prototypes, reduce_partitioning, Empirical as EFS
 
-set_rng(0)
-
 
 def example():
     return torch.tensor([[1., 2., 3.],
@@ -39,15 +37,6 @@ class TestEDA(unittest.TestCase):
         assert np.isclose(unique_observations, expected_observations).all()
         assert np.isclose(frequencies, expected_frequencies).all()
 
-    def test_euclidean_distance(self):
-        A = torch.rand((5, 2))  # 5 rows of 2 column vectors
-        B = torch.rand((5, 2))  # 5 rows of 2 column vectors
-        distance = torch.pow(A - B, 2).sum(dim=-1).sqrt()
-        expected_distance = torch.tensor(
-            [0.3950208, 0.07571248, 0.11634678, 0.22888084, 0.4575092]
-        )
-        assert torch.isclose(distance, expected_distance).all()
-
     def test_multimodal_density(self):
         X = example()
         results = multimodal_density(X)
@@ -56,6 +45,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(results.densities, expected_densities).all()
 
     def test_local_maxima(self):
+        set_rng(0)
         iris = datasets.load_iris()
         X = torch.tensor(iris.data[:, :2])
         results = multimodal_density(X)
@@ -90,6 +80,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(local_maxima.float(), expected_local_maxima.float()).all()
 
     def test_select_prototypes(self):
+        set_rng(0)
         iris = datasets.load_iris()
         X = torch.tensor(iris.data[:, :2])
         results = multimodal_density(X)
@@ -134,6 +125,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(prototypes.float(), expected_prototypes.float()).all()
 
     def test_reduce_partitioning(self):
+        set_rng(0)
         iris = datasets.load_iris()
         X = torch.tensor(iris.data[:, :2])
         results = multimodal_density(X)
@@ -173,6 +165,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(prototypes.widths.float(), expected_prototypes_widths.float()).all()
 
     def test_empirical_fuzzy_sets(self):
+        set_rng(0)
         iris = datasets.load_iris()
         X = torch.tensor(iris.data[:, :2])
         efs = EFS(X)
