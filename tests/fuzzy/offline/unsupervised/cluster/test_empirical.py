@@ -2,13 +2,14 @@ import torch
 import unittest
 import numpy as np
 
-from sklearn import datasets
 from utils.reproducibility import set_rng
 from soft.fuzzy.offline.unsupervised.cluster.empirical import multimodal_density, find_local_maxima, \
     select_prototypes, reduce_partitioning, Empirical as EFS
 
+set_rng(0)
 
-def example():
+
+def simple_example():
     return torch.tensor([[1., 2., 3.],
                          [1., 2., 3.],
                          [2., 3., 4.],
@@ -19,9 +20,13 @@ def example():
                          [8., 4., 2.]])
 
 
+def iris_example():
+    return torch.tensor(np.load('iris.npy'))
+
+
 class TestEDA(unittest.TestCase):
     def test_frequencies(self):
-        X = example()
+        X = simple_example()
         unique_observations, frequencies = np.unique(X, axis=0, return_counts=True)
 
         expected_observations = np.array([
@@ -38,16 +43,14 @@ class TestEDA(unittest.TestCase):
         assert np.isclose(frequencies, expected_frequencies).all()
 
     def test_multimodal_density(self):
-        X = example()
+        X = simple_example()
         results = multimodal_density(X)
         expected_densities = torch.tensor([7.656387, 4.320169, 3.8905387, 3.7994518, 2.5289514, 3.1530216,
                                            3.5224535])
         assert torch.isclose(results.densities, expected_densities).all()
 
     def test_local_maxima(self):
-        set_rng(0)
-        iris = datasets.load_iris()
-        X = torch.tensor(iris.data[:, :2])
+        X = iris_example()[:, :2]
         results = multimodal_density(X)
         local_maxima = find_local_maxima(results)
 
@@ -80,9 +83,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(local_maxima.float(), expected_local_maxima.float()).all()
 
     def test_select_prototypes(self):
-        set_rng(0)
-        iris = datasets.load_iris()
-        X = torch.tensor(iris.data[:, :2])
+        X = iris_example()[:, :2]
         results = multimodal_density(X)
         local_maxima = find_local_maxima(results)
         prototypes = select_prototypes(results, local_maxima)
@@ -125,9 +126,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(prototypes.float(), expected_prototypes.float()).all()
 
     def test_reduce_partitioning(self):
-        set_rng(0)
-        iris = datasets.load_iris()
-        X = torch.tensor(iris.data[:, :2])
+        X = iris_example()[:, :2]
         results = multimodal_density(X)
         local_maxima = find_local_maxima(results)
         prototypes = select_prototypes(results, local_maxima)
@@ -165,9 +164,7 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(prototypes.widths.detach().float(), expected_prototypes_widths.float()).all()
 
     def test_empirical_fuzzy_sets(self):
-        set_rng(0)
-        iris = datasets.load_iris()
-        X = torch.tensor(iris.data[:, :2])
+        X = iris_example()[:, :2]
         efs = EFS(X)
         expected_prototypes_centers = torch.tensor(
             [[4.653333, 3.16],
@@ -197,6 +194,5 @@ class TestEDA(unittest.TestCase):
              [0.36055513, 0.11547005],
              [0.05, 0.19148542]]
         )
-        print(efs.centers.detach().float())
         assert torch.isclose(efs.centers.detach().float(), expected_prototypes_centers.float()).all()
         assert torch.isclose(efs.widths.detach().float(), expected_prototypes_widths.float()).all()
