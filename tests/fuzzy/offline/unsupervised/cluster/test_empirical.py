@@ -1,4 +1,6 @@
+import os
 import torch
+import pathlib
 import unittest
 import numpy as np
 
@@ -21,7 +23,9 @@ def simple_example():
 
 
 def iris_example():
-    return torch.tensor(np.load('iris.npy'))
+    directory = pathlib.Path(__file__).parent.resolve()
+    file_location = os.path.join(directory, 'iris.npy')
+    return torch.tensor(np.load(file_location))
 
 
 class TestEDA(unittest.TestCase):
