@@ -4,8 +4,8 @@ import pathlib
 import unittest
 import numpy as np
 
-from soft.fuzzy.sets import Gaussian
 from utils.reproducibility import set_rng
+from soft.fuzzy.sets.continuous import Gaussian
 
 from soft.fuzzy.online.unsupervised.granulation.clip import find_indices_to_closest_neighbors
 # actual implementation of CLIP that may break and is written in PyTorch

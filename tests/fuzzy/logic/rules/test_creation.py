@@ -4,10 +4,10 @@ import pathlib
 import unittest
 import numpy as np
 
-from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
-from soft.fuzzy.logic.rules.creation import wang_mendel_method as new_WM_method
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP
+from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
+from soft.fuzzy.logic.rules.creation import wang_mendel_method as new_WM_method
 
 
 class TestWangMendelMethod(unittest.TestCase):

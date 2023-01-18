@@ -2,8 +2,27 @@ import torch
 import unittest
 import numpy as np
 
-from soft.fuzzy.sets import Triangular  # a pyTorch implementation
-from soft.fuzzy.membership import triangular as TriangularNumpy  # a Numpy implementation
+from soft.fuzzy.sets.continuous import Triangular  # a pyTorch implementation
+
+
+def triangular_numpy(x, center, width):
+    """
+        Triangular membership function that receives an 'x' value, and uses the 'center' and 'width' to
+        determine a degree of membership for 'x'. Implemented in Numpy and used in testing.
+
+        https://www.mathworks.com/help/fuzzy/trimf.html
+
+    Args:
+        x: The element which we want to retrieve its membership degree.
+        center: The center of the Triangular fuzzy set.
+        width: The width of the Triangular fuzzy set.
+
+    Returns:
+        The membership degree of 'x'.
+    """
+    values = 1.0 - (1.0 / width) * np.abs(x - center)
+    values[(values < 0)] = 0
+    return values
 
 
 class TestTriangularMembershipFunction(unittest.TestCase):
@@ -14,7 +33,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         center = triangular_mf.centers.detach().numpy()
         width = triangular_mf.widths.detach().numpy()
         mu_pytorch = triangular_mf(torch.tensor(element))
-        mu_numpy = TriangularNumpy(element, center, width)
+        mu_numpy = triangular_numpy(element, center, width)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (triangular_mf.centers.detach().numpy() == center).all()
@@ -27,7 +46,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         triangular_mf = Triangular(in_features=elements.shape[1])
         centers, widths = triangular_mf.centers.detach().numpy(), triangular_mf.widths.detach().numpy()
         mu_pytorch = triangular_mf(elements)
-        mu_numpy = TriangularNumpy(elements.detach().numpy(), centers, widths)
+        mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (triangular_mf.centers.detach().numpy() == centers).all()
@@ -41,7 +60,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         triangular_mf = Triangular(in_features=elements.shape[1], centers=centers)
         widths = triangular_mf.widths.detach().numpy()
         mu_pytorch = triangular_mf(torch.tensor(elements))
-        mu_numpy = TriangularNumpy(elements.detach().numpy(), centers, widths)
+        mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (triangular_mf.centers.detach().numpy() == centers).all()
@@ -57,7 +76,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         widths = np.abs(widths)
         centers = triangular_mf.centers.detach().numpy()
         mu_pytorch = triangular_mf(torch.tensor(elements))
-        mu_numpy = TriangularNumpy(elements.detach().numpy(), centers, widths)
+        mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (triangular_mf.centers.detach().numpy() == centers).all()
@@ -73,7 +92,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         # we will now update the widths to be abs. value
         widths = np.abs(widths)
         mu_pytorch = triangular_mf(torch.tensor(elements))
-        mu_numpy = TriangularNumpy(elements.detach().numpy(), centers, widths)
+        mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (triangular_mf.centers.detach().numpy() == centers).all()

@@ -2,8 +2,23 @@ import torch
 import unittest
 import numpy as np
 
-from soft.fuzzy.sets import Gaussian  # a pyTorch implementation
-from soft.fuzzy.membership import gaussian as GaussianNumpy  # a Numpy implementation
+from soft.fuzzy.sets.continuous import Gaussian  # a pyTorch implementation
+
+
+def gaussian_numpy(x, center, sigma):
+    """
+        Gaussian membership function that receives an 'x' value, and uses the 'center' and 'sigma' to
+        determine a degree of membership for 'x'. Implemented in Numpy and used in testing.
+
+    Args:
+        x: The element which we want to retrieve its membership degree.
+        center: The center of the Gaussian fuzzy set.
+        sigma: The width of the Gaussian fuzzy set.
+
+    Returns:
+        The membership degree of 'x'.
+    """
+    return np.exp(-1.0 * (np.power(x - center, 2) / np.power(sigma, 2)))
 
 
 class TestGaussianMembershipFunction(unittest.TestCase):
@@ -14,7 +29,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         sigma = gaussian_mf.sigmas.detach().numpy()
         center = gaussian_mf.centers.detach().numpy()
         mu_pytorch = gaussian_mf(torch.tensor(element))
-        mu_numpy = GaussianNumpy(element, center, sigma)
+        mu_numpy = gaussian_numpy(element, center, sigma)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (gaussian_mf.sigmas.detach().numpy() == sigma).all()
@@ -27,7 +42,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         gaussian_mf = Gaussian(in_features=elements.shape[1])
         centers, sigmas = gaussian_mf.centers.detach().numpy(), gaussian_mf.sigmas.detach().numpy()
         mu_pytorch = gaussian_mf(elements)
-        mu_numpy = GaussianNumpy(elements, centers, sigmas)
+        mu_numpy = gaussian_numpy(elements, centers, sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (gaussian_mf.sigmas.detach().numpy() == sigmas).all()
@@ -41,7 +56,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         gaussian_mf = Gaussian(in_features=elements.shape[1], centers=centers)
         sigmas = gaussian_mf.sigmas.detach().numpy()
         mu_pytorch = gaussian_mf(torch.tensor(elements))
-        mu_numpy = GaussianNumpy(elements, centers, sigmas)
+        mu_numpy = gaussian_numpy(elements, centers, sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert (gaussian_mf.sigmas.detach().numpy() == sigmas).all()
@@ -56,7 +71,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         # we will now update the sigmas to be abs. value
         sigmas = torch.abs(sigmas)
         mu_pytorch = gaussian_mf(elements)
-        mu_numpy = GaussianNumpy(elements, gaussian_mf.centers.detach().numpy(), sigmas)
+        mu_numpy = gaussian_numpy(elements, gaussian_mf.centers.detach().numpy(), sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert torch.isclose(gaussian_mf.widths, sigmas).all()
@@ -71,7 +86,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         # we will now update the sigmas to be abs. value
         sigmas = torch.abs(sigmas)
         mu_pytorch = gaussian_mf(torch.tensor(elements))
-        mu_numpy = GaussianNumpy(elements, centers.detach().numpy(), sigmas)
+        mu_numpy = gaussian_numpy(elements, centers.detach().numpy(), sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
         assert torch.isclose(gaussian_mf.centers, centers).all()

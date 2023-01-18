@@ -2,7 +2,7 @@ import torch
 import unittest
 import numpy as np
 
-from soft.fuzzy.sets import Triangular
+from soft.fuzzy.sets.continuous import Triangular
 from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.information.granulation import GranulesMap
 from examples.fuzzy.temporal.association.ftarm.sample import make_example

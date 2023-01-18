@@ -3,8 +3,8 @@ import pygad
 import unittest
 import numpy as np
 
-from soft.fuzzy.sets import Gaussian
 from utils.reproducibility import set_rng
+from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.information.granulation import GranulesMap, GranuleSelection
 from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, most_quantifier as Q
