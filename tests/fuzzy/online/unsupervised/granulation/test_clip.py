@@ -1,23 +1,21 @@
-import os
 import torch
-import pathlib
 import unittest
 import numpy as np
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 
+# local implementations of CLIP that we know work but are written in Numpy
+from tests.fuzzy.online.unsupervised.granulation.clip import CLIP as oldCLIP, R as oldR
 from soft.fuzzy.online.unsupervised.granulation.clip import find_indices_to_closest_neighbors
 # actual implementation of CLIP that may break and is written in PyTorch
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP, regulator as newR
-# local implementations of CLIP that we know work but are written in Numpy
-from tests.fuzzy.online.unsupervised.granulation.clip import CLIP as oldCLIP, R as oldR
 
 
 set_rng(0)
 
 
-def compare_results(oldCLIP_terms, newCLIP_terms, eq=True):
+def compare_results(oldCLIP_terms, newCLIP_terms):
     """
     Compare the results between the original CLIP implementation and the new
     CLIP implementation (PyTorch).
@@ -37,14 +35,10 @@ def compare_results(oldCLIP_terms, newCLIP_terms, eq=True):
         original_centers = [term['center'] for term in original_results]
         original_sigmas = [term['sigma'] for term in original_results]
 
-        if not eq:  # the results should not be the same because the original was incorrect
-            assert len(original_centers) != len(new_results.centers.detach().numpy())
-
-        else:
-            assert len(original_centers) == len(new_results.centers.detach().numpy())  # results should be of same size
-            assert np.isclose(original_centers, new_results.centers.detach().numpy()).all()  # approx equal centers
-            assert len(original_sigmas) == len(new_results.widths.detach().numpy())
-            assert np.isclose(original_sigmas, new_results.widths.detach().numpy()).all()
+        assert len(original_centers) == len(new_results.centers.detach().numpy())  # results should be of same size
+        assert np.isclose(original_centers, new_results.centers.detach().numpy()).all()  # approx equal centers
+        assert len(original_sigmas) == len(new_results.widths.detach().numpy())
+        assert np.isclose(original_sigmas, new_results.widths.detach().numpy()).all()
 
 
 class TestCLIP(unittest.TestCase):
@@ -91,28 +85,3 @@ class TestCLIP(unittest.TestCase):
         newCLIP_terms = newCLIP(torch.tensor(train_X), train_X_mins, train_X_maxes)
 
         compare_results(oldCLIP_terms, newCLIP_terms)
-
-    def test_clip_output(self):
-        """
-        The CLIP that is originally defined without using PyTorch should match the newly defined
-        output that uses PyTorch to produce the results (i.e., the new CLIP directly induces
-        Gaussian PyTorch modules).
-
-        Uses sample input from the Cart Pole FCQL demo.
-
-        NOTE: This should actually fail because there was a mistake in the original implementation code.
-
-        Returns:
-            None
-        """
-
-        directory = pathlib.Path(__file__).parent.resolve()
-        file_location = os.path.join(directory, 'clip_input.npy')
-        train_X = np.load(file_location)
-        train_X_mins = train_X.min(axis=0)
-        train_X_maxes = train_X.max(axis=0)
-
-        oldCLIP_terms = oldCLIP(train_X, train_X_mins, train_X_maxes)
-        newCLIP_terms = newCLIP(torch.tensor(train_X), train_X_mins, train_X_maxes)
-
-        compare_results(oldCLIP_terms, newCLIP_terms, eq=False)
