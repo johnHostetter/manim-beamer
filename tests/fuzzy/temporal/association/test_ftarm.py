@@ -1,13 +1,29 @@
 import torch
 import unittest
 import numpy as np
+import pandas as pd
 
-from soft.fuzzy.sets.continuous import Triangular
+from utils.reproducibility import set_rng
 from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.information.granulation import GranulesMap
+from soft.fuzzy.sets.continuous import Gaussian, Triangular
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import make_fuzzy_rule_base_with_some_missing_inputs, \
     make_candidates_inference_engine, TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM
+
+set_rng(5)
+
+
+def big_data_example():
+    dataframe = pd.DataFrame(np.random.rand(4000, 4))
+    dataframe['date'] = 0
+    variables = {
+        0: Gaussian(in_features=4, supports=None, trainable=False, sort_by='centers'),
+        1: Gaussian(in_features=4, supports=None, trainable=False, sort_by='centers'),
+        2: Gaussian(in_features=4, supports=None, trainable=False, sort_by='centers'),
+        3: Gaussian(in_features=4, supports=None, trainable=False, sort_by='centers'),
+    }
+    return dataframe, variables
 
 
 class TestFTARM(unittest.TestCase):
@@ -130,7 +146,8 @@ class TestFTARM(unittest.TestCase):
 
         assert (mi.links_between_antecedents_and_rules == expected_links).all()
 
-        actual_antecedents_memberships = ftarm.granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
+        actual_antecedents_memberships = ftarm.granulation(
+            torch.tensor(dataframe[linguistic_variables.keys()].values).float())
 
         expected_memberships = torch.tensor([[[1.0000, 0.0000, torch.nan],
                                               [0.0000, 0.0000, torch.nan],
@@ -322,3 +339,21 @@ class TestFTARM(unittest.TestCase):
             assert actual_rule.antecedents == expected_rule.antecedents
             assert actual_rule.consequents == expected_rule.consequents
             assert actual_rule.confidence == expected_rule.confidence
+
+    def test_execute_big_data(self):
+        dataframe, linguistic_variables = big_data_example()
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.execute()
+        # # the first item in the family should match the expected 2-itemsets
+        # assert candidates_family[0] == [
+        #     ((0, 0), (1, 0)), ((0, 0), (3, 1)), ((0, 0), (4, 0)),
+        #     ((1, 0), (3, 1)), ((1, 0), (4, 0)), ((3, 1), (4, 0))
+        # ]
+        # # the second item in the family should match the expected 3-itemsets
+        # assert candidates_family[1] == [
+        #     {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
+        #     {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
+        # ]
+        # # the third item in the family should match the expected 4-itemset
+        # assert candidates_family[2] == [{(1, 0), (4, 0), (3, 1), (0, 0)}]
