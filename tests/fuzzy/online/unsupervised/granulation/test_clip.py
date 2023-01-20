@@ -78,10 +78,8 @@ class TestCLIP(unittest.TestCase):
             None
         """
         train_X = np.random.random(size=(100, 4))
-        train_X_mins = train_X.min(axis=0)
-        train_X_maxes = train_X.max(axis=0)
 
-        oldCLIP_terms = oldCLIP(train_X, train_X_mins, train_X_maxes)
-        newCLIP_terms = newCLIP(torch.tensor(train_X), train_X_mins, train_X_maxes)
+        oldCLIP_terms = oldCLIP(train_X, train_X.min(axis=0), train_X.max(axis=0))
+        newCLIP_terms = newCLIP(torch.tensor(train_X))
 
         compare_results(oldCLIP_terms, newCLIP_terms)

@@ -15,11 +15,9 @@ class TestWangMendelMethod(unittest.TestCase):
         directory = pathlib.Path(__file__).parent.resolve()
         file_location = os.path.join(directory, 'clip_input.npy')
         train_X = np.load(file_location)
-        train_X_mins = train_X.min(axis=0)
-        train_X_maxes = train_X.max(axis=0)
 
         # oldCLIP_terms = oldCLIP(train_X, train_X_mins, train_X_maxes)
-        newCLIP_terms = newCLIP(torch.tensor(train_X), train_X_mins, train_X_maxes)
+        newCLIP_terms = newCLIP(torch.tensor(train_X))
 
         oldCLIP_terms = []
         for var_idx, variable in enumerate(newCLIP_terms):
