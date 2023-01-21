@@ -14,7 +14,8 @@ from soft.fuzzy.temporal.association.ftarm import make_fuzzy_rule_base_with_some
 set_rng(5)
 
 
-def big_data_example():
+def big_data_example(seed):
+    set_rng(seed)
     dataframe = pd.DataFrame(np.random.rand(4000, 4))
     dataframe['date'] = 0
     variables = {
@@ -340,20 +341,46 @@ class TestFTARM(unittest.TestCase):
             assert actual_rule.consequents == expected_rule.consequents
             assert actual_rule.confidence == expected_rule.confidence
 
-    def test_execute_big_data(self):
-        dataframe, linguistic_variables = big_data_example()
+    def test_execute_big_data_0(self):
+        """
+        This unit test was introduced to identify that frequent itemsets were not being created that contained more
+        than one linguistic variable assignment. Also, some operations originally would result in an empty list
+        being returned that the above unit tests do not capture.
+        Returns:
+            None
+        """
+        dataframe, linguistic_variables = big_data_example(seed=0)
         ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
-        # # the first item in the family should match the expected 2-itemsets
-        # assert candidates_family[0] == [
-        #     ((0, 0), (1, 0)), ((0, 0), (3, 1)), ((0, 0), (4, 0)),
-        #     ((1, 0), (3, 1)), ((1, 0), (4, 0)), ((3, 1), (4, 0))
-        # ]
-        # # the second item in the family should match the expected 3-itemsets
-        # assert candidates_family[1] == [
-        #     {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
-        #     {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
-        # ]
-        # # the third item in the family should match the expected 4-itemset
-        # assert candidates_family[2] == [{(1, 0), (4, 0), (3, 1), (0, 0)}]
+        # the first item in the family should match the expected 2-itemsets
+        assert candidates_family[0] == [
+            ((0, 3), (1, 0)), ((0, 3), (1, 1)), ((0, 3), (3, 2)),
+            ((1, 0), (3, 2)), ((1, 1), (3, 2))
+        ]
+        # the second item in the family should match the expected 3-itemsets
+        assert candidates_family[1] == [
+            {(1, 1), (0, 3), (3, 2)}, {(1, 0), (3, 2), (0, 3)}
+        ]
+
+    def test_execute_big_data_5(self):
+        """
+        This unit test was introduced to identify that frequent itemsets were not being created that contained more
+        than one linguistic variable assignment. Also, some operations originally would result in an empty list
+        being returned that the above unit tests do not capture.
+        Returns:
+            None
+        """
+        dataframe, linguistic_variables = big_data_example(seed=5)
+        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
+                      minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.execute()
+        # the first item in the family should match the expected 2-itemsets
+        assert candidates_family[0] == [
+            ((0, 3), (2, 2)), ((0, 3), (2, 3)), ((0, 3), (3, 0)),
+            ((2, 2), (3, 0)), ((2, 3), (3, 0))
+        ]
+        # the second item in the family should match the expected 3-itemsets
+        assert candidates_family[1] == [
+            {(2, 3), (0, 3), (3, 0)}, {(0, 3), (3, 0), (2, 2)}
+        ]
