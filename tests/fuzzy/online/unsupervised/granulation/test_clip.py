@@ -11,7 +11,6 @@ from soft.fuzzy.online.unsupervised.granulation.clip import find_indices_to_clos
 # actual implementation of CLIP that may break and is written in PyTorch
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP, regulator as newR
 
-
 set_rng(0)
 
 
@@ -80,6 +79,6 @@ class TestCLIP(unittest.TestCase):
         train_X = np.random.random(size=(100, 4))
 
         oldCLIP_terms = oldCLIP(train_X, train_X.min(axis=0), train_X.max(axis=0))
-        newCLIP_terms = newCLIP(torch.tensor(train_X))
+        newCLIP_terms = newCLIP(torch.tensor(train_X), config={'eps': 0.2, 'kappa': 0.6})
 
         compare_results(oldCLIP_terms, newCLIP_terms)

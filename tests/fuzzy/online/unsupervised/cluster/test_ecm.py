@@ -21,7 +21,7 @@ class TestECM(unittest.TestCase):
         """
         x = np.array([0.5, 0.8])
         y = np.array([0.9, 2.5])
-        assert np.isclose(oldDistance(x, y), newDistance(torch.tensor([x]), y))
+        assert np.isclose(oldDistance(x, y), newDistance(torch.tensor([x]), torch.tensor(y)))
 
     def test_ecm_output(self):
         """
@@ -43,7 +43,7 @@ class TestECM(unittest.TestCase):
         old_centers = np.array([cluster.center.tolist() for cluster in old_clusters])
         old_widths = [cluster.radius for cluster in old_clusters]
 
-        new_clusters = newECM(train_X, Dthr=Dthr)
+        new_clusters = newECM(torch.tensor(train_X), config={'dthr': Dthr})
 
         assert len(old_centers) == len(new_clusters.centers.detach().numpy())  # results should be of same size
         assert not np.isclose(old_centers, new_clusters.centers.detach().numpy()).all()  # approx unequal centers

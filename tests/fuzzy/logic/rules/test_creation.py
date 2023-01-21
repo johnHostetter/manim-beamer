@@ -26,16 +26,15 @@ class TestWangMendelMethod(unittest.TestCase):
                 value = {'center': center, 'sigma': variable.sigmas[idx].item(), 'support': 1}
                 oldCLIP_terms[var_idx].append(value)
 
-        Dthr = 0.4
         directory = pathlib.Path(__file__).parent.resolve()
         file_location = os.path.join(directory, 'ecm_input.npy')
         train_X = np.load(file_location)
-        new_clusters = newECM(train_X, Dthr=Dthr)
+        new_clusters = newECM(torch.tensor(train_X), config={'dthr': 0.4})
         reduced_X = new_clusters.centers
         old_antecedents, old_rules, _ = old_WM_method(reduced_X.detach().numpy(), oldCLIP_terms, [], [],
                                                       consistency_check=False)
 
-        new_antecedents, new_rules = new_WM_method(reduced_X, newCLIP_terms)
+        new_rules = new_WM_method(reduced_X, newCLIP_terms)
 
         old_rules_matrix = np.array([rule['A'] for rule in old_rules])
         new_rules_matrix = np.array([rule.antecedents for rule in new_rules])
