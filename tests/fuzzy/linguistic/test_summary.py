@@ -6,7 +6,7 @@ import numpy as np
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
-from soft.fuzzy.information.granulation import GranulesMap, GranuleSelection
+from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph, GranuleSelection
 from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, most_quantifier as Q
 
 
@@ -18,7 +18,7 @@ gass = GeneticAlgorithmSummarySearch(in_features=2, antecedents=antecedents, inp
 
 def make_scenario_1():
     terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-    summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
+    summarizer = GranulesMap(GranulesGraph(terms), trainable=False)
     summary = Summary(summarizer, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
@@ -129,7 +129,7 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
+        summarizer = GranulesMap(GranulesGraph(terms), trainable=False)
         summary = Summary(summarizer, Q, None)
         x = torch.tensor([[1., 0.5]])
         assert torch.isclose(summary.summarizer_membership(x), torch.tensor(0.5272924900054932))
@@ -143,7 +143,7 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
+        summarizer = GranulesMap(GranulesGraph(terms), trainable=False)
         summary = Summary(summarizer, Q, None)
         x = torch.tensor([[1., 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
@@ -173,7 +173,7 @@ class TestSummary(unittest.TestCase):
 
     def test_length(self):
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        summarizer = GranulesMap(in_features=2, granules_params=terms, membership_function=Gaussian, trainable=False)
+        summarizer = GranulesMap(GranulesGraph(terms), trainable=False)
         summary = Summary(summarizer, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
