@@ -5,8 +5,8 @@ import pandas as pd
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.logic.rules.knowledge import Rule
-from soft.fuzzy.information.granulation import GranulesMap
 from soft.fuzzy.sets.continuous import Gaussian, Triangular
+from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import make_fuzzy_rule_base_with_some_missing_inputs, \
     make_candidates_inference_engine, TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM
@@ -30,7 +30,7 @@ def big_data_example(seed):
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
         dataframe, linguistic_variables = make_example()
-        granulation = GranulesMap(len(linguistic_variables.keys()), list(linguistic_variables.values()), Triangular)
+        granulation = GranulesMap(GranulesGraph(list(linguistic_variables.values())))
         mus = granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
                                             [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -59,9 +59,6 @@ class TestFTARM(unittest.TestCase):
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
-        # check that the variable location method is working properly (returns start and end indices)
-        for variable_index in range(5):
-            assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
         actual_scalar_cardinality = ftarm.scalar_cardinality()
         expected_scalar_cardinality = torch.tensor([2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
         assert torch.isclose(actual_scalar_cardinality.flatten(), expected_scalar_cardinality).all()
@@ -70,10 +67,6 @@ class TestFTARM(unittest.TestCase):
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
-        # check that the variable location method is working properly (returns start and end indices)
-        for variable_index in range(5):
-            assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
-
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
@@ -86,9 +79,6 @@ class TestFTARM(unittest.TestCase):
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
                       minimum_support=0.3, minimum_confidence=0.8)
-        # check that the variable location method is working properly (returns start and end indices)
-        for variable_index in range(5):
-            assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
         # start of step 4
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         actual_fuzzy_temporal_supports >= ftarm.minimum_support  # L1 --> low A, low B, high D, and low E
@@ -112,37 +102,19 @@ class TestFTARM(unittest.TestCase):
 
         # step 8.1:
 
-        frb = make_fuzzy_rule_base_with_some_missing_inputs(ftarm=ftarm, candidates=C2_indices)
-
-        expected_antecedents_matrix_form = np.array(
-            [[0., 0., 2., 2., 2.],
-             [0., 2., 2., 1., 2.],
-             [0., 2., 2., 2., 0.],
-             [2., 0., 2., 1., 2.],
-             [2., 0., 2., 2., 0.],
-             [2., 2., 2., 1., 0.]]
-        )
-
-        assert (frb.antecedents_matrix_form == expected_antecedents_matrix_form).all()
-
-        mi = make_candidates_inference_engine(ftarm, frb)
+        mi = make_candidates_inference_engine(ftarm, candidates=C2_indices)
 
         expected_links = torch.tensor(
             [[[1., 1., 1., 0., 0., 0.],
-              [0., 0., 0., 0., 0., 0.],
-              [0., 0., 0., 1., 1., 1.]],
+              [0., 0., 0., 0., 0., 0.]],
              [[1., 0., 0., 1., 1., 0.],
-              [0., 0., 0., 0., 0., 0.],
-              [0., 1., 1., 0., 0., 1.]],
+              [0., 0., 0., 0., 0., 0.]],
              [[0., 0., 0., 0., 0., 0.],
-              [0., 0., 0., 0., 0., 0.],
-              [1., 1., 1., 1., 1., 1.]],
+              [0., 0., 0., 0., 0., 0.]],
              [[0., 0., 0., 0., 0., 0.],
-              [0., 1., 0., 1., 0., 1.],
-              [1., 0., 1., 0., 1., 0.]],
+              [0., 1., 0., 1., 0., 1.]],
              [[0., 0., 1., 0., 1., 1.],
-              [0., 0., 0., 0., 0., 0.],
-              [1., 1., 0., 1., 0., 0.]]]
+              [0., 0., 0., 0., 0., 0.]]]
         )
 
         assert (mi.links_between_antecedents_and_rules == expected_links).all()
@@ -150,31 +122,31 @@ class TestFTARM(unittest.TestCase):
         actual_antecedents_memberships = ftarm.granulation(
             torch.tensor(dataframe[linguistic_variables.keys()].values).float())
 
-        expected_memberships = torch.tensor([[[1.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [2 / 3, 1 / 3, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.5000, 0.0000, torch.nan],
-                                              [0.5000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [2 / 3, 1 / 3, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.5000, 0.0000, torch.nan],
-                                              [0.5000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 1.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.5000, 0.0000, torch.nan],
-                                              [0.7500, 0.2500, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 1.0000, torch.nan],
-                                              [1.0000, 0.0000, torch.nan]]])
+        expected_memberships = torch.tensor([[[1.0000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [2 / 3, 1 / 3],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.5000, 0.0000],
+                                              [0.5000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.0000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [2 / 3, 1 / 3],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.5000, 0.0000],
+                                              [0.5000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 1.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.5000, 0.0000],
+                                              [0.7500, 0.2500],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 1.0000],
+                                              [1.0000, 0.0000]]])
 
         assert torch.isclose(actual_antecedents_memberships, expected_memberships, equal_nan=True).all()
 

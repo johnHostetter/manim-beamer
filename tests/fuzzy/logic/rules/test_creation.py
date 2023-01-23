@@ -4,6 +4,7 @@ import pathlib
 import unittest
 import numpy as np
 
+from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP
 from tests.fuzzy.logic.rules.wang_mendel import rule_creation as old_WM_method
@@ -34,10 +35,16 @@ class TestWangMendelMethod(unittest.TestCase):
         old_antecedents, old_rules, _ = old_WM_method(reduced_X.detach().numpy(), oldCLIP_terms, [], [],
                                                       consistency_check=False)
 
-        new_rules = new_WM_method(reduced_X, newCLIP_terms)
+        knowledge_base = new_WM_method(reduced_X, newCLIP_terms)
 
         old_rules_matrix = np.array([rule['A'] for rule in old_rules])
-        new_rules_matrix = np.array([rule.antecedents for rule in new_rules])
+        relation_subgraph = knowledge_base.subgraph('relation', AlgebraicProduct)
+        # now go through the subgraph and get smaller subgraphs according to an attribute
+        subgraphs = knowledge_base.all_subgraphs(relation_subgraph, attribute='idx')
+        new_rules = []
+        for subgraph in subgraphs:
+            new_rules.append([node[1] for node in subgraph.nodes])
+        new_rules_matrix = np.array([rule.detach().numpy() for rule in new_rules.matrix(AlgebraicProduct)])
 
         assert old_rules_matrix.shape == new_rules_matrix.shape
         assert (old_rules_matrix == new_rules_matrix).all()
