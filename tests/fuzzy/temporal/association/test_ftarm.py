@@ -285,7 +285,7 @@ class TestFTARM(unittest.TestCase):
             rule.confidence = confidence
 
         for actual_rule, expected_rule in zip(actual_rules, expected_rules):
-            print(actual_rule.antecedents)
+            print('{} -> {}'.format(actual_rule.antecedents, actual_rule.consequents))
             # assert actual_rule.antecedents == expected_rule.antecedents
             # assert actual_rule.consequents == expected_rule.consequents
             # assert actual_rule.confidence == expected_rule.confidence
