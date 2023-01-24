@@ -18,10 +18,10 @@ def big_data_example(seed):
     dataframe = pd.DataFrame(np.random.rand(4000, 4))
     dataframe['date'] = 0
     variables = {
-        0: Gaussian(in_features=4, supports=None, sort_by='centers'),
-        1: Gaussian(in_features=4, supports=None, sort_by='centers'),
-        2: Gaussian(in_features=4, supports=None, sort_by='centers'),
-        3: Gaussian(in_features=4, supports=None, sort_by='centers'),
+        0: Gaussian(in_features=4),
+        1: Gaussian(in_features=4),
+        2: Gaussian(in_features=4),
+        3: Gaussian(in_features=4),
     }
     return dataframe, variables
 
