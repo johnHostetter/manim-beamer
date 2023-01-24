@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 
 from utils.reproducibility import set_rng
-from soft.fuzzy.logic.rules.knowledge import Rule
-from soft.fuzzy.sets.continuous import Gaussian, Triangular
+from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
@@ -256,7 +255,7 @@ class TestFTARM(unittest.TestCase):
     def test_execute(self):
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
+        candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
             ((0, 0), (1, 0)), ((0, 0), (3, 1)), ((0, 0), (4, 0)),
@@ -268,18 +267,8 @@ class TestFTARM(unittest.TestCase):
     def test_find_association_rules(self):
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
-        actual_rules = ftarm.find_association_rules(candidates_family)
-        # assert len(actual_rules) == 7
-        expected_rules = [
-            Rule(antecedents={(1, 0), (0, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(3, 1), (0, 0)}, consequents={(1, 0)}),
-            Rule(antecedents={(1, 0), (4, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(0, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(1, 0)}, consequents={(0, 0)}),
-            Rule(antecedents={(1, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(4, 0)}, consequents={(3, 1)}),
-        ]
+        candidates_family = ftarm.find_candidates()
+        actual_rules = ftarm.find_association_rules()
         expected_rules = [
             {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(0, 0)}),
              'confidence': torch.tensor(0.8571429)},
@@ -312,7 +301,7 @@ class TestFTARM(unittest.TestCase):
         """
         dataframe, linguistic_variables = big_data_example(seed=0)
         ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
+        candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
             ((0, 3), (1, 0)), ((0, 3), (1, 1)), ((0, 3), (1, 3)), ((0, 3), (3, 2)),
@@ -331,7 +320,7 @@ class TestFTARM(unittest.TestCase):
         """
         dataframe, linguistic_variables = big_data_example(seed=5)
         ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
+        candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
             ((0, 1), (2, 2)), ((0, 1), (2, 3)), ((0, 1), (3, 0)), ((0, 3), (2, 2)),
