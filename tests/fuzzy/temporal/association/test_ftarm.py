@@ -48,8 +48,7 @@ class TestFTARM(unittest.TestCase):
         assert (ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
         # now checking that FTARM creates the same TI Table as above
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ftarm.ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
@@ -57,16 +56,14 @@ class TestFTARM(unittest.TestCase):
 
     def test_step_2(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         actual_scalar_cardinality = ftarm.scalar_cardinality()
         expected_scalar_cardinality = torch.tensor([2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
         assert torch.isclose(actual_scalar_cardinality.flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
@@ -77,8 +74,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_step_4(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         # start of step 4
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         actual_fuzzy_temporal_supports >= ftarm.minimum_support  # L1 --> low A, low B, high D, and low E
@@ -95,14 +91,13 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_representation_functions(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
         # step 8.1:
 
-        mi = make_candidates_inference_engine(ftarm, candidates=C2_indices)
+        mi = make_candidates_inference_engine(granulation=ftarm.granulation, candidates=C2_indices)
 
         expected_links = torch.tensor(
             [[[1., 1., 1., 0., 0., 0.],
@@ -160,8 +155,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_representation_ftarm(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -178,8 +172,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_scalar_cardinality(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -191,8 +184,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_temporal_supports(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         # the following candidate order is assumed for the following assertions
@@ -240,8 +232,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_make_candidate_3_itemsets(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
@@ -254,8 +245,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_make_candidate_4_itemsets(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
@@ -265,8 +255,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_execute(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -278,11 +267,10 @@ class TestFTARM(unittest.TestCase):
 
     def test_find_association_rules(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
         actual_rules = ftarm.find_association_rules(candidates_family)
-        assert len(actual_rules) == 7
+        # assert len(actual_rules) == 7
         expected_rules = [
             Rule(antecedents={(1, 0), (0, 0)}, consequents={(3, 1)}),
             Rule(antecedents={(3, 1), (0, 0)}, consequents={(1, 0)}),
@@ -297,9 +285,11 @@ class TestFTARM(unittest.TestCase):
             rule.confidence = confidence
 
         for actual_rule, expected_rule in zip(actual_rules, expected_rules):
-            assert actual_rule.antecedents == expected_rule.antecedents
-            assert actual_rule.consequents == expected_rule.consequents
-            assert actual_rule.confidence == expected_rule.confidence
+            print(actual_rule.antecedents)
+            # assert actual_rule.antecedents == expected_rule.antecedents
+            # assert actual_rule.consequents == expected_rule.consequents
+            # assert actual_rule.confidence == expected_rule.confidence
+        assert False
 
     def test_execute_big_data_0(self):
         """
@@ -310,8 +300,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = big_data_example(seed=0)
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -330,8 +319,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = big_data_example(seed=5)
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.execute()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
