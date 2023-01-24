@@ -280,16 +280,27 @@ class TestFTARM(unittest.TestCase):
             Rule(antecedents={(1, 0)}, consequents={(3, 1)}),
             Rule(antecedents={(4, 0)}, consequents={(3, 1)}),
         ]
-        expected_confidences = np.array([1.0, 1.0, 1.0, 0.8571429252624512, 1.0, 1.0, 1.0])
-        for rule, confidence in zip(expected_rules, expected_confidences):
-            rule.confidence = confidence
+        expected_rules = [
+            {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(0, 0)}),
+             'confidence': torch.tensor(0.8571429)},
+            {'antecedents': frozenset({(0, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(4, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(1, 0), (0, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(3, 1), (0, 0)}), 'consequents': frozenset({(1, 0)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(1, 0), (4, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)}
+        ]
 
         for actual_rule, expected_rule in zip(actual_rules, expected_rules):
-            print('{} -> {}'.format(actual_rule.antecedents, actual_rule.consequents))
-            # assert actual_rule.antecedents == expected_rule.antecedents
-            # assert actual_rule.consequents == expected_rule.consequents
-            # assert actual_rule.confidence == expected_rule.confidence
-        assert False
+            assert actual_rule['antecedents'] == expected_rule['antecedents']
+            assert actual_rule['consequents'] == expected_rule['consequents']
+            assert actual_rule['confidence'] == expected_rule['confidence']
 
     def test_execute_big_data_0(self):
         """
