@@ -8,8 +8,8 @@ from soft.fuzzy.logic.rules.knowledge import Rule
 from soft.fuzzy.sets.continuous import Gaussian, Triangular
 from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
-from soft.fuzzy.temporal.association.ftarm import make_fuzzy_rule_base_with_some_missing_inputs, \
-    make_candidates_inference_engine, TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM
+from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
+    FuzzyTemporalAssocationRuleMining as FTARM
 
 set_rng(5)
 
@@ -299,8 +299,8 @@ class TestFTARM(unittest.TestCase):
             Rule(antecedents={(1, 0), (0, 0)}, consequents={(3, 1)}),
             Rule(antecedents={(3, 1), (0, 0)}, consequents={(1, 0)}),
             Rule(antecedents={(1, 0), (4, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(1, 0)}, consequents={(0, 0)}),
             Rule(antecedents={(0, 0)}, consequents={(3, 1)}),
+            Rule(antecedents={(1, 0)}, consequents={(0, 0)}),
             Rule(antecedents={(1, 0)}, consequents={(3, 1)}),
             Rule(antecedents={(4, 0)}, consequents={(3, 1)}),
         ]
