@@ -245,14 +245,11 @@ class TestFTARM(unittest.TestCase):
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
-        expected_candidate_indices = [
-            {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
-            {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
-        ]
+        expected_candidate_indices = [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
         assert C3_indices == expected_candidate_indices
 
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C3_indices)
-        expected_fuzzy_temporal_supports = torch.tensor([0.2500, 0.2500, 0.5000, 0.3750])
+        expected_fuzzy_temporal_supports = torch.tensor([0.5000, 0.3750])
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_make_candidate_4_itemsets(self):
@@ -263,12 +260,8 @@ class TestFTARM(unittest.TestCase):
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
         C4_indices = ftarm.make_candidates(C3_indices)
-        expected_candidate_indices = [{(1, 0), (4, 0), (3, 1), (0, 0)}]
+        expected_candidate_indices = None
         assert C4_indices == expected_candidate_indices
-
-        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C4_indices)
-        expected_fuzzy_temporal_supports = torch.tensor([0.2500])
-        assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_execute(self):
         dataframe, linguistic_variables = make_example()
@@ -281,12 +274,7 @@ class TestFTARM(unittest.TestCase):
             ((1, 0), (3, 1)), ((1, 0), (4, 0)), ((3, 1), (4, 0))
         ]
         # the second item in the family should match the expected 3-itemsets
-        assert candidates_family[1] == [
-            {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
-            {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
-        ]
-        # the third item in the family should match the expected 4-itemset
-        assert candidates_family[2] == [{(1, 0), (4, 0), (3, 1), (0, 0)}]
+        assert candidates_family[1] == [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
 
     def test_find_association_rules(self):
         dataframe, linguistic_variables = make_example()
@@ -327,13 +315,11 @@ class TestFTARM(unittest.TestCase):
         candidates_family = ftarm.execute()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
-            ((0, 3), (1, 0)), ((0, 3), (1, 1)), ((0, 3), (3, 2)),
-            ((1, 0), (3, 2)), ((1, 1), (3, 2))
+            ((0, 3), (1, 0)), ((0, 3), (1, 1)), ((0, 3), (1, 3)), ((0, 3), (3, 2)),
+            ((1, 0), (3, 2)), ((1, 1), (3, 2)), ((1, 3), (3, 2))
         ]
         # the second item in the family should match the expected 3-itemsets
-        assert candidates_family[1] == [
-            {(1, 1), (0, 3), (3, 2)}, {(1, 0), (3, 2), (0, 3)}
-        ]
+        assert candidates_family[1] == [{(1, 1), (0, 3), (3, 2)}, {(1, 0), (3, 2), (0, 3)}, {(3, 2), (0, 3), (1, 3)}]
 
     def test_execute_big_data_5(self):
         """
@@ -349,10 +335,11 @@ class TestFTARM(unittest.TestCase):
         candidates_family = ftarm.execute()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
-            ((0, 3), (2, 2)), ((0, 3), (2, 3)), ((0, 3), (3, 0)),
-            ((2, 2), (3, 0)), ((2, 3), (3, 0))
+            ((0, 1), (2, 2)), ((0, 1), (2, 3)), ((0, 1), (3, 0)), ((0, 3), (2, 2)),
+            ((0, 3), (2, 3)), ((0, 3), (3, 0)), ((2, 2), (3, 0)), ((2, 3), (3, 0))
         ]
         # the second item in the family should match the expected 3-itemsets
         assert candidates_family[1] == [
-            {(2, 3), (0, 3), (3, 0)}, {(0, 3), (3, 0), (2, 2)}
+            {(0, 1), (2, 3), (3, 0)}, {(2, 3), (0, 3), (3, 0)},
+            {(0, 3), (3, 0), (2, 2)}, {(0, 1), (3, 0), (2, 2)}
         ]
