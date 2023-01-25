@@ -4,12 +4,11 @@ import numpy as np
 import pandas as pd
 
 from utils.reproducibility import set_rng
-from soft.fuzzy.logic.rules.knowledge import Rule
-from soft.fuzzy.information.granulation import GranulesMap
-from soft.fuzzy.sets.continuous import Gaussian, Triangular
+from soft.fuzzy.sets.continuous import Gaussian
+from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
-from soft.fuzzy.temporal.association.ftarm import make_fuzzy_rule_base_with_some_missing_inputs, \
-    make_candidates_inference_engine, TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM
+from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
+    FuzzyTemporalAssocationRuleMining as FTARM
 
 set_rng(5)
 
@@ -19,10 +18,10 @@ def big_data_example(seed):
     dataframe = pd.DataFrame(np.random.rand(4000, 4))
     dataframe['date'] = 0
     variables = {
-        0: Gaussian(in_features=4, supports=None, sort_by='centers'),
-        1: Gaussian(in_features=4, supports=None, sort_by='centers'),
-        2: Gaussian(in_features=4, supports=None, sort_by='centers'),
-        3: Gaussian(in_features=4, supports=None, sort_by='centers'),
+        0: Gaussian(in_features=4),
+        1: Gaussian(in_features=4),
+        2: Gaussian(in_features=4),
+        3: Gaussian(in_features=4),
     }
     return dataframe, variables
 
@@ -30,7 +29,7 @@ def big_data_example(seed):
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
         dataframe, linguistic_variables = make_example()
-        granulation = GranulesMap(len(linguistic_variables.keys()), list(linguistic_variables.values()), Triangular)
+        granulation = GranulesMap(GranulesGraph(list(linguistic_variables.values())))
         mus = granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
                                             [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -48,8 +47,7 @@ class TestFTARM(unittest.TestCase):
         assert (ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
         # now checking that FTARM creates the same TI Table as above
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ftarm.ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
@@ -57,23 +55,14 @@ class TestFTARM(unittest.TestCase):
 
     def test_step_2(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        # check that the variable location method is working properly (returns start and end indices)
-        for variable_index in range(5):
-            assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         actual_scalar_cardinality = ftarm.scalar_cardinality()
         expected_scalar_cardinality = torch.tensor([2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
         assert torch.isclose(actual_scalar_cardinality.flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        # check that the variable location method is working properly (returns start and end indices)
-        for variable_index in range(5):
-            assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
-
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
@@ -84,11 +73,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_step_4(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        # check that the variable location method is working properly (returns start and end indices)
-        for variable_index in range(5):
-            assert ftarm.granulation.vloc(variable_index) == (2 * variable_index, 2 * variable_index + 1)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
         # start of step 4
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         actual_fuzzy_temporal_supports >= ftarm.minimum_support  # L1 --> low A, low B, high D, and low E
@@ -105,44 +90,25 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_representation_functions(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
         # step 8.1:
 
-        frb = make_fuzzy_rule_base_with_some_missing_inputs(ftarm=ftarm, candidates=C2_indices)
-
-        expected_antecedents_matrix_form = np.array(
-            [[0., 0., 2., 2., 2.],
-             [0., 2., 2., 1., 2.],
-             [0., 2., 2., 2., 0.],
-             [2., 0., 2., 1., 2.],
-             [2., 0., 2., 2., 0.],
-             [2., 2., 2., 1., 0.]]
-        )
-
-        assert (frb.antecedents_matrix_form == expected_antecedents_matrix_form).all()
-
-        mi = make_candidates_inference_engine(ftarm, frb)
+        mi = make_candidates_inference_engine(granulation=ftarm.granulation, candidates=C2_indices)
 
         expected_links = torch.tensor(
             [[[1., 1., 1., 0., 0., 0.],
-              [0., 0., 0., 0., 0., 0.],
-              [0., 0., 0., 1., 1., 1.]],
+              [0., 0., 0., 0., 0., 0.]],
              [[1., 0., 0., 1., 1., 0.],
-              [0., 0., 0., 0., 0., 0.],
-              [0., 1., 1., 0., 0., 1.]],
+              [0., 0., 0., 0., 0., 0.]],
              [[0., 0., 0., 0., 0., 0.],
-              [0., 0., 0., 0., 0., 0.],
-              [1., 1., 1., 1., 1., 1.]],
+              [0., 0., 0., 0., 0., 0.]],
              [[0., 0., 0., 0., 0., 0.],
-              [0., 1., 0., 1., 0., 1.],
-              [1., 0., 1., 0., 1., 0.]],
+              [0., 1., 0., 1., 0., 1.]],
              [[0., 0., 1., 0., 1., 1.],
-              [0., 0., 0., 0., 0., 0.],
-              [1., 1., 0., 1., 0., 0.]]]
+              [0., 0., 0., 0., 0., 0.]]]
         )
 
         assert (mi.links_between_antecedents_and_rules == expected_links).all()
@@ -150,31 +116,31 @@ class TestFTARM(unittest.TestCase):
         actual_antecedents_memberships = ftarm.granulation(
             torch.tensor(dataframe[linguistic_variables.keys()].values).float())
 
-        expected_memberships = torch.tensor([[[1.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [2 / 3, 1 / 3, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.5000, 0.0000, torch.nan],
-                                              [0.5000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [2 / 3, 1 / 3, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.5000, 0.0000, torch.nan],
-                                              [0.5000, 0.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 1.0000, torch.nan],
-                                              [0.0000, 0.0000, torch.nan]],
-                                             [[0.5000, 0.0000, torch.nan],
-                                              [0.7500, 0.2500, torch.nan],
-                                              [0.0000, 0.0000, torch.nan],
-                                              [0.0000, 1.0000, torch.nan],
-                                              [1.0000, 0.0000, torch.nan]]])
+        expected_memberships = torch.tensor([[[1.0000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [2 / 3, 1 / 3],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.5000, 0.0000],
+                                              [0.5000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.0000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [2 / 3, 1 / 3],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.5000, 0.0000],
+                                              [0.5000, 0.0000],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 1.0000],
+                                              [0.0000, 0.0000]],
+                                             [[0.5000, 0.0000],
+                                              [0.7500, 0.2500],
+                                              [0.0000, 0.0000],
+                                              [0.0000, 1.0000],
+                                              [1.0000, 0.0000]]])
 
         assert torch.isclose(actual_antecedents_memberships, expected_memberships, equal_nan=True).all()
 
@@ -188,8 +154,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_representation_ftarm(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -206,8 +171,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_scalar_cardinality(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -219,8 +183,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_temporal_supports(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         # the following candidate order is assumed for the following assertions
@@ -268,78 +231,65 @@ class TestFTARM(unittest.TestCase):
 
     def test_make_candidate_3_itemsets(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
-        expected_candidate_indices = [
-            {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
-            {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
-        ]
+        expected_candidate_indices = [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
         assert C3_indices == expected_candidate_indices
 
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C3_indices)
-        expected_fuzzy_temporal_supports = torch.tensor([0.2500, 0.2500, 0.5000, 0.3750])
+        expected_fuzzy_temporal_supports = torch.tensor([0.5000, 0.3750])
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_make_candidate_4_itemsets(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
         C4_indices = ftarm.make_candidates(C3_indices)
-        expected_candidate_indices = [{(1, 0), (4, 0), (3, 1), (0, 0)}]
+        expected_candidate_indices = None
         assert C4_indices == expected_candidate_indices
-
-        actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports(C4_indices)
-        expected_fuzzy_temporal_supports = torch.tensor([0.2500])
-        assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_execute(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
             ((0, 0), (1, 0)), ((0, 0), (3, 1)), ((0, 0), (4, 0)),
             ((1, 0), (3, 1)), ((1, 0), (4, 0)), ((3, 1), (4, 0))
         ]
         # the second item in the family should match the expected 3-itemsets
-        assert candidates_family[1] == [
-            {(3, 1), (4, 0), (0, 0)}, {(1, 0), (4, 0), (0, 0)},
-            {(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}
-        ]
-        # the third item in the family should match the expected 4-itemset
-        assert candidates_family[2] == [{(1, 0), (4, 0), (3, 1), (0, 0)}]
+        assert candidates_family[1] == [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
 
     def test_find_association_rules(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
-        actual_rules = ftarm.find_association_rules(candidates_family)
-        assert len(actual_rules) == 7
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.find_candidates()
+        actual_rules = ftarm.find_association_rules()
         expected_rules = [
-            Rule(antecedents={(1, 0), (0, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(3, 1), (0, 0)}, consequents={(1, 0)}),
-            Rule(antecedents={(1, 0), (4, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(1, 0)}, consequents={(0, 0)}),
-            Rule(antecedents={(0, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(1, 0)}, consequents={(3, 1)}),
-            Rule(antecedents={(4, 0)}, consequents={(3, 1)}),
+            {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(0, 0)}),
+             'confidence': torch.tensor(0.8571429)},
+            {'antecedents': frozenset({(0, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(4, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(1, 0), (0, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(3, 1), (0, 0)}), 'consequents': frozenset({(1, 0)}),
+             'confidence': torch.tensor(1.)},
+            {'antecedents': frozenset({(1, 0), (4, 0)}), 'consequents': frozenset({(3, 1)}),
+             'confidence': torch.tensor(1.)}
         ]
-        expected_confidences = np.array([1.0, 1.0, 1.0, 0.8571429252624512, 1.0, 1.0, 1.0])
-        for rule, confidence in zip(expected_rules, expected_confidences):
-            rule.confidence = confidence
 
         for actual_rule, expected_rule in zip(actual_rules, expected_rules):
-            assert actual_rule.antecedents == expected_rule.antecedents
-            assert actual_rule.consequents == expected_rule.consequents
-            assert actual_rule.confidence == expected_rule.confidence
+            assert actual_rule['antecedents'] == expected_rule['antecedents']
+            assert actual_rule['consequents'] == expected_rule['consequents']
+            assert actual_rule['confidence'] == expected_rule['confidence']
 
     def test_execute_big_data_0(self):
         """
@@ -350,18 +300,15 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = big_data_example(seed=0)
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
-            ((0, 3), (1, 0)), ((0, 3), (1, 1)), ((0, 3), (3, 2)),
-            ((1, 0), (3, 2)), ((1, 1), (3, 2))
+            ((0, 3), (1, 0)), ((0, 3), (1, 1)), ((0, 3), (1, 3)), ((0, 3), (3, 2)),
+            ((1, 0), (3, 2)), ((1, 1), (3, 2)), ((1, 3), (3, 2))
         ]
         # the second item in the family should match the expected 3-itemsets
-        assert candidates_family[1] == [
-            {(1, 1), (0, 3), (3, 2)}, {(1, 0), (3, 2), (0, 3)}
-        ]
+        assert candidates_family[1] == [{(1, 1), (0, 3), (3, 2)}, {(1, 0), (3, 2), (0, 3)}, {(3, 2), (0, 3), (1, 3)}]
 
     def test_execute_big_data_5(self):
         """
@@ -372,15 +319,15 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = big_data_example(seed=5)
-        ftarm = FTARM(dataframe, linguistic_variables, membership_function=Triangular, input_trainable=False,
-                      minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.execute()
+        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
-            ((0, 3), (2, 2)), ((0, 3), (2, 3)), ((0, 3), (3, 0)),
-            ((2, 2), (3, 0)), ((2, 3), (3, 0))
+            ((0, 1), (2, 2)), ((0, 1), (2, 3)), ((0, 1), (3, 0)), ((0, 3), (2, 2)),
+            ((0, 3), (2, 3)), ((0, 3), (3, 0)), ((2, 2), (3, 0)), ((2, 3), (3, 0))
         ]
         # the second item in the family should match the expected 3-itemsets
         assert candidates_family[1] == [
-            {(2, 3), (0, 3), (3, 0)}, {(0, 3), (3, 0), (2, 2)}
+            {(0, 1), (2, 3), (3, 0)}, {(2, 3), (0, 3), (3, 0)},
+            {(0, 3), (3, 0), (2, 2)}, {(0, 1), (3, 0), (2, 2)}
         ]
