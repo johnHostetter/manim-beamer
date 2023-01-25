@@ -21,11 +21,10 @@ def make_scenario_1():
         ((0, 1), (1, 0)),
         ((0, 1), (1, 1)),
         ((0, 1), (1, 2)),
-        ((0, 1), (1, 2)),
     ]
     granules_map = GranulesMap(GranulesGraph(antecedents), trainable=False)
     granules_map.add(AlgebraicProduct, *rules)
-    links = granules_map.matrix(AlgebraicProduct)
+    links, offset = granules_map.matrix(AlgebraicProduct)
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))
     consequences.requires_grad = True
@@ -34,14 +33,14 @@ def make_scenario_1():
                       [-1.0845224, -1.3985955],
                       [0.40334684, 0.83802634]])
     antecedents_memberships = granules_map(X)
-    return in_features, out_features, consequences, links, antecedents_memberships
+    return in_features, out_features, consequences, links, offset, antecedents_memberships
 
 
 class TestProductInference(unittest.TestCase):
     def test_product_inference_output(self):
-        in_features, out_features, consequences, links, antecedents_memberships = make_scenario_1()
+        in_features, out_features, consequences, links, offset, antecedents_memberships = make_scenario_1()
         pi = ProductInference(in_features=in_features, out_features=out_features, consequences=consequences,
-                              links=links)
+                              links=links, offset=offset)
         actual_output = pi.calc_rules_applicability(antecedents_memberships)
         expected_output = torch.tensor([[9.52992122e-04, 1.44050468e-03, 5.64775779e-02, 8.53692423e-02,
                                          1.74637646e-02],
@@ -54,9 +53,9 @@ class TestProductInference(unittest.TestCase):
         assert torch.isclose(actual_output, expected_output).all()
 
     def test_minimum_inference_output(self):
-        in_features, out_features, consequences, links, antecedents_memberships = make_scenario_1()
+        in_features, out_features, consequences, links, offset, antecedents_memberships = make_scenario_1()
         mi = MinimumInference(in_features=in_features, out_features=out_features, consequences=consequences,
-                              links=links)
+                              links=links, offset=offset)
         actual_output = mi.calc_rules_applicability(antecedents_memberships)
         expected_output = torch.tensor([[0.00157003, 0.00157003, 0.09304529, 0.09304529, 0.09304529],
                                         [0.08543695, 0.24918881, 0.00867662, 0.00867662, 0.00867662],
