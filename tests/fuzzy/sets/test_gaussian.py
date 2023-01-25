@@ -67,7 +67,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
     def test_multi_input_with_sigmas_given(self):
         elements = torch.tensor([[0.41737163], [0.78705574], [0.40919196], [0.72005216]])
         sigmas = torch.tensor([-0.1, 0.25, -0.5, 0.75, 1.0])  # any < 0 sigma values will be > 0 sigma values
-        gaussian_mf = Gaussian(in_features=elements.shape[1], widths=sigmas, sort_by=None)
+        gaussian_mf = Gaussian(in_features=elements.shape[1], widths=sigmas)
         # we will now update the sigmas to be abs. value
         sigmas = torch.abs(sigmas)
         mu_pytorch = gaussian_mf(elements)
@@ -109,7 +109,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
                                [1.24709336, 0.10437003, 0.12908118, 0.08517358],
                                [0.08517358, 1.54283158, 1.89779089, 1.27380911]])
 
-        gaussian_mf = Gaussian(x.shape[1], centers=centers[:x.shape[1]], widths=sigmas[:x.shape[1]], sort_by=None)
+        gaussian_mf = Gaussian(x.shape[1], centers=centers[:x.shape[1]], widths=sigmas[:x.shape[1]])
         mu_pytorch = gaussian_mf(torch.tensor(x[0]))
 
         # make sure the Gaussian parameters are still identical afterwards

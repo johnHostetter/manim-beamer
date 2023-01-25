@@ -71,7 +71,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
     def test_multi_input_with_sigmas_given(self):
         elements = torch.tensor([[0.41737163], [0.78705574], [0.40919196], [0.72005216]])
         widths = np.array([-0.1, 0.25, -0.5, 0.75, 1.0])  # any < 0 sigma values will be > 0 sigma values
-        triangular_mf = Triangular(in_features=elements.shape[1], widths=widths, sort_by=None)
+        triangular_mf = Triangular(in_features=elements.shape[1], widths=widths)
         # we will now update the widths to be abs. value
         widths = np.abs(widths)
         centers = triangular_mf.centers.detach().numpy()
