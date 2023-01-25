@@ -21,7 +21,7 @@ class TestECM(unittest.TestCase):
         """
         x = np.array([0.5, 0.8])
         y = np.array([0.9, 2.5])
-        assert np.isclose(oldDistance(x, y), newDistance(torch.tensor([x]), torch.tensor(y)))
+        assert np.isclose(oldDistance(x, y), newDistance(torch.tensor(np.array([x])), torch.tensor(y)))
 
     def test_ecm_output(self):
         """
