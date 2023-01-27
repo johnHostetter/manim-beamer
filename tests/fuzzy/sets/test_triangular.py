@@ -59,7 +59,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         centers = np.array([0., 0.25, 0.5, 0.75, 1.0])
         triangular_mf = Triangular(in_features=elements.shape[1], centers=centers)
         widths = triangular_mf.widths.detach().numpy()
-        mu_pytorch = triangular_mf(torch.tensor(elements))
+        mu_pytorch = triangular_mf(elements)
         mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
@@ -75,7 +75,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         # we will now update the widths to be abs. value
         widths = np.abs(widths)
         centers = triangular_mf.centers.detach().numpy()
-        mu_pytorch = triangular_mf(torch.tensor(elements))
+        mu_pytorch = triangular_mf(elements)
         mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards
@@ -91,7 +91,7 @@ class TestTriangularMembershipFunction(unittest.TestCase):
         triangular_mf = Triangular(in_features=elements.shape[1], centers=centers, widths=widths)
         # we will now update the widths to be abs. value
         widths = np.abs(widths)
-        mu_pytorch = triangular_mf(torch.tensor(elements))
+        mu_pytorch = triangular_mf(elements)
         mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
         # make sure the Gaussian parameters are still identical afterwards

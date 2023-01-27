@@ -55,7 +55,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         centers = np.array([0., 0.25, 0.5, 0.75, 1.0])
         gaussian_mf = Gaussian(in_features=elements.shape[1], centers=centers)
         sigmas = gaussian_mf.sigmas.detach().numpy()
-        mu_pytorch = gaussian_mf(torch.tensor(elements))
+        mu_pytorch = gaussian_mf(elements)
         mu_numpy = gaussian_numpy(elements, centers, sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
@@ -85,7 +85,7 @@ class TestGaussianMembershipFunction(unittest.TestCase):
         gaussian_mf = Gaussian(in_features=elements.shape[1], centers=centers, widths=sigmas)
         # we will now update the sigmas to be abs. value
         sigmas = torch.abs(sigmas)
-        mu_pytorch = gaussian_mf(torch.tensor(elements))
+        mu_pytorch = gaussian_mf(elements)
         mu_numpy = gaussian_numpy(elements, centers.detach().numpy(), sigmas)
 
         # make sure the Gaussian parameters are still identical afterwards
