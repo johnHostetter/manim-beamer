@@ -113,6 +113,16 @@ class TestFTARM(unittest.TestCase):
 
         assert (mi.links_between_antecedents_and_rules == expected_links).all()
 
+        expected_offset = torch.tensor(
+            [[0., 0., 0., 1., 1., 1.],
+             [0., 1., 1., 0., 0., 1.],
+             [1., 1., 1., 1., 1., 1.],
+             [1., 0., 1., 0., 1., 0.],
+             [1., 1., 0., 1., 0., 0.]]
+        )
+
+        assert (mi.offset == expected_offset).all()
+
         actual_antecedents_memberships = ftarm.granulation(
             torch.tensor(dataframe[linguistic_variables.keys()].values).float())
 
