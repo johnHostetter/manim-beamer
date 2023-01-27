@@ -23,7 +23,7 @@ def make_scenario_1():
         ((0, 1), (1, 2)),
     ]
     granules_map = GranulesMap(GranulesGraph(antecedents), trainable=False)
-    granules_map.add(AlgebraicProduct, *rules)
+    granules_map.add(AlgebraicProduct, rules)
     links, offset = granules_map.matrix(AlgebraicProduct)
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))
