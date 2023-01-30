@@ -33,7 +33,7 @@ class TestRoughConcept(unittest.TestCase):
 class TestEquivalenceRelation(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.universe = frozenset(['x{}'.format(i) for i in range(1, 10)])
+        self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
 
     def test_get_category(self):
         gg = GranulesGraph(self.universe)
