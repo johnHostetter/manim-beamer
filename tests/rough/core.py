@@ -107,6 +107,7 @@ class TestEquivalentKnowledge(unittest.TestCase):
             gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
                           Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
 
+        # TODO: this should also be true for IND
         assert frozenset((knowledge_1 / ['R1', 'R2', 'R3']).values()) == \
                frozenset((knowledge_2 / ['R1', 'R2', 'R3']).values())
 
@@ -123,11 +124,33 @@ class TestEquivalentKnowledge(unittest.TestCase):
                 gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
                               Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
 
+        # TODO: this should also be true for IND
         assert frozenset((knowledge_1 / ['R1', 'R2', 'R3']).values()) != \
                frozenset((knowledge_2 / ['R1', 'R2', 'R3']).values())
 
+        # TODO: this should also be true for IND
         assert frozenset((knowledge_1 / ['R1', 'R2', 'R3']).values()) != \
                frozenset((knowledge_2 / ['R1', 'R2']).values())
+
+
+class TestIndiscernibilityRelation(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.universe = frozenset(['x{}'.format(i) for i in range(1, 10)])
+
+    def test_indiscernibility(self):
+        gg = GranulesGraph(self.universe)
+        concept_1, concept_2, concept_3 = Concept({'x1', 'x3', 'x7'}, self.universe), \
+            Concept({'x2', 'x4'}, self.universe), Concept({'x5', 'x6', 'x8'}, self.universe)
+        gg.add('R1', (concept_1, concept_2, concept_3))
+        gg.add('R2', (Concept({'x1', 'x5'}, self.universe), Concept({'x2', 'x6'}, self.universe),
+                      Concept({'x3', 'x4', 'x7', 'x8'}, self.universe)))
+        gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
+                      Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
+
+        gg.IND(['R1', 'R2'])
+        print()
+
 
 #     def test_equivalence_relation(self):
 #         pass
