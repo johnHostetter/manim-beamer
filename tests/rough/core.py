@@ -107,9 +107,10 @@ class TestEquivalentKnowledge(unittest.TestCase):
             gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
                           Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
 
-        # TODO: this should also be true for IND
         assert frozenset((knowledge_1 / ['R1', 'R2', 'R3']).values()) == \
                frozenset((knowledge_2 / ['R1', 'R2', 'R3']).values())
+
+        assert knowledge_1.IND(['R1', 'R2', 'R3']) == knowledge_2.IND(['R1', 'R2', 'R3'])
 
     def test_nonequivalent_knowledge(self):
         knowledge_1 = GranulesGraph(self.universe)
@@ -124,13 +125,16 @@ class TestEquivalentKnowledge(unittest.TestCase):
                 gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
                               Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
 
-        # TODO: this should also be true for IND
         assert frozenset((knowledge_1 / ['R1', 'R2', 'R3']).values()) != \
                frozenset((knowledge_2 / ['R1', 'R2', 'R3']).values())
 
-        # TODO: this should also be true for IND
+        with self.assertRaises(ValueError):  # exception is thrown since relations are not subset
+            var = knowledge_1.IND(['R1', 'R2', 'R3']) != knowledge_2.IND(['R1', 'R2', 'R3'])
+
         assert frozenset((knowledge_1 / ['R1', 'R2', 'R3']).values()) != \
                frozenset((knowledge_2 / ['R1', 'R2']).values())
+
+        assert knowledge_1.IND(['R1', 'R2', 'R3']) != knowledge_2.IND(['R1', 'R2'])
 
 
 class TestIndiscernibilityRelation(unittest.TestCase):
