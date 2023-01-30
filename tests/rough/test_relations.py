@@ -118,3 +118,34 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         assert self.gg.upper('R', Z1) == frozenset(self.E1).union(self.E2).union(self.E3)
         assert self.gg.upper('R', Z2) == frozenset(self.E1).union(self.E2).union(self.E3)
         assert self.gg.R_equal('R', Z1, Z2)
+
+
+class TestRoughInclusionOfSets(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
+        self.gg = GranulesGraph(self.universe)
+        self.E1 = Concept({'x2', 'x3'}, self.universe)
+        self.E2 = Concept({'x1', 'x4', 'x5'}, self.universe)
+        self.E3 = Concept({'x6'}, self.universe)
+        self.E4 = Concept({'x7', 'x8'}, self.universe)
+        self.gg.add('R', (self.E1, self.E2, self.E3, self.E4))
+
+    def test_bottom_R_included(self):
+        X1 = frozenset({'x2', 'x4', 'x6', 'x7'})
+        X2 = frozenset({'x2', 'x3', 'x4', 'x6'})
+        assert self.gg.lower('R', X1) == frozenset(self.E3)
+        assert self.gg.lower('R', X2) == frozenset(self.E1).union(self.E3)
+        assert self.gg.bottom_R_included('R', X1, X2)
+
+    def test_top_R_included(self):
+        Y1 = frozenset({'x2', 'x3', 'x7'})
+        Y2 = frozenset({'x1', 'x2', 'x7'})
+        assert self.gg.upper('R', Y1) == frozenset(self.E1).union(self.E4)
+        assert self.gg.upper('R', Y2) == frozenset(self.E1).union(self.E2).union(self.E4)
+        assert self.gg.top_R_included('R', Y1, Y2)
+
+    def test_R_included(self):
+        Z1 = frozenset({'x2', 'x3'})
+        Z2 = frozenset({'x1', 'x2', 'x3', 'x7'})
+        assert self.gg.R_included('R', Z1, Z2)
