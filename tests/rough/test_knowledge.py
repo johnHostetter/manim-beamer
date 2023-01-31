@@ -236,3 +236,17 @@ class TestReductionOfCategories(unittest.TestCase):
         # T is dispensable
         assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'T'}) == self.universe
         assert self.gg.dispensable({'X', 'Y', 'Z', 'T'}, 'T', func=self.gg.family_union)
+
+    def test_T_indispensable(self):
+        self.gg.add('X', {frozenset({'x1', 'x3', 'x8'})})
+        self.gg.add('Y', {frozenset({'x1', 'x3', 'x4', 'x5', 'x6'})})
+        self.gg.add('Z', {frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+        self.gg.add('T', {frozenset({'x1', 'x3', 'x8'})})
+        F = {'X', 'Y', 'Z'}
+
+        assert self.gg.family_intersection(F) == frozenset({'x1', 'x3'})
+        assert not self.gg.Y_dispensable(F, 'T', 'X')  # X is T-indispensable
+        assert self.gg.Y_dispensable(F, 'T', 'Y')  # Y is T-dispensable
+        assert self.gg.Y_dispensable(F, 'T', 'Z')  # Z is T-dispensable
+
+        assert not self.gg.Y_independent(F, 'Y')
