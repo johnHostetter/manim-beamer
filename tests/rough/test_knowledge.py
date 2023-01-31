@@ -68,29 +68,29 @@ class TestReductionOfKnowledge(unittest.TestCase):
                                                 frozenset({'x4'}), frozenset({'x6'}), frozenset({'x7'})}
 
     def test_indispensable_P_in_relations(self):
-        assert self.gg.indispensable({'P', 'Q', 'R'}, 'P')
-        assert not self.gg.dispensable({'P', 'Q', 'R'}, 'P')
+        assert self.gg.indispensable({'P', 'Q', 'R'}, 'P', func=self.gg.IND)
+        assert not self.gg.dispensable({'P', 'Q', 'R'}, 'P', func=self.gg.IND)
         # what is expected to be returned from IND(Q, R)
-        assert self.gg.IND({'Q', 'R'}) == {frozenset({'x1', 'x5'}), frozenset({'x2', 'x7', 'x8'}), frozenset({'x3'}),
-                                           frozenset({'x4'}), frozenset({'x6'})}
+        assert self.gg.IND({'Q', 'R'}) == {frozenset({'x1', 'x5'}), frozenset({'x2', 'x7', 'x8'}),
+                                           frozenset({'x3'}), frozenset({'x4'}), frozenset({'x6'})}
 
     def test_dispensable_Q_in_relations(self):
-        assert self.gg.dispensable({'P', 'Q', 'R'}, 'Q')
-        assert not self.gg.indispensable({'P', 'Q', 'R'}, 'Q')
+        assert self.gg.dispensable({'P', 'Q', 'R'}, 'Q', func=self.gg.IND)
+        assert not self.gg.indispensable({'P', 'Q', 'R'}, 'Q', func=self.gg.IND)
         # what is expected to be returned from IND(P, R)
         assert self.gg.IND({'P', 'R'}) == self.gg.IND({'P', 'Q', 'R'})
 
     def test_dispensable_R_in_relations(self):
-        assert self.gg.dispensable({'P', 'Q', 'R'}, 'R')
-        assert not self.gg.indispensable({'P', 'Q', 'R'}, 'R')
+        assert self.gg.dispensable({'P', 'Q', 'R'}, 'R', func=self.gg.IND)
+        assert not self.gg.indispensable({'P', 'Q', 'R'}, 'R', func=self.gg.IND)
         # what is expected to be returned from IND(P, R)
         assert self.gg.IND({'P', 'Q'}) == self.gg.IND({'P', 'Q', 'R'})
 
     def test_reducts(self):
-        assert self.gg.RED({'P', 'Q', 'R'}) == frozenset({frozenset({'P', 'Q'}), frozenset({'P', 'R'})})
+        assert self.gg.RED({'P', 'Q', 'R'}, func=self.gg.IND) == frozenset({frozenset({'P', 'Q'}), frozenset({'P', 'R'})})
 
     def test_core(self):
-        assert self.gg.CORE({'P', 'Q', 'R'}) == frozenset({'P'})
+        assert self.gg.CORE({'P', 'Q', 'R'}, func=self.gg.IND) == frozenset({'P'})
 
 
 class TestRelativeReductAndRelativeCore(unittest.TestCase):
@@ -105,10 +105,6 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             frozenset({'x1', 'x5', 'x6'}), frozenset({'x3', 'x4'}), frozenset({'x2', 'x7'}), frozenset({'x8'})})
 
     def test_classification_with_all_relations(self):
-        # assert self.gg / {'P', 'Q', 'R'} == frozenset(
-        #     {frozenset({'x1', 'x5'}), frozenset({'x3', 'x4'}), frozenset({'x2', 'x8'}),
-        #      frozenset({'x6'}), frozenset({'x7'})
-        #      })
         assert self.gg.IND({'P', 'Q', 'R'}) == frozenset(
             {frozenset({'x1', 'x5'}), frozenset({'x3', 'x4'}), frozenset({'x2', 'x8'}),
              frozenset({'x6'}), frozenset({'x7'})
@@ -185,3 +181,58 @@ class TestReductionOfCategories(unittest.TestCase):
         assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'Z'}) == self.universe
         # T is dispensable
         assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'T'}) == self.universe
+
+    def test_dispensable(self):
+        self.gg.add('X', {frozenset({'x1', 'x3', 'x8'})})
+        self.gg.add('Y', {frozenset({'x1', 'x3', 'x4', 'x5', 'x6'})})
+        self.gg.add('Z', {frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+
+        assert not self.gg.dispensable({'X', 'Y', 'Z'}, 'X',
+                                       func=self.gg.family_intersection)  # yields {'x1', 'x3', 'x4', 'x6'}
+        assert self.gg.dispensable({'X', 'Y', 'Z'}, 'Y', func=self.gg.family_intersection)  # yields {'x1', 'x3'}
+        assert self.gg.dispensable({'X', 'Y', 'Z'}, 'Z', func=self.gg.family_intersection)  # yields {'x1', 'x3'}
+
+    def test_dependent(self):
+        self.gg.add('X', {frozenset({'x1', 'x3', 'x8'})})
+        self.gg.add('Y', {frozenset({'x1', 'x3', 'x4', 'x5', 'x6'})})
+        self.gg.add('Z', {frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+        self.gg.add('F', {frozenset({'x1', 'x3', 'x8'}), frozenset({'x1', 'x3', 'x4', 'x5', 'x6'}),
+                          frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+        assert self.gg.dependent({'X', 'Y', 'Z'}, func=self.gg.family_intersection)
+        assert not self.gg.independent({'X', 'Y', 'Z'}, func=self.gg.family_intersection)
+
+    def test_reducts_and_core(self):
+        self.gg.add('X', {frozenset({'x1', 'x3', 'x8'})})
+        self.gg.add('Y', {frozenset({'x1', 'x3', 'x4', 'x5', 'x6'})})
+        self.gg.add('Z', {frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+        self.gg.add('F', {frozenset({'x1', 'x3', 'x8'}), frozenset({'x1', 'x3', 'x4', 'x5', 'x6'}),
+                          frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+        assert self.gg.RED({'X', 'Y', 'Z'}, func=self.gg.family_intersection) == frozenset(
+            {frozenset({'X', 'Z'}), frozenset({'Y', 'X'})})
+        assert self.gg.CORE({'X', 'Y', 'Z'}, func=self.gg.family_intersection) == frozenset({'X'})
+
+    def test_family_union_dispensable(self):
+        self.gg.add('X', {frozenset({'x1', 'x3', 'x8'})})
+        self.gg.add('Y', {frozenset({'x1', 'x2', 'x4', 'x5', 'x6'})})
+        self.gg.add('Z', {frozenset({'x1', 'x3', 'x4', 'x6', 'x7'})})
+        self.gg.add('T', {frozenset({'x1', 'x2', 'x5', 'x7'})})
+
+        # intersection of the family of sets
+        assert self.gg.family_union({'X', 'Y', 'Z', 'T'}) == self.universe
+
+        # X is indispensable
+        assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'X'}) == frozenset(
+            {'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7'})
+        assert not self.gg.dispensable({'X', 'Y', 'Z', 'T'}, 'X', func=self.gg.family_union)
+
+        # Y is dispensable
+        assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'Y'}) == self.universe
+        assert self.gg.dispensable({'X', 'Y', 'Z', 'T'}, 'Y', func=self.gg.family_union)
+
+        # Z is dispensable
+        assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'Z'}) == self.universe
+        assert self.gg.dispensable({'X', 'Y', 'Z', 'T'}, 'Z', func=self.gg.family_union)
+
+        # T is dispensable
+        assert self.gg.family_union({'X', 'Y', 'Z', 'T'} - {'T'}) == self.universe
+        assert self.gg.dispensable({'X', 'Y', 'Z', 'T'}, 'T', func=self.gg.family_union)
