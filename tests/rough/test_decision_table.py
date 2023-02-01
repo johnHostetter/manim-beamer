@@ -50,35 +50,30 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         assert frozenset.intersection(*family_of_sets.values()) == frozenset({1})
         import itertools
         core_attributes, reduct_attributes = {}, {}
-        remaining_categories = list(itertools.combinations(subset_of_C, r=len(subset_of_C) - 1))
+
         for rule_idx in self.universe:
             attr_partitions = self.gg[rule_idx]
 
-            for categories in remaining_categories:
-                categories = set(categories)
-                family_of_sets = {
-                    key: value for key, value in attr_partitions.items() if key in categories
-                }
+            for L in range(1, len(subset_of_C)):
+                condition_attributes_combinations = itertools.combinations(subset_of_C, L)
+                for selected_condition_attributes in condition_attributes_combinations:
+                    selected_condition_attributes = frozenset(selected_condition_attributes)
+                    family_of_sets = {
+                        key: value for key, value in attr_partitions.items() if key in selected_condition_attributes
+                    }
+                    decision_category = frozenset.intersection(*family_of_sets.values())
 
-                if not frozenset.intersection(*family_of_sets.values()).issubset(attr_partitions['e']):
-                    missing_category, = subset_of_C - categories
+                    if decision_category.issubset(attr_partitions['e']):
+                        if rule_idx not in reduct_attributes:
+                            reduct_attributes[rule_idx] = set()
+                        # elif rule_idx not in reduct_done or not reduct_done[rule_idx]:
+                        reduct_attributes[rule_idx].add(selected_condition_attributes)
+                    elif L == len(subset_of_C) - 1:
+                        if rule_idx not in core_attributes:
+                            core_attributes[rule_idx] = set()
+                        missing_category = subset_of_C - selected_condition_attributes
+                        core_attributes[rule_idx] = core_attributes[rule_idx].union(missing_category)
 
-                    if rule_idx in core_attributes:
-                        core_attributes[rule_idx].append(missing_category)
-                    else:
-                        core_attributes[rule_idx] = [missing_category]
-                else:
-                    if rule_idx in reduct_attributes:
-                        for attr in family_of_sets.keys():
-                            if frozenset.intersection(*(frozenset(family_of_sets.values()) - family_of_sets[attr])).issubset(attr_partitions['e']):
-                                reduct_attributes[rule_idx].add(attr)
-                            reduct_attributes[rule_idx] = reduct_attributes[rule_idx].union(set(family_of_sets.keys()))
-                    else:
-                        # reduct_attributes[rule_idx] = set(family_of_sets.keys())
-                        reduct_attributes[rule_idx] = set()
-                        for attr in family_of_sets.keys():
-                            if frozenset.intersection(
-                                    *(frozenset(family_of_sets.values()) - family_of_sets[attr])).issubset(
-                                    attr_partitions['e']):
-                                reduct_attributes[rule_idx].add(attr)
+                if rule_idx in reduct_attributes:  # we want the smallest reducts only
+                    break
         print()
