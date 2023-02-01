@@ -1,5 +1,4 @@
 import unittest
-import itertools
 
 from soft.fuzzy.information.granulation import GranulesGraph
 
@@ -38,5 +37,11 @@ class TestDiscernibility(unittest.TestCase):
         assert self.gg.discernibility_matrix(relations, 'd') == {
             frozenset({1, 2}): {'c', 'b', 'a'}, frozenset({1, 4}): {'c', 'a'}, frozenset({1, 5}): {'c', 'a'},
             frozenset({2, 3}): {'c', 'b'}, frozenset({2, 4}): {'b', 'a'}, frozenset({3, 4}): {'c', 'b', 'a'},
+            frozenset({3, 5}): {'c', 'b'}, frozenset({4, 5}): {'a'}
+        }
+
+        assert self.gg.minimum_discernibility_matrix(relations, decision_attributes='d') == {
+            frozenset({1, 2}): {'a'}, frozenset({1, 4}): {'a'}, frozenset({1, 5}): {'a'},
+            frozenset({2, 3}): {'c', 'b'}, frozenset({2, 4}): {'a'}, frozenset({3, 4}): {'a'},
             frozenset({3, 5}): {'c', 'b'}, frozenset({4, 5}): {'a'}
         }
