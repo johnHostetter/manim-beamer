@@ -88,6 +88,45 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         assert self.gg.partial_depends_on(C, D) == 0.5
 
         assert self.gg.independent_of(C, D)
-        assert not self.gg.Q_dispensable(C, D, 'a')
+        assert self.gg.indispensable(C, 'a', self.gg.POS, D)
+        assert not self.gg.dispensable(C, 'a', self.gg.POS, D)
 
         # TODO: add relative reducts and cores
+
+        assert self.gg.Q_CORE(C, D) == frozenset({'a'})
+        assert self.gg.Q_RED(C, D) == frozenset({frozenset({'a', 'b'}), frozenset({'a', 'c'})})
+
+        # the above means that the following dependencies hold:
+
+        assert self.gg.depends_on({'a', 'b'}, {'d', 'e'})
+        assert self.gg.depends_on({'a', 'c'}, {'d', 'e'})
+
+    def test_significance_of_attributes(self):
+        C, D = {'a', 'b', 'c'}, {'d', 'e'}
+
+        assert self.gg.IND({'b', 'c'}) == {
+            frozenset({1, 5}), frozenset({2, 7, 8}), frozenset({3}), frozenset({4}), frozenset({6})}
+        assert self.gg.IND({'a', 'c'}) == {
+            frozenset({1, 5}), frozenset({2, 8}), frozenset({3, 6}), frozenset({4}), frozenset({7})}
+        assert self.gg.IND({'a', 'b'}) == {
+            frozenset({1, 5}), frozenset({2, 8}), frozenset({3}), frozenset({4}), frozenset({6}), frozenset({7})}
+        assert self.gg.IND({'d', 'e'}) == {
+            frozenset({1}), frozenset({2, 7}), frozenset({3, 6}), frozenset({4}), frozenset({5, 8})
+        }
+
+        assert self.gg.POS(C - {'a'}, D) == frozenset({3, 4, 6})
+        assert self.gg.POS(C - {'b'}, D) == frozenset({3, 4, 6, 7})
+        assert self.gg.POS(C - {'c'}, D) == frozenset({3, 4, 6, 7})
+
+        # attribute significance is the difference in the partial dependency upon the removal of attributes (pg. 58)
+        # attribute 'a' is the most significant (i.e., w/o 'a' we cannot classify object 7 to classes of U / IND(D))
+        assert (self.gg.partial_depends_on(C, D) - self.gg.partial_depends_on(C - {'a'}, D)) == 0.125
+        assert (self.gg.partial_depends_on(C, D) - self.gg.partial_depends_on(C - {'b'}, D)) == 0.
+        assert (self.gg.partial_depends_on(C, D) - self.gg.partial_depends_on(C - {'c'}, D)) == 0.
+
+        assert not self.gg.Q_dispensable(C, D, 'a')  # attribute 'a' is D-indispensable
+        assert self.gg.Q_dispensable(C, D, 'b')  # attribute 'b' is D-dispensable
+        assert self.gg.Q_dispensable(C, D, 'c')  # attribute 'c' is D-dispensable
+
+        assert self.gg.Q_CORE(C, D) == frozenset({'a'})
+        assert self.gg.Q_RED(C, D) == frozenset({frozenset({'a', 'b'}), frozenset({'a', 'c'})})

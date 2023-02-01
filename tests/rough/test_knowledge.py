@@ -94,6 +94,9 @@ class TestReductionOfKnowledge(unittest.TestCase):
 
 
 class TestRelativeReductAndRelativeCore(unittest.TestCase):
+    """
+    Example 2 on page 36
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
@@ -120,6 +123,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         assert self.gg.POS({'P', 'Q', 'R'} - {'P'}, {'S'}) == frozenset({'x1', 'x3', 'x4', 'x5', 'x6'})
         assert self.gg.POS({'P', 'Q', 'R'} - {'P'}, {'S'}) != self.gg.POS({'P', 'Q', 'R'}, {'S'})
         # hence, P is S-indispensible in {'P', 'Q', 'R'}
+        assert self.gg.indispensable({'P', 'Q', 'R'}, {'P'}, self.gg.POS, {'S'})
+        assert not self.gg.dispensable({'P', 'Q', 'R'}, {'P'}, self.gg.POS, {'S'})
 
     def test_Q_is_S_dispensable(self):
         equivalence_classes = self.gg.IND({'P', 'Q', 'R'} - {'Q'})
@@ -129,6 +134,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         assert self.gg.POS({'P', 'Q', 'R'} - {'Q'}, {'S'}) == frozenset({'x1', 'x3', 'x4', 'x5', 'x6', 'x7'})
         assert self.gg.POS({'P', 'Q', 'R'} - {'Q'}, {'S'}) == self.gg.POS({'P', 'Q', 'R'}, {'S'})
         # hence, Q is S-dispensible in {'P', 'Q', 'R'}
+        assert self.gg.dispensable({'P', 'Q', 'R'}, {'Q'}, self.gg.POS, {'S'})
+        assert not self.gg.indispensable({'P', 'Q', 'R'}, {'Q'}, self.gg.POS, {'S'})
 
     def test_R_is_S_indispensable(self):
         equivalence_classes = self.gg.IND({'P', 'Q', 'R'} - {'R'})
@@ -138,12 +145,17 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         assert self.gg.POS({'P', 'Q', 'R'} - {'R'}, {'S'}) == frozenset()
         assert self.gg.POS({'P', 'Q', 'R'} - {'R'}, {'S'}) != self.gg.POS({'P', 'Q', 'R'}, {'S'})
         # hence, R is S-indispensible in {'P', 'Q', 'R'}
+        assert self.gg.indispensable({'P', 'Q', 'R'}, {'R'}, self.gg.POS, {'S'})
+        assert not self.gg.dispensable({'P', 'Q', 'R'}, {'R'}, self.gg.POS, {'S'})
 
     def test_S_core(self):
-        assert frozenset({'P', 'R'})
+        relations = {'P', 'Q', 'R'}
+        # assert self.gg.Q_CORE(relations, self.gg.POS, {'S'}) == frozenset({'P', 'R'})
+        assert self.gg.Q_CORE(relations, {'S'}) == frozenset({'P', 'R'})
 
     def test_S_reduct(self):
-        assert frozenset({'P', 'R'})
+        relations = {'P', 'Q', 'R'}
+        assert self.gg.Q_RED(relations, {'S'}) == frozenset({frozenset({'P', 'R'})})
 
 
 class TestReductionOfCategories(unittest.TestCase):
