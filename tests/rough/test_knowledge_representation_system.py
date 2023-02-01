@@ -91,15 +91,13 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         assert self.gg.indispensable(C, 'a', self.gg.POS, D)
         assert not self.gg.dispensable(C, 'a', self.gg.POS, D)
 
-        # TODO: add relative reducts and cores
-
         assert self.gg.Q_CORE(C, D) == frozenset({'a'})
         assert self.gg.Q_RED(C, D) == frozenset({frozenset({'a', 'b'}), frozenset({'a', 'c'})})
 
         # the above means that the following dependencies hold:
-
-        assert self.gg.depends_on({'a', 'b'}, {'d', 'e'})
-        assert self.gg.depends_on({'a', 'c'}, {'d', 'e'})
+        # TODO: this may be wrong, but the same example says that using C we can only classify 4 objects in U / IND(D)
+        assert self.gg.partial_depends_on({'a', 'b'}, {'d', 'e'}) > 0
+        assert self.gg.partial_depends_on({'a', 'c'}, {'d', 'e'}) > 0
 
     def test_significance_of_attributes(self):
         C, D = {'a', 'b', 'c'}, {'d', 'e'}
