@@ -113,6 +113,16 @@ class TestFTARM(unittest.TestCase):
 
         assert (mi.links_between_antecedents_and_rules == expected_links).all()
 
+        expected_offset = torch.tensor(
+            [[0., 0., 0., 1., 1., 1.],
+             [0., 1., 1., 0., 0., 1.],
+             [1., 1., 1., 1., 1., 1.],
+             [1., 0., 1., 0., 1., 0.],
+             [1., 1., 0., 1., 0., 0.]]
+        )
+
+        assert (mi.offset == expected_offset).all()
+
         actual_antecedents_memberships = ftarm.granulation(
             torch.tensor(dataframe[linguistic_variables.keys()].values).float())
 
@@ -143,6 +153,39 @@ class TestFTARM(unittest.TestCase):
                                               [1.0000, 0.0000]]])
 
         assert torch.isclose(actual_antecedents_memberships, expected_memberships, equal_nan=True).all()
+
+        actual_intermediate_output = mi.calc_intermediate_output(actual_antecedents_memberships)
+        expected_intermediate_output = torch.tensor([[[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [0.0000, 1.0000, 1.0000, 0.0000, 0.0000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000],
+                                                      [1.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000]],
+
+                                                     [[0.5000, 0.5000, 0.5000, 1.0000, 1.0000, 1.0000],
+                                                      [0.5000, 1.0000, 1.0000, 0.5000, 0.5000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000],
+                                                      [1.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000]],
+
+                                                     [[0.0000, 0.0000, 0.0000, 1.0000, 1.0000, 1.0000],
+                                                      [0.0000, 1.0000, 1.0000, 0.0000, 0.0000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000],
+                                                      [1.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000]],
+
+                                                     [[0.5000, 0.5000, 0.5000, 1.0000, 1.0000, 1.0000],
+                                                      [0.5000, 1.0000, 1.0000, 0.5000, 0.5000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000]],
+
+                                                     [[0.5000, 0.5000, 0.5000, 1.0000, 1.0000, 1.0000],
+                                                      [0.7500, 1.0000, 1.0000, 0.7500, 0.7500, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                                                      [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000]]])
+
+        assert torch.isclose(actual_intermediate_output, expected_intermediate_output).all()
 
         actual_rules_applicability = mi.calc_rules_applicability(actual_antecedents_memberships)
         expected_output = torch.tensor([[0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
