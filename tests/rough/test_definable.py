@@ -1,6 +1,5 @@
 import unittest
 
-from soft.rough.concepts import Concept
 from soft.fuzzy.information.granulation import GranulesGraph
 
 
@@ -9,11 +8,11 @@ class TestDefinable(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(0, 11)])
         self.gg = GranulesGraph(self.universe)
-        self.E1 = Concept({'x0', 'x1'}, self.universe)
-        self.E2 = Concept({'x2', 'x6', 'x9'}, self.universe)
-        self.E3 = Concept({'x3', 'x5'}, self.universe)
-        self.E4 = Concept({'x4', 'x8'}, self.universe)
-        self.E5 = Concept({'x7', 'x10'}, self.universe)
+        self.E1 = {'x0', 'x1'}
+        self.E2 = {'x2', 'x6', 'x9'}
+        self.E3 = {'x3', 'x5'}
+        self.E4 = {'x4', 'x8'}
+        self.E5 = {'x7', 'x10'}
         self.gg.add('R', (self.E1, self.E2, self.E3, self.E4, self.E5))
 
     def test_definable(self):

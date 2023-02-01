@@ -1,6 +1,5 @@
 import unittest
 
-from soft.rough.concepts import Concept
 from soft.fuzzy.information.granulation import GranulesGraph
 
 
@@ -11,13 +10,9 @@ class TestEquivalenceRelation(unittest.TestCase):
 
     def test_get_category(self):
         gg = GranulesGraph(self.universe)
-        concept_1, concept_2, concept_3 = Concept({'x1', 'x3', 'x7'}, self.universe), \
-            Concept({'x2', 'x4'}, self.universe), Concept({'x5', 'x6', 'x8'}, self.universe)
-        gg.add('R1', (concept_1, concept_2, concept_3))
-        gg.add('R2', (Concept({'x1', 'x5'}, self.universe), Concept({'x2', 'x6'}, self.universe),
-                      Concept({'x3', 'x4', 'x7', 'x8'}, self.universe)))
-        gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
-                      Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
+        gg.add('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
+        gg.add('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
+        gg.add('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
 
         assert gg / 'R1' == frozenset(
             {frozenset({'x8', 'x6', 'x5'}), frozenset({'x3', 'x7', 'x1'}), frozenset({'x2', 'x4'})}
@@ -71,13 +66,9 @@ class TestIndiscernibilityRelation(unittest.TestCase):
 
     def test_indiscernibility(self):
         gg = GranulesGraph(self.universe)
-        concept_1, concept_2, concept_3 = Concept({'x1', 'x3', 'x7'}, self.universe), \
-            Concept({'x2', 'x4'}, self.universe), Concept({'x5', 'x6', 'x8'}, self.universe)
-        gg.add('R1', (concept_1, concept_2, concept_3))
-        gg.add('R2', (Concept({'x1', 'x5'}, self.universe), Concept({'x2', 'x6'}, self.universe),
-                      Concept({'x3', 'x4', 'x7', 'x8'}, self.universe)))
-        gg.add('R3', (Concept({'x2', 'x7', 'x8'}, self.universe),
-                      Concept({'x1', 'x3', 'x4', 'x5', 'x6'}, self.universe)))
+        gg.add('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
+        gg.add('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
+        gg.add('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
 
         assert gg.IND(['R1', 'R2']) == {
             frozenset({'x2'}), frozenset({'x5'}), frozenset({'x6'}), frozenset({'x4'}),
@@ -90,10 +81,10 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
         self.gg = GranulesGraph(self.universe)
-        self.E1 = Concept({'x2', 'x3'}, self.universe)
-        self.E2 = Concept({'x1', 'x4', 'x5'}, self.universe)
-        self.E3 = Concept({'x6'}, self.universe)
-        self.E4 = Concept({'x7', 'x8'}, self.universe)
+        self.E1 = {'x2', 'x3'}
+        self.E2 = {'x1', 'x4', 'x5'}
+        self.E3 = {'x6'}
+        self.E4 = {'x7', 'x8'}
         self.gg.add('R', (self.E1, self.E2, self.E3, self.E4))
 
     def test_bottom_R_equal(self):
@@ -125,10 +116,10 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
         self.gg = GranulesGraph(self.universe)
-        self.E1 = Concept({'x2', 'x3'}, self.universe)
-        self.E2 = Concept({'x1', 'x4', 'x5'}, self.universe)
-        self.E3 = Concept({'x6'}, self.universe)
-        self.E4 = Concept({'x7', 'x8'}, self.universe)
+        self.E1 = {'x2', 'x3'}
+        self.E2 = {'x1', 'x4', 'x5'}
+        self.E3 = {'x6'}
+        self.E4 = {'x7', 'x8'}
         self.gg.add('R', (self.E1, self.E2, self.E3, self.E4))
 
     def test_bottom_R_included(self):

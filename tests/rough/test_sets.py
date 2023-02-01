@@ -1,7 +1,6 @@
 import unittest
 
 from soft.fuzzy.information.granulation import GranulesGraph
-from soft.rough.concepts import Concept
 
 
 class TestRoughSets(unittest.TestCase):
@@ -9,10 +8,10 @@ class TestRoughSets(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
         self.gg = GranulesGraph(self.universe)
-        self.E1 = Concept({'x1', 'x4', 'x8'}, self.universe)
-        self.E2 = Concept({'x2', 'x5', 'x7'}, self.universe)
-        self.E3 = Concept({'x3'}, self.universe)
-        self.E4 = Concept({'x6'}, self.universe)
+        self.E1 = {'x1', 'x4', 'x8'}
+        self.E2 = {'x2', 'x5', 'x7'}
+        self.E3 = {'x3'}
+        self.E4 = {'x6'}
         self.gg.add('R', (self.E1, self.E2, self.E3, self.E4))
 
     def test_equivalence_classes(self):
@@ -88,16 +87,15 @@ class TestApproximationOfClassifications(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
         self.gg = GranulesGraph(self.universe)
-        self.X1 = Concept({'x1', 'x3', 'x5'}, self.universe)
-        self.X2 = Concept({'x2', 'x4'}, self.universe)
-        self.X3 = Concept({'x6', 'x7', 'x8'}, self.universe)
+        self.X1 = {'x1', 'x3', 'x5'}
+        self.X2 = {'x2', 'x4'}
+        self.X3 = {'x6', 'x7', 'x8'}
         self.gg.add('R', (self.X1, self.X2, self.X3))
 
     def test_classifications_1(self):
         Y1 = frozenset({'x1', 'x2', 'x4'})
         Y2 = frozenset({'x3', 'x5', 'x8'})
         Y3 = frozenset({'x6', 'x7'})
-        C = frozenset({Y1, Y2, Y3})
 
         assert self.gg.lower('R', Y1) == frozenset(self.X2)
         assert self.gg.upper('R', Y2) == frozenset(self.X1).union(self.X3) != self.universe
@@ -107,7 +105,6 @@ class TestApproximationOfClassifications(unittest.TestCase):
         Z1 = frozenset({'x1', 'x2', 'x6'})
         Z2 = frozenset({'x3', 'x4'})
         Z3 = frozenset({'x5', 'x7', 'x8'})
-        C = frozenset({Z1, Z2, Z3})
 
         assert self.gg.upper('R', Z1) == frozenset(self.X1).union(self.X2).union(self.X3) == self.universe
         assert self.gg.lower('R', Z2) == frozenset()
