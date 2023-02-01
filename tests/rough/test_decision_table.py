@@ -24,7 +24,7 @@ class TestDecisionTable(unittest.TestCase):
         assert len(inconsistent_rules) == 2  # there should be 2 equivalent groups of rules, each containing 2 rules
 
     def test_table_decompose(self):
-        consistent_rules, inconsistent_rules = self.gg.decompose(self.C, self.D)
+        consistent_rules, inconsistent_rules = self.gg.decompose_decision_table(self.C, self.D)
         assert consistent_rules == frozenset({3, 4, 6, 7})
         assert inconsistent_rules == frozenset({1, 2, 5, 8})
 
@@ -45,35 +45,19 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         assert self.gg.dispensable(self.C, 'c', self.gg.IND)
         subset_of_C, = self.gg.Q_RED(self.C, self.D)  # pick the first relative reduct
         assert subset_of_C == frozenset({'b', 'a', 'd'})
+        assert self.gg.remove_redundant_attributes(self.C, self.D) == frozenset({'b', 'a', 'd'})
+
+    def test_condition_classes(self):
         partition_in_each_attribute = self.gg[1]
+        subset_of_C, = self.gg.Q_RED(self.C, self.D)  # pick the first relative reduct
         family_of_sets = {key: value for key, value in partition_in_each_attribute.items() if key in subset_of_C}
         assert frozenset.intersection(*family_of_sets.values()) == frozenset({1})
-        import itertools
-        core_attributes, reduct_attributes = {}, {}
 
-        for rule_idx in self.universe:
-            attr_partitions = self.gg[rule_idx]
-
-            for L in range(1, len(subset_of_C)):
-                condition_attributes_combinations = itertools.combinations(subset_of_C, L)
-                for selected_condition_attributes in condition_attributes_combinations:
-                    selected_condition_attributes = frozenset(selected_condition_attributes)
-                    family_of_sets = {
-                        key: value for key, value in attr_partitions.items() if key in selected_condition_attributes
-                    }
-                    decision_category = frozenset.intersection(*family_of_sets.values())
-
-                    if decision_category.issubset(attr_partitions['e']):
-                        if rule_idx not in reduct_attributes:
-                            reduct_attributes[rule_idx] = set()
-                        # elif rule_idx not in reduct_done or not reduct_done[rule_idx]:
-                        reduct_attributes[rule_idx].add(selected_condition_attributes)
-                    elif L == len(subset_of_C) - 1:
-                        if rule_idx not in core_attributes:
-                            core_attributes[rule_idx] = set()
-                        missing_category = subset_of_C - selected_condition_attributes
-                        core_attributes[rule_idx] = core_attributes[rule_idx].union(missing_category)
-
-                if rule_idx in reduct_attributes:  # we want the smallest reducts only
-                    break
-        print()
+    def test_simplify_decision_table(self):
+        core_attributes, reduct_attributes = self.gg.simplify_decision_table(self.C, self.D)
+        assert core_attributes == {1: {'b'}, 2: {'a'}, 3: {'a'}, 4: {'b', 'd'}, 5: {'d'}}
+        assert reduct_attributes == {
+            1: {frozenset({'b', 'd'}), frozenset({'b', 'a'})}, 2: {frozenset({'d', 'a'}), frozenset({'b', 'a'})},
+            3: {frozenset({'a'})}, 4: {frozenset({'b', 'd'})}, 5: {frozenset({'d'})},
+            6: {frozenset({'a'}), frozenset({'d'})}, 7: {frozenset({'a'}), frozenset({'d'}), frozenset({'b'})}
+        }
