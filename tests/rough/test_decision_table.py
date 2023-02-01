@@ -43,7 +43,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
 
     def test_c_is_dispensable(self):
         assert self.gg.dispensable(self.C, 'c', self.gg.IND)
-        subset_of_C = self.gg.Q_CORE(self.C, self.D)
+        subset_of_C, = self.gg.Q_RED(self.C, self.D)  # pick the first relative reduct
         assert subset_of_C == frozenset({'b', 'a', 'd'})
         partition_in_each_attribute = self.gg[1]
         family_of_sets = {key: value for key, value in partition_in_each_attribute.items() if key in subset_of_C}
@@ -62,32 +62,23 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
 
                 if not frozenset.intersection(*family_of_sets.values()).issubset(attr_partitions['e']):
                     missing_category, = subset_of_C - categories
-                    possible_reduct_attributes = list(categories - (subset_of_C - categories))
 
                     if rule_idx in core_attributes:
                         core_attributes[rule_idx].append(missing_category)
-                        if not any([
-                            equivalence_class == set({rule_idx})
-                            for equivalence_class in self.gg.IND(core_attributes[rule_idx])
-                        ]):
-                            reduct_attributes[rule_idx].extend(possible_reduct_attributes)
                     else:
                         core_attributes[rule_idx] = [missing_category]
-                        for subset in self.gg.IND(core_attributes[rule_idx]):
-                            if rule_idx in subset:
-                                matrix = self.gg.minimum_discernibility_matrix(subset_of_C)
-                                matrix_query = {key: value for key, value in matrix.items() if rule_idx in key and len(subset.intersection(key)) == 2}
-                                if len(matrix_query) > 0:
-                                    possible_reduct_attributes = frozenset.intersection(*matrix_query.values())
-                                else:
-                                    possible_reduct_attributes = []
-                                # vertices = self.gg.network.vs.select(id_in=subset)
-                                # subgraph = self.gg.network.subgraph(vertices)
-
-                                # res = self[subset]
-                        if not any([
-                            equivalence_class == set({rule_idx})
-                            for equivalence_class in self.gg.IND(core_attributes[rule_idx])
-                        ]):
-                            reduct_attributes[rule_idx] = possible_reduct_attributes
+                else:
+                    if rule_idx in reduct_attributes:
+                        for attr in family_of_sets.keys():
+                            if frozenset.intersection(*(frozenset(family_of_sets.values()) - family_of_sets[attr])).issubset(attr_partitions['e']):
+                                reduct_attributes[rule_idx].add(attr)
+                            reduct_attributes[rule_idx] = reduct_attributes[rule_idx].union(set(family_of_sets.keys()))
+                    else:
+                        # reduct_attributes[rule_idx] = set(family_of_sets.keys())
+                        reduct_attributes[rule_idx] = set()
+                        for attr in family_of_sets.keys():
+                            if frozenset.intersection(
+                                    *(frozenset(family_of_sets.values()) - family_of_sets[attr])).issubset(
+                                    attr_partitions['e']):
+                                reduct_attributes[rule_idx].add(attr)
         print()
