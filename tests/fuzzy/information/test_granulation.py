@@ -22,8 +22,4 @@ class TestGranulation(unittest.TestCase):
         algebraic_product_vertices = graph.network.vs.select(relation_eq=AlgebraicProduct)
         assert len(algebraic_product_vertices) == 3
 
-        actual_edges = [
-            tuple(graph.network.vs[node]['id'] for node in graph.network.neighbors(rule_node))
-            for rule_node in algebraic_product_vertices
-        ]
-        assert actual_edges == edges  # check that the edges have not changed after being added to the graph
+        assert graph.edges(AlgebraicProduct) == edges  # check the edges have not changed after being added to the graph
