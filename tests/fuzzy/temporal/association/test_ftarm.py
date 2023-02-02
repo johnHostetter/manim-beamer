@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 
 from utils.reproducibility import set_rng
+from soft.computing.graph import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
-from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph
+from soft.fuzzy.information.granulation import GranulesMap
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
     FuzzyTemporalAssocationRuleMining as FTARM
@@ -29,7 +30,7 @@ def big_data_example(seed):
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
         dataframe, linguistic_variables = make_example()
-        granulation = GranulesMap(GranulesGraph(list(linguistic_variables.values())))
+        granulation = GranulesMap(KnowledgeBase(list(linguistic_variables.values())))
         mus = granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
                                             [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
