@@ -2,9 +2,10 @@ import torch
 import unittest
 
 from utils.reproducibility import set_rng
+from soft.computing.graph import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
-from soft.fuzzy.information.granulation import GranulesMap, GranulesGraph
+from soft.fuzzy.information.granulation import GranulesMap
 from soft.fuzzy.logic.inference.engines import ProductInference, MinimumInference
 
 set_rng(0)
@@ -22,7 +23,7 @@ def make_scenario_1():
         ((0, 1), (1, 1)),
         ((0, 1), (1, 2)),
     ]
-    granules_map = GranulesMap(GranulesGraph(antecedents), trainable=False)
+    granules_map = GranulesMap(KnowledgeBase(antecedents), trainable=False)
     granules_map.add(AlgebraicProduct, rules)
     links, offset = granules_map.matrix(AlgebraicProduct)
     num_of_consequent_terms = len(rules)
