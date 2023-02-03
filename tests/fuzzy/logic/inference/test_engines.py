@@ -1,6 +1,7 @@
 import torch
 import unittest
 
+from soft.fuzzy.graph.organizing import stack_granules
 from utils.reproducibility import set_rng
 from soft.computing.graph import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
@@ -12,6 +13,10 @@ set_rng(0)
 
 
 def make_scenario_1():
+    X = torch.tensor([[1.5409961, -0.2934289],
+                      [-2.1787894, 0.56843126],
+                      [-1.0845224, -1.3985955],
+                      [0.40334684, 0.83802634]])
     in_features, out_features = 2, 1
     antecedents = [
         Gaussian(3, centers=torch.tensor([-1, 0., 1.]), widths=torch.tensor([1., 1., 1.])),
@@ -23,17 +28,21 @@ def make_scenario_1():
         ((0, 1), (1, 1)),
         ((0, 1), (1, 2)),
     ]
-    granules_map = GranulesMap(KnowledgeBase(antecedents), trainable=False)
-    granules_map.add(AlgebraicProduct, rules)
-    links, offset = granules_map.matrix(AlgebraicProduct)
+
+    kb = KnowledgeBase(X, config={'granules': antecedents})
+    vertices = kb.graph.vs.select(type_eq='rough_sets')
+    vertices['input'] = True
+    vertices['data'] = vertices['id']
+    stack_granules(kb, config={'input_mf': True})
+    granules_map = GranulesMap(kb=kb, trainable=False)
+    granules_map.kb.add(AlgebraicProduct, rules)
+    links, offset = granules_map.kb.matrix(AlgebraicProduct)
+
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))
     consequences.requires_grad = True
-    X = torch.tensor([[1.5409961, -0.2934289],
-                      [-2.1787894, 0.56843126],
-                      [-1.0845224, -1.3985955],
-                      [0.40334684, 0.83802634]])
     antecedents_memberships = granules_map(X)
+
     return in_features, out_features, consequences, links, offset, antecedents_memberships
 
 

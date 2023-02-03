@@ -97,7 +97,7 @@ class TestFTARM(unittest.TestCase):
 
         # step 8.1:
 
-        mi = make_candidates_inference_engine(granulation=ftarm.granulation, candidates=C2_indices)
+        mi = make_candidates_inference_engine(ftarm, candidates=C2_indices)
 
         expected_links = torch.tensor(
             [[[1., 1., 1., 0., 0., 0.],

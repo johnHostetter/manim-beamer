@@ -60,19 +60,20 @@ class TestTSK(unittest.TestCase):
         assert all(antecedents[1].centers == torch.tensor([0.2, 0.6, 0.9, 1.2]))
         assert all(antecedents[1].widths == torch.tensor([0.4, 0.4, 0.5, 0.45]))
 
-        knowledge_base = GranulesMap(KnowledgeBase(antecedents))
-        knowledge_base.add(AlgebraicProduct, [((0, 0), (1, 0)), ((0, 1), (1, 0)), ((0, 1), (1, 1)), ((1, 1), (1, 1))])
-        rule_vertex = knowledge_base.graph.graph.vs.find(relation_eq=AlgebraicProduct)
+        kb = KnowledgeBase(antecedents)
+        kb.add(AlgebraicProduct, [((0, 0), (1, 0)), ((0, 1), (1, 0)), ((0, 1), (1, 1)), ((1, 1), (1, 1))])
+        gm = GranulesMap(kb=kb)
+        rule_vertex = kb.graph.vs.find(relation_eq=AlgebraicProduct)
         assert rule_vertex['relation'] == AlgebraicProduct  # it is the correct relation we wanted
         assert 'id' in rule_vertex.attributes()  # it has a unique id
-        rule_vertices = knowledge_base.graph.graph.vs.select(relation_eq=AlgebraicProduct)
+        rule_vertices = kb.graph.vs.select(relation_eq=AlgebraicProduct)
         assert len(rule_vertices) == 4  # there should be 4 fuzzy logic rules
         # there should be 2 rules that use (1, 1); the last rule has been simplified (redundant mention of condition)
-        assert knowledge_base.graph[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
+        assert kb.graph[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
 
-        knowledge_base.graph.attributes(rule_vertex['id'])
+        kb.graph.attributes(rule_vertex['id'])
         n_output = actual_y.ndim
-        flc = ZeroOrderTSK(n_output, knowledge_base, input_trainable=True)
+        flc = ZeroOrderTSK(n_output, kb, input_trainable=True)
         predicted_y = flc(x)
         print(predicted_y)
 
