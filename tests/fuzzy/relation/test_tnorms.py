@@ -1,6 +1,7 @@
 import torch
 import unittest
 import numpy as np
+
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
 
