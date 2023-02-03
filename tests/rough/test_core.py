@@ -13,7 +13,7 @@ class TestRoughConcept(unittest.TestCase):
         kb = KnowledgeBase(self.universe)
         concept_1, concept_2 = {'a', 'b'}, {'b', 'c'}
         kb.add('R1', (concept_1, concept_2))
-        actual_degrees = kb.network.vs.select(type_eq='rough_sets').outdegree()
+        actual_degrees = kb.graph.vs.select(type_eq='rough_sets').outdegree()
         expected_degrees = [0, 0, 1, 1, 2]
         assert sorted(actual_degrees) == expected_degrees
         assert check_if_concepts_intersect(kb)

@@ -62,10 +62,10 @@ class TestTSK(unittest.TestCase):
 
         knowledge_base = GranulesMap(KnowledgeBase(antecedents))
         knowledge_base.add(AlgebraicProduct, [((0, 0), (1, 0)), ((0, 1), (1, 0)), ((0, 1), (1, 1)), ((1, 1), (1, 1))])
-        rule_vertex = knowledge_base.graph.network.vs.find(relation_eq=AlgebraicProduct)
+        rule_vertex = knowledge_base.graph.graph.vs.find(relation_eq=AlgebraicProduct)
         assert rule_vertex['relation'] == AlgebraicProduct  # it is the correct relation we wanted
         assert 'id' in rule_vertex.attributes()  # it has a unique id
-        rule_vertices = knowledge_base.graph.network.vs.select(relation_eq=AlgebraicProduct)
+        rule_vertices = knowledge_base.graph.graph.vs.select(relation_eq=AlgebraicProduct)
         assert len(rule_vertices) == 4  # there should be 4 fuzzy logic rules
         # there should be 2 rules that use (1, 1); the last rule has been simplified (redundant mention of condition)
         assert knowledge_base.graph[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
