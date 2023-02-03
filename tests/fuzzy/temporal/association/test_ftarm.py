@@ -29,9 +29,10 @@ def big_data_example(seed):
 
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
-        dataframe, linguistic_variables = make_example()
-        granulation = GranulesMap(KnowledgeBase(list(linguistic_variables.values())))
-        mus = granulation(torch.tensor(dataframe[linguistic_variables.keys()].values).float())
+        dataframe, kb = make_example()
+        input_granulation = kb.graph.vs.find(layer_eq=0)['data']
+        cols = sorted(set(dataframe.columns) - {'date'})
+        mus = input_granulation(torch.tensor(dataframe[cols].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
                                             [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                                             [0.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
@@ -198,7 +199,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_representation_ftarm(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
