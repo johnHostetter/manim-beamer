@@ -1,12 +1,12 @@
 import torch
 import unittest
 
+from soft.fuzzy.graph.organizing import stack_granules
 from utils.reproducibility import set_rng
 from soft.computing.graph import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.logic.control.tsk import ZeroOrderTSK
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
-from soft.fuzzy.information.granulation import GranulesMap
 
 
 set_rng(0)
@@ -60,18 +60,31 @@ class TestTSK(unittest.TestCase):
         assert all(antecedents[1].centers == torch.tensor([0.2, 0.6, 0.9, 1.2]))
         assert all(antecedents[1].widths == torch.tensor([0.4, 0.4, 0.5, 0.45]))
 
-        kb = KnowledgeBase(antecedents)
-        kb.add(AlgebraicProduct, [((0, 0), (1, 0)), ((0, 1), (1, 0)), ((0, 1), (1, 1)), ((1, 1), (1, 1))])
-        gm = GranulesMap(kb=kb)
+        kb = KnowledgeBase(antecedents, config={'input': True})
+        kb.add_fuzzy_granules(antecedents)  # register their anchors (for rules)
+        stack_granules(kb)  # add efficient merge of antecedents to graph
+
+        expected_edges = {
+            frozenset({(0, 0), (1, 0)}), frozenset({(0, 1), (1, 0)}),
+            frozenset({(0, 1), (1, 1)}), frozenset({(1, 1), (1, 1)})
+        }
+        kb.add(AlgebraicProduct, expected_edges)
+
+        # gm = GranulesMap(kb=kb)
         rule_vertex = kb.graph.vs.find(relation_eq=AlgebraicProduct)
         assert rule_vertex['relation'] == AlgebraicProduct  # it is the correct relation we wanted
         assert 'id' in rule_vertex.attributes()  # it has a unique id
+
         rule_vertices = kb.graph.vs.select(relation_eq=AlgebraicProduct)
         assert len(rule_vertices) == 4  # there should be 4 fuzzy logic rules
-        # there should be 2 rules that use (1, 1); the last rule has been simplified (redundant mention of condition)
-        assert kb.graph[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
 
-        kb.graph.attributes(rule_vertex['id'])
+        # there should be 2 rules that use (1, 1); the last rule has been simplified (redundant mention of condition)
+        assert kb[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
+
+        # the rules we have added should exist how we expected them
+        assert kb.edges(AlgebraicProduct) == expected_edges
+
+        kb.attributes(rule_vertex['id'])
         n_output = actual_y.ndim
         flc = ZeroOrderTSK(n_output, kb, input_trainable=True)
         predicted_y = flc(x)
