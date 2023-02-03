@@ -2,7 +2,11 @@ import torch
 import unittest
 import numpy as np
 
+from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Triangular  # a pyTorch implementation
+
+
+set_rng(0)
 
 
 def triangular_numpy(x, center, width):
