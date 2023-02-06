@@ -2,6 +2,7 @@ import torch
 import unittest
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from utils.reproducibility import set_rng
 from soft.computing.graph import KnowledgeBase
@@ -320,8 +321,8 @@ class TestFTARM(unittest.TestCase):
         assert candidates_family[1] == [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
 
     def test_find_association_rules(self):
-        dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
         _ = ftarm.find_candidates()  # required to build the lattice structure which is later used to find rules
         actual_rules = ftarm.find_association_rules()
 
@@ -338,6 +339,23 @@ class TestFTARM(unittest.TestCase):
             assert actual_rule.antecedents == expected_rule.antecedents
             assert actual_rule.consequents == expected_rule.consequents
             assert actual_rule.confidence == expected_rule.confidence
+
+        # fig, axs = plt.subplots()
+        # axs = axs
+        #
+        # import igraph as ig
+        #
+        # g = kb.graph.subgraph(kb.graph.vs.select(frequent_eq=True))
+        # ig.plot(
+        #     # ig.VertexCover(kb.graph, kb.graph.vs.select(frequent_eq=True)),
+        #     g,
+        #     mark_groups=True, palette=ig.RainbowPalette(),
+        #     layout='circle', edge_width=0.5, target=axs, opacity=0.7,
+        #     vertex_size=(np.array(kb.graph.authority_score()) / 3) + 0.1,
+        #     edge_size=kb.graph.es['weight']
+        # )
+        # plt.axis('off')
+        # plt.show()
 
     def test_execute_big_data_0(self):
         """
