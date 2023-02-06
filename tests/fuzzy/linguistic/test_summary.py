@@ -6,6 +6,7 @@ import numpy as np
 from utils.reproducibility import set_rng
 from soft.computing.graph import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
+from soft.fuzzy.graph.organizing import stack_granules
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.information.granulation import GranulesMap, GranuleSelection
 from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, most_quantifier as Q
@@ -18,9 +19,18 @@ gass = GeneticAlgorithmSummarySearch(in_features=2, antecedents=antecedents, inp
 
 
 def make_scenario_1():
+    global X
     terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-    summarizer = GranulesMap(KnowledgeBase(terms), trainable=False)
-    summary = Summary(summarizer, Q, None)
+    # summarizer = GranulesMap(KnowledgeBase(information=X), trainable=False)
+    kb = KnowledgeBase(information=X)  # the summarizer
+    for term in terms:
+        kb.graph.add_vertex(type=Gaussian, data=term, input=True)
+
+    kb.granules, kb.config = terms, {'input': True}
+    kb.add_fuzzy_granules(terms)  # register their anchors (for rules)
+    stack_granules(kb)  # add efficient merge of antecedents to graph
+
+    summary = Summary(kb, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
     X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
@@ -130,8 +140,17 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        summarizer = GranulesMap(KnowledgeBase(terms), trainable=False)
-        summary = Summary(summarizer, Q, None)
+
+        kb = KnowledgeBase(information=X)  # the summarizer
+        for term in terms:
+            kb.graph.add_vertex(type=Gaussian, data=term, input=True)
+
+        kb.granules, kb.config = terms, {'input': True}
+        kb.add_fuzzy_granules(terms)  # register their anchors (for rules)
+        stack_granules(kb)  # add efficient merge of antecedents to graph
+
+        summary = Summary(kb, Q, None)
+
         x = torch.tensor([[1., 0.5]])
         assert torch.isclose(summary.summarizer_membership(x), torch.tensor(0.5272924900054932))
 
@@ -144,8 +163,18 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        summarizer = GranulesMap(KnowledgeBase(terms), trainable=False)
-        summary = Summary(summarizer, Q, None)
+        kb = KnowledgeBase(terms)
+        # summary = Summary(summarizer, Q, None)
+        kb = KnowledgeBase(information=X)  # the summarizer
+        for term in terms:
+            kb.graph.add_vertex(type=Gaussian, data=term, input=True)
+
+        kb.granules, kb.config = terms, {'input': True}
+        kb.add_fuzzy_granules(terms)  # register their anchors (for rules)
+        stack_granules(kb)  # add efficient merge of antecedents to graph
+
+        summary = Summary(kb, Q, None)
+
         x = torch.tensor([[1., 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
         query = Query(Gaussian(1, centers=0.3, widths=0.3), 1)
@@ -174,8 +203,15 @@ class TestSummary(unittest.TestCase):
 
     def test_length(self):
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        summarizer = GranulesMap(KnowledgeBase(terms), trainable=False)
-        summary = Summary(summarizer, Q, None)
+        kb = KnowledgeBase(information=X)  # the summarizer
+        for term in terms:
+            kb.graph.add_vertex(type=Gaussian, data=term, input=True)
+
+        kb.granules, kb.config = terms, {'input': True}
+        kb.add_fuzzy_granules(terms)  # register their anchors (for rules)
+        stack_granules(kb)  # add efficient merge of antecedents to graph
+
+        summary = Summary(kb, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
     def test_degree_of_validity(self):
