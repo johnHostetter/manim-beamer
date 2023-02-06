@@ -41,30 +41,30 @@ class TestFTARM(unittest.TestCase):
         assert (torch.isclose(mus.reshape(5, 10), expected_membership)).all()
 
     def test_temporal_information_table(self):
-        dataframe, linguistic_variables = make_example()
-        ti_table = TI(dataframe, linguistic_variables)
+        dataframe, kb = make_example()
+        ti_table = TI(dataframe, kb)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
         assert (ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
         # now checking that FTARM creates the same TI Table as above
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, kb, minimum_support=0.3, minimum_confidence=0.8)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ftarm.ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
         assert (ftarm.ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
     def test_step_2(self):
-        dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
         actual_scalar_cardinality = ftarm.scalar_cardinality()
         expected_scalar_cardinality = torch.tensor([2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
         assert torch.isclose(actual_scalar_cardinality.flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
-        dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
@@ -74,8 +74,8 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_output).all()
 
     def test_step_4(self):
-        dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
         # start of step 4
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         actual_fuzzy_temporal_supports >= ftarm.minimum_support  # L1 --> low A, low B, high D, and low E
@@ -91,8 +91,8 @@ class TestFTARM(unittest.TestCase):
         ]
 
     def test_candidate_fuzzy_representation_functions(self):
-        dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -126,7 +126,7 @@ class TestFTARM(unittest.TestCase):
         assert (mi.offset == expected_offset).all()
 
         actual_antecedents_memberships = ftarm.granulation(
-            torch.tensor(dataframe[linguistic_variables.keys()].values).float())
+            torch.tensor(dataframe[ftarm.variables].values).float())
 
         expected_memberships = torch.tensor([[[1.0000, 0.0000],
                                               [0.0000, 0.0000],
@@ -216,7 +216,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_scalar_cardinality(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
 
@@ -228,7 +228,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_candidate_fuzzy_temporal_supports(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         # the following candidate order is assumed for the following assertions
@@ -276,7 +276,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_make_candidate_3_itemsets(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
@@ -289,7 +289,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_make_candidate_4_itemsets(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
 
         C2_indices = ftarm.make_candidates()
         C3_indices = ftarm.make_candidates(C2_indices)
@@ -299,7 +299,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_execute(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -311,7 +311,7 @@ class TestFTARM(unittest.TestCase):
 
     def test_find_association_rules(self):
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.find_candidates()
         actual_rules = ftarm.find_association_rules()
         expected_rules = [
@@ -345,7 +345,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = big_data_example(seed=0)
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -364,7 +364,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = big_data_example(seed=5)
-        ftarm = FTARM(dataframe, linguistic_variables, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
         candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
