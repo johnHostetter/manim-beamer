@@ -9,7 +9,7 @@ from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.graph.organizing import stack_granules
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
-    FuzzyTemporalAssocationRuleMining as FTARM
+    FuzzyTemporalAssocationRuleMining as FTARM, AssociationRule
 
 set_rng(5)
 
@@ -322,29 +322,22 @@ class TestFTARM(unittest.TestCase):
     def test_find_association_rules(self):
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables, config={}, minimum_support=0.3, minimum_confidence=0.8)
-        candidates_family = ftarm.find_candidates()
+        _ = ftarm.find_candidates()  # required to build the lattice structure which is later used to find rules
         actual_rules = ftarm.find_association_rules()
-        expected_rules = [
-            {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(0, 0)}),
-             'confidence': torch.tensor(0.8571429)},
-            {'antecedents': frozenset({(0, 0)}), 'consequents': frozenset({(3, 1)}),
-             'confidence': torch.tensor(1.)},
-            {'antecedents': frozenset({(1, 0)}), 'consequents': frozenset({(3, 1)}),
-             'confidence': torch.tensor(1.)},
-            {'antecedents': frozenset({(4, 0)}), 'consequents': frozenset({(3, 1)}),
-             'confidence': torch.tensor(1.)},
-            {'antecedents': frozenset({(1, 0), (0, 0)}), 'consequents': frozenset({(3, 1)}),
-             'confidence': torch.tensor(1.)},
-            {'antecedents': frozenset({(3, 1), (0, 0)}), 'consequents': frozenset({(1, 0)}),
-             'confidence': torch.tensor(1.)},
-            {'antecedents': frozenset({(1, 0), (4, 0)}), 'consequents': frozenset({(3, 1)}),
-             'confidence': torch.tensor(1.)}
-        ]
+
+        expected_rules = {
+            AssociationRule(antecedents=frozenset({(1, 0), (4, 0)}), consequents=frozenset({(3, 1)}), confidence=1.0),
+            AssociationRule(antecedents=frozenset({(1, 0)}), consequents=frozenset({(3, 1)}), confidence=1.0),
+            AssociationRule(antecedents=frozenset({(4, 0)}), consequents=frozenset({(3, 1)}), confidence=1.0),
+            AssociationRule(antecedents=frozenset({(1, 0), (0, 0)}), consequents=frozenset({(3, 1)}), confidence=1.0),
+            AssociationRule(antecedents=frozenset({(0, 0)}), consequents=frozenset({(3, 1)}), confidence=1.0),
+            AssociationRule(antecedents=frozenset({(3, 1), (0, 0)}), consequents=frozenset({(1, 0)}), confidence=1.0)
+        }
 
         for actual_rule, expected_rule in zip(actual_rules, expected_rules):
-            assert actual_rule['antecedents'] == expected_rule['antecedents']
-            assert actual_rule['consequents'] == expected_rule['consequents']
-            assert actual_rule['confidence'] == expected_rule['confidence']
+            assert actual_rule.antecedents == expected_rule.antecedents
+            assert actual_rule.consequents == expected_rule.consequents
+            assert actual_rule.confidence == expected_rule.confidence
 
     def test_execute_big_data_0(self):
         """
