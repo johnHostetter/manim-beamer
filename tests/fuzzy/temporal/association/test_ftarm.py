@@ -6,7 +6,7 @@ import pandas as pd
 from utils.reproducibility import set_rng
 from soft.computing.graph import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
-from soft.fuzzy.information.granulation import GranulesMap
+from soft.fuzzy.graph.organizing import stack_granules
 from examples.fuzzy.temporal.association.ftarm.sample import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
     FuzzyTemporalAssocationRuleMining as FTARM
@@ -24,7 +24,16 @@ def big_data_example(seed):
         2: Gaussian(in_features=4),
         3: Gaussian(in_features=4),
     }
-    return dataframe, variables
+
+    kb = KnowledgeBase(dataframe)
+    granules = []
+    for variable, granule in variables.items():
+        kb.graph.add_vertex(type=Gaussian, data=granule, input=True)
+        granules.append(granule)
+    kb.granules, kb.config = granules, {'input': True}
+    kb.add_fuzzy_granules(granules)  # register their anchors (for rules)
+    stack_granules(kb)  # add efficient merge of antecedents to graph
+    return dataframe, kb
 
 
 class TestFTARM(unittest.TestCase):
@@ -42,14 +51,15 @@ class TestFTARM(unittest.TestCase):
 
     def test_temporal_information_table(self):
         dataframe, kb = make_example()
-        ti_table = TI(dataframe, kb)
+        attribute_names = [col for col in dataframe.columns if col != 'date']
+        ti_table = TI(dataframe, variables=attribute_names)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
         assert (ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
         # now checking that FTARM creates the same TI Table as above
-        ftarm = FTARM(dataframe, kb, minimum_support=0.3, minimum_confidence=0.8)
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
         # temporal item A occurs in the first transaction, B occurs in the second, C occurs in the first, and so on
         assert (ftarm.ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
         # temporal items D and E come in the second time period, all others occur in the first time period
