@@ -2,13 +2,12 @@ import torch
 import unittest
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 
 from utils.reproducibility import set_rng
-from soft.computing.knowledge import KnowledgeBase
+from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.graph.organizing import stack_granules
-from examples.fuzzy.temporal.association.ftarm.sample import make_example
+from examples.fuzzy.temporal.association.ftarm.demo_ftarm import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
     FuzzyTemporalAssocationRuleMining as FTARM, AssociationRule
 
@@ -26,21 +25,14 @@ def big_data_example(seed):
         3: Gaussian(in_features=4),
     }
 
-    kb = KnowledgeBase(dataframe)
-    granules = []
-    for variable, granule in variables.items():
-        kb.graph.add_vertex(type=Gaussian, data=granule, input=True)
-        granules.append(granule)
-    kb.granules, kb.config = granules, {'input': True}
-    kb.add_fuzzy_granules(granules)  # register their anchors (for rules)
-    stack_granules(kb)  # add efficient merge of antecedents to graph
+    kb = expert_design(variables.values())
     return dataframe, kb
 
 
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
         dataframe, kb = make_example()
-        input_granulation = kb.graph.vs.find(layer_eq=0)['data']
+        input_granulation = kb.graph.vs.find(source_eq=stack_granules)['name']
         cols = sorted(set(dataframe.columns) - {'date'})
         mus = input_granulation(torch.tensor(dataframe[cols].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
