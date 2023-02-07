@@ -6,7 +6,7 @@ from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Triangular  # a pyTorch implementation
 
 
-set_rng(0)
+set_rng(1)
 
 
 def triangular_numpy(x, center, width):

@@ -1,6 +1,7 @@
 import torch
 import unittest
 
+from soft.computing.design import expert_design
 from soft.fuzzy.graph.organizing import stack_granules
 from utils.reproducibility import set_rng
 from soft.computing.graph import KnowledgeBase
@@ -29,19 +30,21 @@ def make_scenario_1():
         ((0, 1), (1, 2)),
     ]
 
-    kb = KnowledgeBase(X, config={'granules': antecedents})
-    vertices = kb.graph.vs.select(type_eq='rough_sets')
-    vertices['input'] = True
-    vertices['data'] = vertices['id']
-    stack_granules(kb, config={'input_mf': True})
-    granules_map = GranulesMap(kb=kb, trainable=False)
-    granules_map.kb.add(AlgebraicProduct, rules)
-    links, offset = granules_map.kb.matrix(AlgebraicProduct)
+    kb = expert_design(antecedents, rules, config={})
+    # kb = KnowledgeBase(X, config={'granules': antecedents})
+    # vertices = kb.graph.vs.select(type_eq='rough_sets')
+    # vertices['input'] = True
+    # vertices['data'] = vertices['id']
+    # stack_granules(kb, config={'input_mf': True})
+    # granules_map = GranulesMap(kb=kb, trainable=False)
+    # granules_map.kb.add(AlgebraicProduct, rules)
+    links, offset = kb.matrix(AlgebraicProduct)
+    input_granulation = kb.graph.vs.find(layer_eq=0)['data']
 
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))
     consequences.requires_grad = True
-    antecedents_memberships = granules_map(X)
+    antecedents_memberships = input_granulation(X)
 
     return in_features, out_features, consequences, links, offset, antecedents_memberships
 
