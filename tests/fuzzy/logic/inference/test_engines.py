@@ -31,15 +31,8 @@ def make_scenario_1():
     ]
 
     kb = expert_design(antecedents, rules, config={})
-    # kb = KnowledgeBase(X, config={'granules': antecedents})
-    # vertices = kb.graph.vs.select(type_eq='rough_sets')
-    # vertices['input'] = True
-    # vertices['data'] = vertices['id']
-    # stack_granules(kb, config={'input_mf': True})
-    # granules_map = GranulesMap(kb=kb, trainable=False)
-    # granules_map.kb.add(AlgebraicProduct, rules)
     links, offset = kb.matrix(AlgebraicProduct)
-    input_granulation = kb.graph.vs.find(layer_eq=0)['data']
+    input_granulation = kb.graph.vs.find(source_eq=stack_granules)['name']
 
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))
