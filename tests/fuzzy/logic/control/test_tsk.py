@@ -1,6 +1,7 @@
 import torch
 import unittest
 
+from soft.computing.design import expert_design
 from soft.fuzzy.graph.organizing import stack_granules
 from utils.reproducibility import set_rng
 from soft.computing.knowledge import KnowledgeBase
@@ -60,17 +61,12 @@ class TestTSK(unittest.TestCase):
         assert all(antecedents[1].centers == torch.tensor([0.2, 0.6, 0.9, 1.2]))
         assert all(antecedents[1].widths == torch.tensor([0.4, 0.4, 0.5, 0.45]))
 
-        kb = KnowledgeBase(antecedents, config={'input': True})
-        kb.add_fuzzy_granules(antecedents)  # register their anchors (for rules)
-        stack_granules(kb)  # add efficient merge of antecedents to graph
-
-        expected_edges = {
+        rules = {
             frozenset({(0, 0), (1, 0)}), frozenset({(0, 1), (1, 0)}),
             frozenset({(0, 1), (1, 1)}), frozenset({(1, 1), (1, 1)})
         }
-        kb.add_parent_relation(AlgebraicProduct, expected_edges)
+        kb = expert_design(antecedents, rules)
 
-        # gm = GranulesMap(kb=kb)
         rule_vertex = kb.graph.vs.find(relation_eq=AlgebraicProduct)
         assert rule_vertex['relation'] == AlgebraicProduct  # it is the correct relation we wanted
         assert 'id' in rule_vertex.attributes()  # it has a unique id
@@ -82,9 +78,9 @@ class TestTSK(unittest.TestCase):
         assert kb[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
 
         # the rules we have added should exist how we expected them
-        assert kb.edges(AlgebraicProduct) == expected_edges
+        assert kb.edges(AlgebraicProduct) == rules
 
-        kb.attributes(rule_vertex['id'])
+        kb.attributes(rule_vertex['name'])
         n_output = actual_y.ndim
         flc = ZeroOrderTSK(n_output, kb, input_trainable=True)
         predicted_y = flc(x)

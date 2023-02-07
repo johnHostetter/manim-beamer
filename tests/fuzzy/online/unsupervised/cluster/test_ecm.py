@@ -45,7 +45,7 @@ class TestECM(unittest.TestCase):
         old_centers = np.array([cluster.center.tolist() for cluster in old_clusters])
         old_widths = [cluster.radius for cluster in old_clusters]
 
-        new_clusters = newECM(KnowledgeBase(torch.tensor(train_X)), config={'dthr': Dthr})
+        new_clusters = newECM(torch.tensor(train_X), config={'dthr': Dthr})
 
         assert len(old_centers) == len(new_clusters.centers.detach().numpy())  # results should be of same size
         assert not np.isclose(old_centers, new_clusters.centers.detach().numpy()).all()  # approx unequal centers

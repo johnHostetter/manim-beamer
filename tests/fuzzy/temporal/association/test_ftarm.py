@@ -116,7 +116,7 @@ class TestFTARM(unittest.TestCase):
               [0., 0., 0., 0., 0., 0.]]]
         )
 
-        assert (mi.links_between_antecedents_and_rules == expected_links).all()
+        assert (mi.links == expected_links).all()
 
         expected_offset = torch.tensor(
             [[0., 0., 0., 1., 1., 1.],
