@@ -81,6 +81,6 @@ class TestCLIP(unittest.TestCase):
 
         oldCLIP_terms = oldCLIP(train_X, train_X.min(axis=0), train_X.max(axis=0))
         kb = KnowledgeBase()
-        newCLIP_terms = newCLIP(kb=kb, data=torch.tensor(train_X), config={'eps': 0.2, 'kappa': 0.6})
+        newCLIP_terms = newCLIP(torch.tensor(train_X), config={'eps': 0.2, 'kappa': 0.6})
 
         compare_results(oldCLIP_terms, newCLIP_terms)
