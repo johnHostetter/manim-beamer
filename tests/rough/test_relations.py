@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 
 class TestEquivalenceRelation(unittest.TestCase):
@@ -10,9 +10,9 @@ class TestEquivalenceRelation(unittest.TestCase):
 
     def test_get_category(self):
         kb = KnowledgeBase(self.universe)
-        kb.add('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
-        kb.add('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
-        kb.add('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
+        kb.add_parent_relation('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
+        kb.add_parent_relation('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
+        kb.add_parent_relation('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
 
         assert kb / 'R1' == frozenset(
             {frozenset({'x8', 'x6', 'x5'}), frozenset({'x3', 'x7', 'x1'}), frozenset({'x2', 'x4'})}
@@ -66,9 +66,9 @@ class TestIndiscernibilityRelation(unittest.TestCase):
 
     def test_indiscernibility(self):
         kb = KnowledgeBase(self.universe)
-        kb.add('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
-        kb.add('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
-        kb.add('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
+        kb.add_parent_relation('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
+        kb.add_parent_relation('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
+        kb.add_parent_relation('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
 
         assert kb.IND(['R1', 'R2']) == {
             frozenset({'x2'}), frozenset({'x5'}), frozenset({'x6'}), frozenset({'x4'}),
@@ -85,7 +85,7 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         self.E2 = {'x1', 'x4', 'x5'}
         self.E3 = {'x6'}
         self.E4 = {'x7', 'x8'}
-        self.kb.add('R', (self.E1, self.E2, self.E3, self.E4))
+        self.kb.add_parent_relation('R', (self.E1, self.E2, self.E3, self.E4))
 
     def test_bottom_R_equal(self):
         X1 = frozenset({'x1', 'x2', 'x3'})
@@ -120,7 +120,7 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         self.E2 = {'x1', 'x4', 'x5'}
         self.E3 = {'x6'}
         self.E4 = {'x7', 'x8'}
-        self.kb.add('R', (self.E1, self.E2, self.E3, self.E4))
+        self.kb.add_parent_relation('R', (self.E1, self.E2, self.E3, self.E4))
 
     def test_bottom_R_included(self):
         X1 = frozenset({'x2', 'x4', 'x6', 'x7'})

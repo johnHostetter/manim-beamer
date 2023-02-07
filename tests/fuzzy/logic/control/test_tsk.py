@@ -3,7 +3,7 @@ import unittest
 
 from soft.fuzzy.graph.organizing import stack_granules
 from utils.reproducibility import set_rng
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.logic.control.tsk import ZeroOrderTSK
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
@@ -68,7 +68,7 @@ class TestTSK(unittest.TestCase):
             frozenset({(0, 0), (1, 0)}), frozenset({(0, 1), (1, 0)}),
             frozenset({(0, 1), (1, 1)}), frozenset({(1, 1), (1, 1)})
         }
-        kb.add(AlgebraicProduct, expected_edges)
+        kb.add_parent_relation(AlgebraicProduct, expected_edges)
 
         # gm = GranulesMap(kb=kb)
         rule_vertex = kb.graph.vs.find(relation_eq=AlgebraicProduct)

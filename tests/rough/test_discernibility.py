@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 
 class TestDiscernibility(unittest.TestCase):
@@ -8,10 +8,10 @@ class TestDiscernibility(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 6))
         self.kb = KnowledgeBase(self.universe)
-        self.kb.add('a', ({1}, {2, 3, 5}, {4}))
-        self.kb.add('b', ({3}, {1, 4, 5}, {2}))
-        self.kb.add('c', ({2, 4, 5}, {3}, {1}))
-        self.kb.add('d', ({1, 3}, {4}, {2, 5}))
+        self.kb.add_parent_relation('a', ({1}, {2, 3, 5}, {4}))
+        self.kb.add_parent_relation('b', ({3}, {1, 4, 5}, {2}))
+        self.kb.add_parent_relation('c', ({2, 4, 5}, {3}, {1}))
+        self.kb.add_parent_relation('d', ({1, 3}, {4}, {2, 5}))
 
     def test_discernibility_matrix(self):
         relations = {'a', 'b', 'c', 'd'}

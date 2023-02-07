@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 
 class TestDependenciesInKnowledgeBase(unittest.TestCase):
@@ -19,8 +19,8 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
 
         """
         self.kb = KnowledgeBase(self.universe)
-        self.kb.add('P', ({1, 5}, {2, 8}, {3}, {4}, {6}, {7}))
-        self.kb.add('Q', ({1, 5}, {2, 7, 8}, {3, 4, 6}))
+        self.kb.add_parent_relation('P', ({1, 5}, {2, 8}, {3}, {4}, {6}, {7}))
+        self.kb.add_parent_relation('Q', ({1, 5}, {2, 7, 8}, {3, 4, 6}))
 
         assert self.kb.depends_on('P', 'Q')
         # partial dependency should equal 1 if depends_on is True
@@ -35,8 +35,8 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         self.kb = KnowledgeBase(self.universe)
         X1, X2, X3, X4, X5 = {1}, {2, 7}, {3, 6}, {4}, {5, 8}
         Y1, Y2, Y3, Y4, Y5, Y6 = {1, 5}, {2, 8}, {3}, {4}, {6}, {7}
-        self.kb.add('Q', (X1, X2, X3, X4, X5))
-        self.kb.add('P', (Y1, Y2, Y3, Y4, Y5, Y6))
+        self.kb.add_parent_relation('Q', (X1, X2, X3, X4, X5))
+        self.kb.add_parent_relation('P', (Y1, Y2, Y3, Y4, Y5, Y6))
 
         assert self.kb.lower('P', X1) == frozenset()
         assert self.kb.lower('P', X2) == Y6

@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 
 class TestDefinable(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestDefinable(unittest.TestCase):
         self.E3 = {'x3', 'x5'}
         self.E4 = {'x4', 'x8'}
         self.E5 = {'x7', 'x10'}
-        self.kb.add('R', (self.E1, self.E2, self.E3, self.E4, self.E5))
+        self.kb.add_parent_relation('R', (self.E1, self.E2, self.E3, self.E4, self.E5))
 
     def test_definable(self):
         X1 = frozenset({'x0', 'x1', 'x4', 'x8'})

@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 
 class TestDecisionTable(unittest.TestCase):
@@ -8,11 +8,11 @@ class TestDecisionTable(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 9))
         self.kb = KnowledgeBase(self.universe)
-        self.kb.add('a', ({2, 8}, {1, 4, 5}, {3, 6, 7}))
-        self.kb.add('b', ({1, 3, 5}, {2, 4, 7, 8}, {6}))
-        self.kb.add('c', ({3, 4, 6}, {2, 7, 8}, {1, 5}))
-        self.kb.add('d', ({5, 8}, {2, 3, 6, 7}, {1, 4}))
-        self.kb.add('e', ({1}, {3, 5, 6, 8}, {2, 4, 7}))
+        self.kb.add_parent_relation('a', ({2, 8}, {1, 4, 5}, {3, 6, 7}))
+        self.kb.add_parent_relation('b', ({1, 3, 5}, {2, 4, 7, 8}, {6}))
+        self.kb.add_parent_relation('c', ({3, 4, 6}, {2, 7, 8}, {1, 5}))
+        self.kb.add_parent_relation('d', ({5, 8}, {2, 3, 6, 7}, {1, 4}))
+        self.kb.add_parent_relation('e', ({1}, {3, 5, 6, 8}, {2, 4, 7}))
         self.C, self.D = {'a', 'b', 'c'}, {'d', 'e'}
 
     def test_rule_consistency(self):
@@ -34,11 +34,11 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 8))
         self.kb = KnowledgeBase(self.universe)
-        self.kb.add('a', ({3}, {1, 2, 4, 5}, {6, 7}))
-        self.kb.add('b', ({1, 2, 3}, {4, 5, 6}, {7}))
-        self.kb.add('c', ({1, 2, 3, 4, 5, 6}, {7}))
-        self.kb.add('d', ({2, 3}, {1, 4}, {5, 6, 7}))
-        self.kb.add('e', ({3, 4}, {1, 2}, {5, 6, 7}))
+        self.kb.add_parent_relation('a', ({3}, {1, 2, 4, 5}, {6, 7}))
+        self.kb.add_parent_relation('b', ({1, 2, 3}, {4, 5, 6}, {7}))
+        self.kb.add_parent_relation('c', ({1, 2, 3, 4, 5, 6}, {7}))
+        self.kb.add_parent_relation('d', ({2, 3}, {1, 4}, {5, 6, 7}))
+        self.kb.add_parent_relation('e', ({3, 4}, {1, 2}, {5, 6, 7}))
         self.C, self.D = {'a', 'b', 'c', 'd'}, {'e'}
 
     def test_c_is_dispensable(self):

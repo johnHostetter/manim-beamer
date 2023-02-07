@@ -4,7 +4,7 @@ import pathlib
 import unittest
 import numpy as np
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 # actual implementation of CLIP that may break and is written in PyTorch
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM, general_euclidean_distance as newDistance

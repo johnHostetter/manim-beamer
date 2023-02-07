@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
@@ -26,7 +26,7 @@ class TestGranulation(unittest.TestCase):
         edges = {
             frozenset({(0, 1), (1, 1)}), frozenset({(1, 2), (2, 3)}), frozenset({(0, 7), (1, 3), (2, 5)})
         }
-        kb.add(AlgebraicProduct, edges)
+        kb.add_parent_relation(AlgebraicProduct, edges)
 
         # only 3 AlgebraicProduct vertices should have been added to the graph; representing the fuzzy logic rule nodes
         algebraic_product_vertices = kb.graph.vs.select(relation_eq=AlgebraicProduct)

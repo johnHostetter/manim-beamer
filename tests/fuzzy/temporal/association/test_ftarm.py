@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from utils.reproducibility import set_rng
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.graph.organizing import stack_granules
 from examples.fuzzy.temporal.association.ftarm.sample import make_example

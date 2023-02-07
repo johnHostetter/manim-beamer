@@ -1,6 +1,6 @@
 import unittest
 
-from soft.computing.graph import KnowledgeBase
+from soft.computing.knowledge import KnowledgeBase
 
 
 class TestRoughSets(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestRoughSets(unittest.TestCase):
         self.E2 = {'x2', 'x5', 'x7'}
         self.E3 = {'x3'}
         self.E4 = {'x6'}
-        self.gg.add('R', (self.E1, self.E2, self.E3, self.E4))
+        self.gg.add_parent_relation('R', (self.E1, self.E2, self.E3, self.E4))
 
     def test_equivalence_classes(self):
         assert self.gg / 'R' == frozenset(
@@ -90,7 +90,7 @@ class TestApproximationOfClassifications(unittest.TestCase):
         self.X1 = {'x1', 'x3', 'x5'}
         self.X2 = {'x2', 'x4'}
         self.X3 = {'x6', 'x7', 'x8'}
-        self.kb.add('R', (self.X1, self.X2, self.X3))
+        self.kb.add_parent_relation('R', (self.X1, self.X2, self.X3))
 
     def test_classifications_1(self):
         Y1 = frozenset({'x1', 'x2', 'x4'})
