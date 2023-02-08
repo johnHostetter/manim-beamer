@@ -19,6 +19,24 @@ def check_initial_population(ga_instance):
 
 
 def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
+    """
+    This function checks that the population does not contain
+    an invalid selection of gene values. Specifically, a row,
+    or candidate, cannot contain all negative values. This is
+    because negative values have a special meaning in this code;
+    the presence of a negative value means that the attribute/variable
+    should be disregarded (i.e., feature selection).
+
+    Hence, a row of all negative values essentially amounts to
+    no features (i.e., fuzzy sets) selected, which is not allowed.
+
+    Args:
+        ga_instance:
+        offspring_mutation:
+
+    Returns:
+
+    """
     if offspring_mutation is None:
         population = ga_instance.initial_population  # check that each solution in the population is valid
     else:
@@ -188,6 +206,49 @@ class TestSummary(unittest.TestCase):
         X, query, summary = make_scenario_1()
         assert torch.isclose(summary.degree_of_validity(X, alpha=0.3, query=query),
                              torch.tensor(0.3764182925224304))
+
+    def test_prevent_no_fuzzy_sets(self):
+        X, query, summary = make_scenario_1()
+        gene_space = [list(range(-1, max_terms + 1)) for max_terms in summary.kb.intra_dimensions()]
+        assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
+        ga_instance = pygad.GA(num_generations=10,
+                               num_parents_mating=2,
+                               fitness_func=fitness_function,
+                               sol_per_pop=10,
+                               num_genes=summary.kb.variable_dimensions(),
+                               mutation_num_genes=1,
+                               gene_space=gene_space,
+                               on_start=check_initial_population,
+                               on_mutation=prevent_no_fuzzy_sets)
+        # the bottom row is an invalid combination (i.e., all negatives)
+        expected_population = np.array([[1., -1.],
+                                        [0., 0.],
+                                        [-1., 0.],
+                                        [1., -1.],
+                                        [0., 1.],
+                                        [0., 1.],
+                                        [1., 0.],
+                                        [1., -1.],
+                                        [-1., 1.],
+                                        [-1., -1.]])
+        assert (ga_instance.population == expected_population).all()
+        assert (ga_instance.initial_population == expected_population).all()
+
+        prevent_no_fuzzy_sets(ga_instance)
+
+        # the bottom row has been corrected
+        expected_population = np.array([[1., -1.],
+                                        [0., 0.],
+                                        [-1., 0.],
+                                        [1., -1.],
+                                        [0., 1.],
+                                        [0., 1.],
+                                        [1., 0.],
+                                        [1., -1.],
+                                        [-1., 1.],
+                                        [1., -1.]])
+        assert (ga_instance.population == expected_population).all()
+        assert (ga_instance.initial_population == expected_population).all()
 
     def test_genetic_algorithm_summary_search(self):
         X, query, summary = make_scenario_1()
