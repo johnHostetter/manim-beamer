@@ -1,8 +1,10 @@
 import torch
 import unittest
 
-from soft.computing.design import SelfOrganize
+from utils.reproducibility import set_rng
+from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.computing.wrappers import fetch_fuzzy_set_centers
+from soft.computing.design import SelfOrganize, expert_design
 
 """
 The following algorithms are eligible for self-organizing neuro-fuzzy networks.
@@ -12,6 +14,9 @@ from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
 from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM
 from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
+
+
+set_rng(0)
 
 
 class TestSelfOrganize(unittest.TestCase):
@@ -30,9 +35,6 @@ class TestSelfOrganize(unittest.TestCase):
         so = SelfOrganize()
         assert len(so.graph.vs) == 0  # the Self-Organize Knowledge Base was initialized with no vertices
         assert len(so.graph.es) == 0  # the Self-Organize Knowledge Base was initialized with no edges
-
-        assert len(so.kb.graph.vs) == 0  # the Knowledge Base was initialized with no vertices
-        assert len(so.kb.graph.es) == 0  # the Knowledge Base was initialized with no edges
 
     def test_add_component_thread(self):
         """
@@ -132,7 +134,8 @@ class TestSelfOrganize(unittest.TestCase):
             ECM,
             EFS,
             WM,
-            fetch_fuzzy_set_centers
+            fetch_fuzzy_set_centers,
+            expert_design
         ]
         so.add_component_threads(functions)
         so.add_data(torch.rand(10, 5), name='input')
@@ -142,6 +145,12 @@ class TestSelfOrganize(unittest.TestCase):
             (ECM, fetch_fuzzy_set_centers, 0),
             (fetch_fuzzy_set_centers, WM, 0),
             (CLIP, WM, 1),
+            (CLIP, expert_design, 0),
+            (WM, expert_design, 1)
         ]
         so.link_component_threads(edges)
-        so.start_threads(functions)
+        kb = so.start_threads(functions)
+        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 10  # there should be 10 rules
+
+        kb = so.graph.vs.find(function_eq=expert_design)['output']
+        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 10  # there should be 10 rules
