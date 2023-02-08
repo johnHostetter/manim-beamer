@@ -4,7 +4,7 @@ import unittest
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
-from soft.computing.organize import stack_granules
+from soft.computing.organize import add_stacked_granule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.inference.engines import ProductInference, MinimumInference
 
@@ -30,7 +30,7 @@ def make_scenario_1():
 
     kb = expert_design(antecedents, rules, config={})
     links, offset = kb.matrix(AlgebraicProduct)
-    input_granulation = kb.graph.vs.find(source_eq=stack_granules)['name']
+    input_granulation = kb.graph.vs.find(source_eq=add_stacked_granule)['name']
 
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))

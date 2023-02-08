@@ -6,7 +6,7 @@ import pandas as pd
 from utils.reproducibility import set_rng
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
-from soft.computing.organize import stack_granules
+from soft.computing.organize import add_stacked_granule
 from examples.fuzzy.temporal.association.ftarm.demo_ftarm import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, TemporalInformationTable as TI, \
     FuzzyTemporalAssocationRuleMining as FTARM, AssociationRule
@@ -32,7 +32,7 @@ def big_data_example(seed):
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
         dataframe, kb = make_example()
-        input_granulation = kb.graph.vs.find(source_eq=stack_granules)['name']
+        input_granulation = kb.graph.vs.find(source_eq=add_stacked_granule)['name']
         cols = sorted(set(dataframe.columns) - {'date'})
         mus = input_granulation(torch.tensor(dataframe[cols].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
