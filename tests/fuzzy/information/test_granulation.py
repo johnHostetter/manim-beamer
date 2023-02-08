@@ -1,7 +1,7 @@
 import unittest
 
-from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
+from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
 

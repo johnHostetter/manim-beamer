@@ -1,7 +1,6 @@
 import torch
 import unittest
 
-
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
