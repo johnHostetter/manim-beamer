@@ -6,10 +6,9 @@ import numpy as np
 from utils.reproducibility import set_rng
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
-from soft.fuzzy.information.granulation import GranuleSelection
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
-from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, most_quantifier as Q
-
+from soft.fuzzy.linguistic.summary import Summary, Query, GeneticAlgorithmSummarySearch, GranuleSelection, \
+    most_quantifier as Q
 
 set_rng(1)
 X = torch.rand((100, 2))
@@ -49,10 +48,10 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
 
 def fitness_function(solution, solution_idx):
     global gass, X
-    candidate_selection = [GranuleSelection(variable_index, int(term_index))
-                           for variable_index, term_index in enumerate(solution)]
-    gass.input_granulation.select(candidate_selection)
-    candidate = Summary(gass.input_granulation, quantifier=Q, truth=None)
+    candidate = [GranuleSelection(variable_index, int(term_index))
+                 for variable_index, term_index in enumerate(solution)]
+    candidate = gass.select(candidate, quantifier=Q, truth=None)
+    # candidate = Summary(gass.kb, quantifier=Q, truth=None)
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
     return candidate.degree_of_validity(X, alpha=0.3, query=query).item()
 
