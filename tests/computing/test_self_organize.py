@@ -43,8 +43,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         so = SelfOrganize()
-        component_thread = ComponentThread(CLIP, name='Categorical Learning Induced Partitioning')
-        so.add_component_threads(component_thread)
+        so.add_component_threads(CLIP)
         assert len(so.graph.vs) == 1  # the Self-Organize Knowledge Base now has 1 vertex
         assert len(so.graph.es) == 0  # the Self-Organize Knowledge Base still has 0 edges
 
@@ -56,25 +55,25 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         so = SelfOrganize()
-        component_threads = [
+        functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_component_threads(component_threads)
+        so.add_component_threads(functions)
         assert len(so.graph.vs) == 4  # the Self-Organize Knowledge Base now has 4 vertices
         assert len(so.graph.es) == 0  # the Self-Organize Knowledge Base still has 0 edges
 
     def test_add_edge(self):
         so = SelfOrganize()
-        component_threads = [
+        functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_component_threads(component_threads)
+        so.add_component_threads(functions)
         edges = (CLIP, WM, 1)  # CLIP produces antecedents & WM expects 2nd argument to be antecedents
         so.link_component_threads(edges)
         assert len(so.graph.vs) == 4  # the Self-Organize Knowledge Base now has 4 vertices
@@ -82,13 +81,13 @@ class TestSelfOrganize(unittest.TestCase):
 
     def test_add_edges(self):
         so = SelfOrganize()
-        component_threads = [
+        functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_component_threads(component_threads)
+        so.add_component_threads(functions)
         edges = [
             (ECM, WM, 0),
             (CLIP, WM, 1),
@@ -104,13 +103,13 @@ class TestSelfOrganize(unittest.TestCase):
 
     def test_add_input_data(self):
         so = SelfOrganize()
-        component_threads = [
+        functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_component_threads(component_threads)
+        so.add_component_threads(functions)
         edges = [
             (ECM, WM, 0),
             (CLIP, WM, 1),
@@ -129,13 +128,13 @@ class TestSelfOrganize(unittest.TestCase):
 
     def test_start_threads(self):
         so = SelfOrganize()
-        component_threads = [
+        functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_component_threads(component_threads)
+        so.add_component_threads(functions)
         so.add_data(torch.rand(10, 5), name='input')
         edges = [
             ('input', ECM, 0),
@@ -144,4 +143,4 @@ class TestSelfOrganize(unittest.TestCase):
             (CLIP, WM, 1),
         ]
         so.link_component_threads(edges)
-        so.start_threads(component_threads)
+        so.start_threads(functions)
