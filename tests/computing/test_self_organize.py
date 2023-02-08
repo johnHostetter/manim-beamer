@@ -1,9 +1,8 @@
+import torch
 import unittest
 
-import torch
-
 from soft.computing.design import SelfOrganize
-from soft.fuzzy.graph.threads import ComponentThread
+from soft.computing.wrappers import fetch_fuzzy_set_centers
 
 """
 The following algorithms are eligible for self-organizing neuro-fuzzy networks.
@@ -132,14 +131,16 @@ class TestSelfOrganize(unittest.TestCase):
             CLIP,
             ECM,
             EFS,
-            WM
+            WM,
+            fetch_fuzzy_set_centers
         ]
         so.add_component_threads(functions)
         so.add_data(torch.rand(10, 5), name='input')
         edges = [
             ('input', ECM, 0),
             ('input', CLIP, 0),
-            (ECM, WM, 0),
+            (ECM, fetch_fuzzy_set_centers, 0),
+            (fetch_fuzzy_set_centers, WM, 0),
             (CLIP, WM, 1),
         ]
         so.link_component_threads(edges)
