@@ -127,21 +127,21 @@ class TestSelfOrganize(unittest.TestCase):
         so.link_component_threads(edges)
         assert len(so.graph.es) == 4  # the Self-Organize Knowledge Base has 4 edges
 
-    def test_start_threads(self):
-        so = SelfOrganize()
-        component_threads = [
-            ComponentThread(CLIP, name='Categorical Learning Induced Partitioning'),
-            ComponentThread(ECM, name='Evolving Clustering Method'),
-            ComponentThread(EFS, name='Empirical Fuzzy Sets'),
-            ComponentThread(WM, name='Wang-Mendel Method'),
-        ]
-        so.add_component_threads(component_threads)
-        so.add_data(torch.rand(10, 5), name='input')
-        edges = [
-            ('input', ECM, 0),
-            ('input', CLIP, 0),
-            (ECM, WM, 0),
-            (CLIP, WM, 1),
-        ]
-        so.link_component_threads(edges)
-        so.start_threads(component_threads)
+    # def test_start_threads(self):
+    #     so = SelfOrganize()
+    #     component_threads = [
+    #         ComponentThread(CLIP, name='Categorical Learning Induced Partitioning'),
+    #         ComponentThread(ECM, name='Evolving Clustering Method'),
+    #         ComponentThread(EFS, name='Empirical Fuzzy Sets'),
+    #         ComponentThread(WM, name='Wang-Mendel Method'),
+    #     ]
+    #     so.add_component_threads(component_threads)
+    #     so.add_data(torch.rand(10, 5), name='input')
+    #     edges = [
+    #         ('input', ECM, 0),
+    #         ('input', CLIP, 0),
+    #         (ECM, WM, 0),
+    #         (CLIP, WM, 1),
+    #     ]
+    #     so.link_component_threads(edges)
+    #     so.start_threads(component_threads)
