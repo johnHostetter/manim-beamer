@@ -14,6 +14,35 @@ X = torch.rand((100, 2))
 antecedents = [Gaussian(4), Gaussian(4)]
 
 
+def check_initial_population(ga_instance):
+    prevent_no_fuzzy_sets(ga_instance)
+
+
+def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
+    if offspring_mutation is None:
+        population = ga_instance.initial_population  # check that each solution in the population is valid
+    else:
+        population = offspring_mutation
+    indices_that_contain_no_chosen_fuzzy_sets = np.where((population < 0).all(axis=1))[0]
+    for row_index_to_change in indices_that_contain_no_chosen_fuzzy_sets:
+        col_index_to_change = np.random.choice(population.shape[1])
+        valid_gene_choice_indices = np.array(ga_instance.gene_space[col_index_to_change]) >= 0
+        valid_gene_choices = np.array(ga_instance.gene_space[col_index_to_change])[valid_gene_choice_indices]
+        population[row_index_to_change, col_index_to_change] = np.random.choice(valid_gene_choices)
+    if offspring_mutation is None:  # the initial population needs to be updated
+        ga_instance.initial_population = ga_instance.population = population
+
+
+def fitness_function(solution, solution_idx):
+    global antecedents, X
+    candidate = tuple([  # term indices < 0 are reserved for "removed" fuzzy sets
+        (variable_index, int(term_index)) for variable_index, term_index in enumerate(solution) if term_index >= 0])
+    kb = expert_design(antecedents, rules=[candidate])
+    candidate = Summary(kb, quantifier=Q, truth=None)
+    query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
+    return candidate.degree_of_validity(X, alpha=0.3, query=query).item()
+
+
 def make_scenario_1():
     terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
     kb = expert_design(terms, rules=[((0, 0), (1, 0))])  # the 'rule' encodes the linguistic summary
@@ -160,23 +189,26 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.degree_of_validity(X, alpha=0.3, query=query),
                              torch.tensor(0.3764182925224304))
 
-    # def test_genetic_algorithm_summary_search(self):
-    #     ga_instance = pygad.GA(num_generations=10,
-    #                            num_parents_mating=5,
-    #                            fitness_func=fitness_function,
-    #                            sol_per_pop=10,
-    #                            num_genes=gass.in_features,
-    #                            mutation_num_genes=1,
-    #                            gene_space=gass.local_gene_space,
-    #                            on_start=check_initial_population,
-    #                            on_mutation=prevent_no_fuzzy_sets)
-    #
-    #     ga_instance.run()
-    #     # print('Initial population:')
-    #     # print(ga_instance.initial_population)
-    #     # print('Population after {} generations:'.format(ga_instance.num_generations))
-    #     # print(ga_instance.population)
-    #     solution, solution_fitness, solution_idx = ga_instance.best_solution()
-    #     print('Parameters of the best solution : {solution}'.format(solution=solution))
-    #     print('Fitness value of the best solution = {solution_fitness}'.format(solution_fitness=solution_fitness))
-    #     print('Index of the best solution : {solution_idx}'.format(solution_idx=solution_idx))
+    def test_genetic_algorithm_summary_search(self):
+        X, query, summary = make_scenario_1()
+        gene_space = [list(range(-1, max_terms + 1)) for max_terms in summary.kb.intra_dimensions()]
+        assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
+        ga_instance = pygad.GA(num_generations=10,
+                               num_parents_mating=2,
+                               fitness_func=fitness_function,
+                               sol_per_pop=10,
+                               num_genes=summary.kb.variable_dimensions(),
+                               mutation_num_genes=1,
+                               gene_space=gene_space,
+                               on_start=check_initial_population,
+                               on_mutation=prevent_no_fuzzy_sets)
+
+        ga_instance.run()
+        print('Initial population:')
+        print(ga_instance.initial_population)
+        print('Population after {} generations:'.format(ga_instance.num_generations))
+        print(ga_instance.population)
+        solution, solution_fitness, solution_idx = ga_instance.best_solution()
+        print('Parameters of the best solution : {solution}'.format(solution=solution))
+        print('Fitness value of the best solution = {solution_fitness}'.format(solution_fitness=solution_fitness))
+        print('Index of the best solution : {solution_idx}'.format(solution_idx=solution_idx))
