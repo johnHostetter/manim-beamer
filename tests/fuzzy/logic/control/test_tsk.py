@@ -1,11 +1,10 @@
 import torch
 import unittest
 
-from soft.computing.design import expert_design
-from soft.fuzzy.graph.organize import stack_granules
+
 from utils.reproducibility import set_rng
-from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
+from soft.computing.design import expert_design
 from soft.fuzzy.logic.control.tsk import ZeroOrderTSK
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
