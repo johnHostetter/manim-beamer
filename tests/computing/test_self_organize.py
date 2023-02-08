@@ -2,9 +2,10 @@ import torch
 import unittest
 
 from utils.reproducibility import set_rng
-from soft.fuzzy.relation.tnorm import AlgebraicProduct
-from soft.computing.wrappers import fetch_fuzzy_set_centers
 from soft.computing.design import SelfOrganize, expert_design
+from soft.computing.blueprints import clip_ecm_wm, clip_ftarm
+from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
+from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
 
 """
 The following algorithms are eligible for self-organizing neuro-fuzzy networks.
@@ -30,6 +31,7 @@ class TestSelfOrganize(unittest.TestCase):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.data = torch.rand(10, 5)
 
     def test_empty_self_organize_kb(self):
         so = SelfOrganize()
@@ -116,7 +118,7 @@ class TestSelfOrganize(unittest.TestCase):
             (CLIP, WM, 1),
         ]
         so.link_component_threads(edges)
-        so.add_data(torch.rand(10, 5), name='input')
+        so.add_data(self.data, name='input')
         assert len(so.graph.vs) == 5  # the Self-Organize Knowledge Base now has 5 vertices (incl. data vertex)
         assert len(so.graph.es) == 2  # the Self-Organize Knowledge Base has 2 edges
 
@@ -138,7 +140,7 @@ class TestSelfOrganize(unittest.TestCase):
             expert_design
         ]
         so.add_component_threads(functions)
-        so.add_data(torch.rand(10, 5), name='input')
+        so.add_data(self.data, name='input')
         edges = [
             ('input', ECM, 0),
             ('input', CLIP, 0),
@@ -150,7 +152,26 @@ class TestSelfOrganize(unittest.TestCase):
         ]
         so.link_component_threads(edges)
         kb = so.start_threads(functions)
+        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 8  # there should be 8 rules
+
+        # checking that this query returns the same as the above; they are equivalent
+        kb = so.graph.vs.find(function_eq=expert_design)['output']
+        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 8  # there should be 8 rules
+
+    def test_blueprint_clip_ecm_wm(self):
+        so = clip_ecm_wm(self.data)
+        kb = so.start_threads()
         assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 10  # there should be 10 rules
 
+        # checking that this query returns the same as the above; they are equivalent
         kb = so.graph.vs.find(function_eq=expert_design)['output']
         assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 10  # there should be 10 rules
+
+    def test_blueprint_clip_ftarm(self):
+        so = clip_ftarm(self.data)
+        kb = so.start_threads()
+        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 107  # there should be 107 rules
+
+        # checking that this query returns the same as the above; they are equivalent
+        kb = so.graph.vs.find(function_eq=FTARM)['output']
+        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 107  # there should be 107 rules
