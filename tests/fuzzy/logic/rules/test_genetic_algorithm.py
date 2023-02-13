@@ -3,8 +3,8 @@ import torch
 import unittest
 
 from soft.computing.blueprints import clip_only
-from soft.computing.design import expert_design
 from soft.fuzzy.logic.control.tsk import ZeroOrderTSK
+from soft.fuzzy.logic.control.evolutionary import fitness_function_factory, make_kb_from_ga_solution
 
 
 class TestGeneticAlgorithmRuleSearch(unittest.TestCase):
