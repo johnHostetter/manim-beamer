@@ -389,3 +389,12 @@ class TestFTARM(unittest.TestCase):
             {(0, 1), (2, 3), (3, 0)}, {(2, 3), (0, 3), (3, 0)},
             {(0, 3), (3, 0), (2, 2)}, {(0, 1), (3, 0), (2, 2)}
         ]
+
+    def test_maximal_itemsets(self):
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
+        _ = ftarm.find_candidates()  # required to build the lattice structure which is later used to find rules
+        actual_maximal_itemsets = ftarm.find_maximal_itemsets()
+        assert actual_maximal_itemsets == {
+            frozenset({(1, 0), (3, 1), (0, 0)}), frozenset({(1, 0), (4, 0), (3, 1)})
+        }
