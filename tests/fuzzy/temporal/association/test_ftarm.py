@@ -390,6 +390,16 @@ class TestFTARM(unittest.TestCase):
             {(0, 3), (3, 0), (2, 2)}, {(0, 1), (3, 0), (2, 2)}
         ]
 
+    def test_closed_itemsets(self):
+        dataframe, kb = make_example()
+        ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
+        _ = ftarm.find_candidates()  # required to build the lattice structure which is later used to find rules
+        actual_closed_itemsets = ftarm.find_closed_itemsets()
+        assert actual_closed_itemsets == {
+            frozenset({(3, 1), (4, 0)}), frozenset({(1, 0), (3, 1), (0, 0)}), frozenset({0, 1}),
+            frozenset({(1, 0), (4, 0), (3, 1)}), frozenset({(1, 0), (3, 1)}), frozenset({1, 3})
+        }
+
     def test_maximal_itemsets(self):
         dataframe, kb = make_example()
         ftarm = FTARM(dataframe, kb, config={}, minimum_support=0.3, minimum_confidence=0.8)
