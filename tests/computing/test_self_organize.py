@@ -4,9 +4,9 @@ import unittest
 from utils.reproducibility import set_rng
 from soft.computing.organize import stack_granules
 from soft.computing.design import SelfOrganize, expert_design
-from soft.computing.blueprints import clip_ecm_wm, clip_ftarm
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
+from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
 
 """
 The following algorithms are eligible for self-organizing neuro-fuzzy networks.
@@ -14,8 +14,8 @@ The following algorithms are eligible for self-organizing neuro-fuzzy networks.
 
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
-from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM
 from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
+from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_discernible
 
 
 set_rng(0)
@@ -254,8 +254,20 @@ class TestSelfOrganize(unittest.TestCase):
     def test_blueprint_clip_ftarm(self):
         so = clip_ftarm(self.data)
         kb = so.start()
-        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 107  # there should be 107 rules
+        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 91  # there should be 91 rules (may change due to RNG)
 
         # checking that this query returns the same as the above; they are equivalent
         kb = so.graph.vs.find(function_eq=FTARM)['output']
-        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 107  # there should be 107 rules
+        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 91  # there should be 91 rules (may change due to RNG)
+
+    def test_blueprint_clip_frequent_discernible(self):
+        big_train_data = torch.rand(500, 142)
+        big_val_data = torch.rand(200, 142)
+        config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
+        so = clip_frequent_discernible(big_train_data, big_val_data, config)
+        kb = so.start()
+        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 9  # there should be 9 rules
+
+        # checking that this query returns the same as the above; they are equivalent
+        kb = so.graph.vs.find(function_eq=frequent_discernible)['output']
+        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 9  # there should be 9 rules
