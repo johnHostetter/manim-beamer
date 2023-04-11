@@ -51,7 +51,7 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
         ga_instance.initial_population = ga_instance.population = population
 
 
-def fitness_function(solution, solution_idx):
+def fitness_function(self, solution, solution_idx):
     global antecedents, X
     candidate = tuple([  # term indices < 0 are reserved for "removed" fuzzy sets
         (variable_index, int(term_index)) for variable_index, term_index in enumerate(solution) if term_index >= 0])
