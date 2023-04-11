@@ -19,15 +19,16 @@ class TestGeneticAlgorithmRuleSearch(unittest.TestCase):
 
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
-                               fitness_func=fitness_function_factory(variables, self.input_data, self.output_data, {}),
+                               fitness_func=fitness_function_factory(variables, self.input_data, self.output_data,
+                                                                     config={'lr': 3e-4, 'max_epochs': 10}),
                                sol_per_pop=10,
                                num_genes=len(variables),
                                mutation_num_genes=1,
                                gene_space=gene_space)
 
-        ga_instance.run()
         print('Initial population:')
         print(ga_instance.initial_population)
+        ga_instance.run()
         print('Population after {} generations:'.format(ga_instance.num_generations))
         print(ga_instance.population)
         solution, solution_fitness, solution_idx = ga_instance.best_solution()
