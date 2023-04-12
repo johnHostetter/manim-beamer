@@ -10,7 +10,7 @@ from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.linguistic.summary import Summary, Query, most_quantifier as Q
 
 set_rng(1)
-X = torch.rand((100, 2))
+input_data = torch.rand((100, 2))
 antecedents = [Gaussian(4), Gaussian(4)]
 
 
@@ -52,23 +52,23 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
 
 
 def fitness_function(self, solution, solution_idx):
-    global antecedents, X
+    global antecedents, input_data
     candidate = tuple([  # term indices < 0 are reserved for "removed" fuzzy sets
         (variable_index, int(term_index)) for variable_index, term_index in enumerate(solution) if term_index >= 0])
-    kb = expert_design(antecedents, rules=[candidate])
-    candidate = Summary(kb, quantifier=Q, truth=None)
+    knowledge_base = expert_design(antecedents, rules=[candidate], config={})
+    candidate = Summary(knowledge_base, quantifier=Q, truth=None)
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
-    return candidate.degree_of_validity(X, alpha=0.3, query=query).item()
+    return candidate.degree_of_validity(input_data, alpha=0.3, query=query).item()
 
 
 def make_scenario_1():
     terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-    kb = expert_design(terms, rules=[((0, 0), (1, 0))])  # the 'rule' encodes the linguistic summary
-    summary = Summary(kb, Q, None)
+    knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))], config={})  # the 'rule' encodes the linguistic summary
+    summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
-    X = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
-    return X, query, summary
+    input_data = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+    return input_data, query, summary
 
 
 class TestSummary(unittest.TestCase):
@@ -152,8 +152,8 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        kb = expert_design(terms, rules=[((0, 0), (1, 0))])  # the 'rule' encodes the linguistic summary
-        summary = Summary(kb, Q, None)
+        knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))], config={})  # the 'rule' encodes the linguistic summary
+        summary = Summary(knowledge_base, Q, None)
 
         x = torch.tensor([[1., 0.5]])
         assert torch.isclose(summary.summarizer_membership(x), torch.tensor(0.5272924900054932))
@@ -167,8 +167,8 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        kb = expert_design(terms, rules=[((0, 0), (1, 0))])  # the 'rule' encodes the linguistic summary
-        summary = Summary(kb, Q, None)
+        knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))], config={})  # the 'rule' encodes the linguistic summary
+        summary = Summary(knowledge_base, Q, None)
 
         x = torch.tensor([[1., 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
@@ -180,42 +180,48 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.summarizer_membership(x, query), torch.tensor(0.4993517994880676))
 
     def test_degree_of_truth(self):
-        X, query, summary = make_scenario_1()
-        assert torch.isclose(summary.degree_of_truth(X, query=query), torch.tensor(0.3612580895423889))
+        input_data, query, summary = make_scenario_1()
+        assert torch.isclose(summary.degree_of_truth(input_data, query=query), torch.tensor(0.3612580895423889))
 
     def test_degree_of_imprecision(self):
-        X, query, summary = make_scenario_1()
-        assert torch.isclose(summary.degree_of_imprecision(X, alpha=0.3), torch.tensor(1 / 4))
+        input_data, query, summary = make_scenario_1()
+        assert torch.isclose(summary.degree_of_imprecision(input_data, alpha=0.3), torch.tensor(1 / 4))
 
     def test_degree_of_covering(self):
-        X, query, summary = make_scenario_1()
-        assert torch.isclose(summary.degree_of_covering(X, alpha=0.3, query=query), torch.tensor(2 / 3))
+        input_data, query, summary = make_scenario_1()
+        assert torch.isclose(summary.degree_of_covering(input_data, alpha=0.3, query=query), torch.tensor(2 / 3))
 
     def test_degree_of_appropriateness(self):
-        X, query, summary = make_scenario_1()
-        assert torch.isclose(summary.degree_of_appropriateness(X, alpha=0.3, query=query),
+        input_data, query, summary = make_scenario_1()
+        assert torch.isclose(summary.degree_of_appropriateness(input_data, alpha=0.3, query=query),
                              torch.tensor(0.10416668653488159))
 
     def test_length(self):
-        terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
-        kb = expert_design(terms, rules=[((0, 0), (1, 0))])  # the 'rule' encodes the linguistic summary
-        summary = Summary(kb, Q, None)
+        terms = [
+            Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
+        ]
+        # the 'rule' encodes the linguistic summary
+        knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))], config={})
+        summary = Summary(knowledge_base, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
     def test_degree_of_validity(self):
-        X, query, summary = make_scenario_1()
-        assert torch.isclose(summary.degree_of_validity(X, alpha=0.3, query=query),
+        input_data, query, summary = make_scenario_1()
+        assert torch.isclose(summary.degree_of_validity(input_data, alpha=0.3, query=query),
                              torch.tensor(0.3764182925224304))
 
     def test_prevent_no_fuzzy_sets(self):
-        X, query, summary = make_scenario_1()
-        gene_space = [list(range(-1, max_terms + 1)) for max_terms in summary.kb.intra_dimensions()]
+        input_data, query, summary = make_scenario_1()
+        gene_space = [
+            list(range(-1, max_terms + 1))
+            for max_terms in summary.knowledge_base.intra_dimensions()
+        ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
                                fitness_func=fitness_function,
                                sol_per_pop=10,
-                               num_genes=summary.kb.variable_dimensions(),
+                               num_genes=summary.knowledge_base.variable_dimensions(),
                                mutation_num_genes=1,
                                gene_space=gene_space,
                                on_start=check_initial_population,
@@ -251,25 +257,28 @@ class TestSummary(unittest.TestCase):
         assert (ga_instance.initial_population == expected_population).all()
 
     def test_genetic_algorithm_summary_search(self):
-        X, query, summary = make_scenario_1()
-        gene_space = [list(range(-1, max_terms + 1)) for max_terms in summary.kb.intra_dimensions()]
+        input_data, query, summary = make_scenario_1()
+        gene_space = [
+            list(range(-1, max_terms + 1))
+            for max_terms in summary.knowledge_base.intra_dimensions()
+        ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
                                fitness_func=fitness_function,
                                sol_per_pop=10,
-                               num_genes=summary.kb.variable_dimensions(),
+                               num_genes=summary.knowledge_base.variable_dimensions(),
                                mutation_num_genes=1,
                                gene_space=gene_space,
                                on_start=check_initial_population,
                                on_mutation=prevent_no_fuzzy_sets)
 
         ga_instance.run()
-        print('Initial population:')
+        print("Initial population:")
         print(ga_instance.initial_population)
-        print('Population after {} generations:'.format(ga_instance.num_generations))
+        print(f"Population after {ga_instance.num_generations} generations:")
         print(ga_instance.population)
         solution, solution_fitness, solution_idx = ga_instance.best_solution()
-        print('Parameters of the best solution : {solution}'.format(solution=solution))
-        print('Fitness value of the best solution = {solution_fitness}'.format(solution_fitness=solution_fitness))
-        print('Index of the best solution : {solution_idx}'.format(solution_idx=solution_idx))
+        print(f"Parameters of the best solution : {solution}".format(solution=solution))
+        print(f"Fitness value of the best solution = {solution_fitness}")
+        print(f"Index of the best solution : {solution_idx}")
