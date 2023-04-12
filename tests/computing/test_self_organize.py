@@ -1,5 +1,5 @@
-import torch
 import unittest
+import torch
 
 from utils.reproducibility import set_rng
 from soft.computing.organize import stack_granules
@@ -7,11 +7,7 @@ from soft.computing.design import SelfOrganize, expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
-
-"""
-The following algorithms are eligible for self-organizing neuro-fuzzy networks.
-"""
-
+# the following algorithms are eligible for self-organizing neuro-fuzzy networks.
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
 from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
@@ -21,12 +17,23 @@ from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_d
 set_rng(0)
 
 
-def test_kwargs(so, testing_function):
-    # find the vertex for this function & its predecessors
-    target_vertex = so.graph.vs.find(function_eq=testing_function)
-    predecessors_indices = so.graph.predecessors(target_vertex)
-    predecessors_vertices = so.graph.vs[predecessors_indices]
-    return so._SelfOrganize__get_kwargs(testing_function, predecessors_vertices, target_vertex)
+def test_kwargs(self_organize, testing_function):
+    """
+    Finds the vertex for the given function and its predecessors, then returns the
+    keyword arguments' values given to the function (testing_function).
+
+    Args:
+        self_organize: A SelfOrganize object.
+        testing_function: A callable function that is within SelfOrganize's vertices.
+
+    Returns:
+        The keyword arguments, and their values, that were given to the function (testing_function).
+    """
+    target_vertex = self_organize.graph.vs.find(function_eq=testing_function)
+    predecessors_indices = self_organize.graph.predecessors(target_vertex)
+    predecessors_vertices = self_organize.graph.vs[predecessors_indices]
+    return self_organize._SelfOrganize__get_kwargs(
+        testing_function, predecessors_vertices, target_vertex)
 
 
 class TestSelfOrganize(unittest.TestCase):
@@ -41,11 +48,20 @@ class TestSelfOrganize(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data = torch.rand(10, 5)
+        self.configuration = {}
 
     def test_empty_self_organize_kb(self):
-        so = SelfOrganize()
-        assert len(so.graph.vs) == 0  # the Self-Organize Knowledge Base was initialized with no vertices
-        assert len(so.graph.es) == 0  # the Self-Organize Knowledge Base was initialized with no edges
+        """
+        Test that if we create a SelfOrganize object and do nothing,
+        that nothing is stored inside already.
+
+        Returns:
+            None
+        """
+        self_organize = SelfOrganize(config=self.configuration)
+        num_of_vertices, num_of_edges = 0, 0
+        assert len(self_organize.graph.vs) == num_of_vertices
+        assert len(self_organize.graph.es) == num_of_edges
 
     def test_add_component_thread(self):
         """
@@ -54,10 +70,11 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
-        so = SelfOrganize()
-        so.add_functions(CLIP)
-        assert len(so.graph.vs) == 1  # the Self-Organize Knowledge Base now has 1 vertex
-        assert len(so.graph.es) == 0  # the Self-Organize Knowledge Base still has 0 edges
+        self_organize = SelfOrganize(config=self.configuration)
+        self_organize.add_functions(CLIP)
+        num_of_vertices, num_of_edges = 1, 0
+        assert len(self_organize.graph.vs) == num_of_vertices
+        assert len(self_organize.graph.es) == num_of_edges
 
     def test_add_component_threads(self):
         """
@@ -66,113 +83,153 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
-        so = SelfOrganize()
+        self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_functions(functions)
-        assert len(so.graph.vs) == 4  # the Self-Organize Knowledge Base now has 4 vertices
-        assert len(so.graph.es) == 0  # the Self-Organize Knowledge Base still has 0 edges
+        self_organize.add_functions(functions)
+        edges = []
+        num_of_vertices, num_of_edges = len(functions), len(edges)
+        assert len(self_organize.graph.vs) == num_of_vertices
+        assert len(self_organize.graph.es) == num_of_edges
 
     def test_add_edge(self):
-        so = SelfOrganize()
+        """
+        Test that adding an edge works as intended.
+
+        Returns:
+            None
+        """
+        self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_functions(functions)
-        edges = (CLIP, WM, 1)  # CLIP produces antecedents & WM expects 2nd argument to be antecedents
-        so.link_functions(edges)
-        assert len(so.graph.vs) == 4  # the Self-Organize Knowledge Base now has 4 vertices
-        assert len(so.graph.es) == 1  # the Self-Organize Knowledge Base has 1 edge
+        self_organize.add_functions(functions)
+        edges = (CLIP, WM, 1)  # CLIP produces antecedents & WM expects 2nd arg. to be antecedents
+        self_organize.link_functions(edges)
+        num_of_vertices, num_of_edges = len(functions), len([edges])
+        assert len(self_organize.graph.vs) == num_of_vertices
+        assert len(self_organize.graph.es) == num_of_edges
 
     def test_add_edges(self):
-        so = SelfOrganize()
+        """
+        Test that adding several edges works as intended.
+
+        Returns:
+            None
+        """
+        self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_functions(functions)
+        self_organize.add_functions(functions)
         edges = [
             (ECM, WM, 0),
             (CLIP, WM, 1),
         ]
-        so.link_functions(edges)
-        assert len(so.graph.vs) == 4  # the Self-Organize Knowledge Base now has 4 vertices
-        assert len(so.graph.es) == 2  # the Self-Organize Knowledge Base has 2 edges
+        self_organize.link_functions(edges)
+        num_of_vertices, num_of_edges = len(functions), len(edges)
+        assert len(self_organize.graph.vs) == num_of_vertices
+        assert len(self_organize.graph.es) == num_of_edges
 
         edges = [
             (ECM, WM, 0),
         ]
-        so.link_functions(edges)
+        self_organize.link_functions(edges)
 
     def test_add_input_data(self):
-        so = SelfOrganize()
+        """
+        Test adding a special vertex to store the input data. The special vertex's value is passed
+        as an argument to functions that rely upon input data.
+
+        Returns:
+            None
+        """
+        self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_functions(functions)
+        self_organize.add_functions(functions)
         edges = [
             (ECM, WM, 0),
             (CLIP, WM, 1),
         ]
-        so.link_functions(edges)
-        so.add_data(self.data, name='input')
-        assert len(so.graph.vs) == 5  # the Self-Organize Knowledge Base now has 5 vertices (incl. data vertex)
-        assert len(so.graph.es) == 2  # the Self-Organize Knowledge Base has 2 edges
+        self_organize.link_functions(edges)
+        self_organize.add_data(self.data, name='input')
+        num_of_vertices, num_of_edges = len(functions) + 1, len(edges)
+        assert len(self_organize.graph.vs) == num_of_vertices  # (incl. data vertex)
+        assert len(self_organize.graph.es) == num_of_edges
 
-        edges = [
+        more_edges = [
             ('input', ECM, 0),
             ('input', CLIP, 0),
         ]
-        so.link_functions(edges)
-        assert len(so.graph.es) == 4  # the Self-Organize Knowledge Base has 4 edges
+        self_organize.link_functions(more_edges)
+        num_of_edges = len(edges) + len(more_edges)
+        assert len(self_organize.graph.es) == num_of_edges
 
     def test_get_kwargs(self):
-        so = SelfOrganize()
+        """
+        Test that the keyword arguments are as expected in SelfOrganize.
+
+        Returns:
+            None
+        """
+        self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
             ECM,
             EFS,
             WM
         ]
-        so.add_functions(functions)
+        self_organize.add_functions(functions)
         edges = [
             (ECM, WM, 0),
             (CLIP, WM, 1),
         ]
-        so.link_functions(edges)
-        so.add_data(self.data, name='input')
-        assert len(so.graph.vs) == 5  # the Self-Organize Knowledge Base now has 5 vertices (incl. data vertex)
-        assert len(so.graph.es) == 2  # the Self-Organize Knowledge Base has 2 edges
+        self_organize.link_functions(edges)
+        self_organize.add_data(self.data, name='input')
+        num_of_vertices, num_of_edges = len(functions) + 1, len(edges)
+        assert len(self_organize.graph.vs) == num_of_vertices  # (incl. data vertex)
+        assert len(self_organize.graph.es) == num_of_edges
 
         edges = [
             ('input', ECM, 0),
             ('input', CLIP, 0),
         ]
-        so.link_functions(edges)
-        assert len(so.graph.es) == 4  # the Self-Organize Knowledge Base has 4 edges
+        self_organize.link_functions(edges)
+        assert len(self_organize.graph.es) == 4  # the Self-Organize Knowledge Base has 4 edges
 
         # find the vertex for this function & its predecessors
-        target_vertex = so.graph.vs.find(function_eq=WM)
-        predecessors_indices = so.graph.predecessors(target_vertex)
-        predecessors_vertices = so.graph.vs[predecessors_indices]
+        target_vertex = self_organize.graph.vs.find(function_eq=WM)
+        predecessors_indices = self_organize.graph.predecessors(target_vertex)
+        predecessors_vertices = self_organize.graph.vs[predecessors_indices]
 
         expected_kwargs = {'antecedents': None, 'input_data': None}
-        assert so._SelfOrganize__get_kwargs(WM, predecessors_vertices, target_vertex) == expected_kwargs
+        assert self_organize._SelfOrganize__get_kwargs(
+            WM, predecessors_vertices, target_vertex) == expected_kwargs
 
     def test_start(self):
-        so = SelfOrganize()
+        """
+        Test a verbose definition of a self-organizing process (i.e., no shortcut method call).
+
+        Returns:
+            None
+        """
+        number_of_rules = 9
+        self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
             ECM,
@@ -182,8 +239,9 @@ class TestSelfOrganize(unittest.TestCase):
             fetch_fuzzy_set_centers,
             expert_design
         ]
-        so.add_functions(functions)
-        so.add_data(self.data, name='input')
+        self_organize.add_functions(functions)
+        self_organize.add_data(self.data, name='input')
+        self_organize.add_data(self.configuration, name='config')
         edges = [
             ('input', ECM, 0),
             ('input', CLIP, 0),
@@ -191,83 +249,111 @@ class TestSelfOrganize(unittest.TestCase):
             (fetch_fuzzy_set_centers, WM, 0),
             (CLIP, WM, 1),
             (CLIP, expert_design, 0),
-            (WM, expert_design, 1)
+            (WM, expert_design, 1),
+            ('config', expert_design, 2)
         ]
-        so.link_functions(edges)
-        kb = so.start(functions)
+        self_organize.link_functions(edges)
+        knowledge_base = self_organize.start(functions)
 
-        # --- test that information flowed properly from input data to CLIP ---
+        # --- test info flowed properly from input data to CLIP ---
         testing_function = CLIP
-        actual_kwargs = test_kwargs(so, testing_function)
+        actual_kwargs = test_kwargs(self_organize, testing_function)
         expected_kwargs = {'data': self.data}
         assert torch.isclose(actual_kwargs['data'], expected_kwargs['data']).all()
 
-        # --- test that information flowed properly from input data to ECM ---
+        # --- test info flowed properly from input data to ECM ---
         testing_function = ECM
-        actual_kwargs = test_kwargs(so, testing_function)
+        actual_kwargs = test_kwargs(self_organize, testing_function)
         expected_kwargs = {'data': self.data}
         assert torch.isclose(actual_kwargs['data'], expected_kwargs['data']).all()
 
-        # --- test that information flowed properly from ECM to fetch_fuzzy_set_centers ---
+        # --- test info flowed properly from ECM to fetch_fuzzy_set_centers ---
         testing_function = fetch_fuzzy_set_centers
-        ecm_output = so.graph.vs.find(function_eq=ECM)['output']
-        actual_kwargs = test_kwargs(so, testing_function)
+        ecm_output = self_organize.graph.vs.find(function_eq=ECM)['output']
+        actual_kwargs = test_kwargs(self_organize, testing_function)
         expected_kwargs = {'fuzzy_sets': ecm_output}
-        assert torch.isclose(actual_kwargs['fuzzy_sets'].centers, expected_kwargs['fuzzy_sets'].centers).all()
-        assert torch.isclose(actual_kwargs['fuzzy_sets'].widths, expected_kwargs['fuzzy_sets'].widths).all()
+        assert torch.isclose(
+            actual_kwargs['fuzzy_sets'].centers, expected_kwargs['fuzzy_sets'].centers).all()
+        assert torch.isclose(
+            actual_kwargs['fuzzy_sets'].widths, expected_kwargs['fuzzy_sets'].widths).all()
 
-        # --- test that information flowed properly from CLIP and fetch_fuzzy_set_centers to Wang-Mendel ---
+        # --- test info flowed properly from CLIP and fetch_fuzzy_set_centers to Wang-Mendel ---
         testing_function = WM
-        antecedents = so.graph.vs.find(function_eq=CLIP)['output']
-        input_data = so.graph.vs.find(function_eq=fetch_fuzzy_set_centers)['output']
-        actual_kwargs = test_kwargs(so, testing_function)
+        antecedents = self_organize.graph.vs.find(function_eq=CLIP)['output']
+        input_data = self_organize.graph.vs.find(function_eq=fetch_fuzzy_set_centers)['output']
+        actual_kwargs = test_kwargs(self_organize, testing_function)
         expected_kwargs = {'antecedents': antecedents, 'input_data': input_data}
         assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
         assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
 
-        # --- test that information flowed properly from CLIP and Wang-Mendel to expert_design ---
+        # --- test info flowed properly from CLIP and Wang-Mendel to expert_design ---
         testing_function = expert_design
-        antecedents = so.graph.vs.find(function_eq=CLIP)['output']
-        rules = so.graph.vs.find(function_eq=WM)['output']
-        actual_kwargs = test_kwargs(so, testing_function)
+        antecedents = self_organize.graph.vs.find(function_eq=CLIP)['output']
+        rules = self_organize.graph.vs.find(function_eq=WM)['output']
+        actual_kwargs = test_kwargs(self_organize, testing_function)
         expected_kwargs = {'antecedents': antecedents, 'rules': rules}
         assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
         assert actual_kwargs['rules'] == expected_kwargs['rules']
 
         # check that the fuzzy logic rules are added
 
-        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 9  # there should be 9 rules
+        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
-        kb = so.graph.vs.find(function_eq=expert_design)['output']
-        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 9  # there should be 9 rules
+        knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
+        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
     def test_blueprint_clip_ecm_wm(self):
-        so = clip_ecm_wm(self.data)
-        kb = so.start()
-        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 10  # there should be 10 rules
+        """
+        Test the self-organizing process with CLIP, followed by ECM, and then generate fuzzy logic
+        rules with the Wang-Mendel method.
+
+        Returns:
+            None
+        """
+        number_of_rules = 10
+        self_organize = clip_ecm_wm(self.data, config={})
+        knowledge_base = self_organize.start()
+        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
-        kb = so.graph.vs.find(function_eq=expert_design)['output']
-        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 10  # there should be 10 rules
+        knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
+        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
     def test_blueprint_clip_ftarm(self):
-        so = clip_ftarm(self.data)
-        kb = so.start()
-        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 91  # there should be 91 rules (may change due to RNG)
+        """
+        Test the self-organizing process with CLIP followed by the fuzzy temporal association
+        rule mining method.
+
+        Returns:
+            None
+        """
+        number_of_rules = 91
+        self_organize = clip_ftarm(self.data, config={})
+        knowledge_base = self_organize.start()
+        # should be 91 rules (may change due to RNG)
+        assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
-        kb = so.graph.vs.find(function_eq=FTARM)['output']
-        assert len(kb.graph.vs.select(relation_eq=Minimum)) == 91  # there should be 91 rules (may change due to RNG)
+        knowledge_base = self_organize.graph.vs.find(function_eq=FTARM)['output']
+        # should be 91 rules (may change due to RNG)
+        assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
 
     def test_blueprint_clip_frequent_discernible(self):
+        """
+        Test the self-organizing process with CLIP followed by the frequent discernible method.
+
+        Returns:
+            None
+        """
+        number_of_rules = 9
         big_train_data = torch.rand(500, 142)
         big_val_data = torch.rand(200, 142)
         config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
-        so = clip_frequent_discernible(big_train_data, big_val_data, config)
-        kb = so.start()
-        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 9  # there should be 9 rules
+        self_organize = clip_frequent_discernible(big_train_data, big_val_data, config)
+        knowledge_base = self_organize.start()
+        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
-        kb = so.graph.vs.find(function_eq=frequent_discernible)['output']
-        assert len(kb.graph.vs.select(relation_eq=AlgebraicProduct)) == 9  # there should be 9 rules
+        knowledge_base = self_organize.graph.vs.find(function_eq=frequent_discernible)['output']
+        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules

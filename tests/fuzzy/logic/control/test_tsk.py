@@ -1,5 +1,5 @@
-import torch
 import unittest
+import torch
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
@@ -12,11 +12,22 @@ set_rng(0)
 
 
 class TestTSK(unittest.TestCase):
+    """
+    Test the zero-order TSK neuro-fuzzy network.
+    """
     def test_gradient_1(self):
-        X = torch.tensor([[1.2, 0.2], [1.1, 0.3], [2.1, 0.1], [2.7, 0.15], [1.7, 0.25]]).float()
+        """
+        First test that the gradient of PyTorch is working as intended.
+
+        Returns:
+            None
+        """
+        input_data = torch.tensor([
+            [1.2, 0.2], [1.1, 0.3], [2.1, 0.1], [2.7, 0.15], [1.7, 0.25]
+        ]).float()
         # first variable has fuzzy sets with centers 0, 1, 2 (the column)
         centers = torch.nn.Parameter(torch.tensor([[0, 1], [1, 2], [2, 3]]).float())
-        actual_result = X.unsqueeze(dim=-1) - centers.T
+        actual_result = input_data.unsqueeze(dim=-1) - centers.T
         expected_result = torch.tensor([[[1.2000, 0.2000, -0.8000],
                                          [-0.8000, -1.8000, -2.8000]],
                                         [[1.1000, 0.1000, -0.9000],
@@ -30,20 +41,27 @@ class TestTSK(unittest.TestCase):
 
         assert torch.isclose(actual_result, expected_result).all()
 
-        actual_result = -1.0 * (torch.pow(actual_result, 2))
-
-        sigmas = torch.nn.Parameter(torch.tensor([[0.0867, 0.3339],
-                                                  [0.0518, 0.8080],
-                                                  [0.0578, 0.3440]]))
-
     def test_gradient_2(self):
-        a = torch.nn.Parameter(torch.tensor([0, 1]).float())
-        b = torch.nn.Parameter(torch.tensor([1, 2]).float())
-        c = 2 ** a
-        assert c.grad_fn is not None
+        """
+        Second test that the gradient of PyTorch is working as intended.
+
+        Returns:
+            None
+        """
+        value_1 = torch.nn.Parameter(torch.tensor([0, 1]).float())
+        value_3 = 2 ** value_1
+        assert value_3.grad_fn is not None
 
     def test_tsk(self):
-        x = torch.tensor([[1.2, 0.2], [1.1, 0.3], [2.1, 0.1], [2.7, 0.15], [1.7, 0.25]]).float()
+        """
+        Test the zero-order TSK neuro-fuzzy network.
+
+        Returns:
+            None
+        """
+        input_data = torch.tensor([
+            [1.2, 0.2], [1.1, 0.3], [2.1, 0.1], [2.7, 0.15], [1.7, 0.25]
+        ]).float()
         actual_y = torch.tensor([1.5, 0.6, 0.9, 0.7, 1.3]).float()
 
         antecedents = [
@@ -63,28 +81,31 @@ class TestTSK(unittest.TestCase):
             frozenset({(0, 0), (1, 0)}), frozenset({(0, 1), (1, 0)}),
             frozenset({(0, 1), (1, 1)}), frozenset({(1, 1), (1, 1)})
         }
-        kb = expert_design(antecedents, rules)
+        knowledge_base = expert_design(antecedents, rules, config={})
 
-        rule_vertex = kb.graph.vs.find(relation_eq=AlgebraicProduct)
+        rule_vertex = knowledge_base.graph.vs.find(relation_eq=AlgebraicProduct)
         assert rule_vertex['relation'] == AlgebraicProduct  # it is the correct relation we wanted
         assert 'id' in rule_vertex.attributes()  # it has a unique id
 
-        rule_vertices = kb.graph.vs.select(relation_eq=AlgebraicProduct)
+        rule_vertices = knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)
         assert len(rule_vertices) == 4  # there should be 4 fuzzy logic rules
 
-        # there should be 2 rules that use (1, 1); the last rule has been simplified (redundant mention of condition)
-        assert kb[(1, 1)] == {AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]}
+        # there should be 2 rules that use (1, 1);
+        # the last rule has been simplified (redundant mention of condition)
+        assert knowledge_base[(1, 1)] == {
+            AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]
+        }
 
         # the rules we have added should exist how we expected them
-        assert kb.edges(AlgebraicProduct) == rules
+        assert knowledge_base.edges(AlgebraicProduct) == rules
 
-        kb.attributes(rule_vertex['name'])
+        knowledge_base.attributes(rule_vertex['name'])
         n_output = actual_y.ndim
-        flc = ZeroOrderTSK(n_output, kb, input_trainable=True)
-        predicted_y = flc(x)
+        flc = ZeroOrderTSK(n_output, knowledge_base, input_trainable=True)
+        predicted_y = flc(input_data)
         print(predicted_y)
 
-        print('sigmas: {}'.format(flc.input_granulation.sigmas))
-        print('log widths: {}'.format(flc.input_granulation._log_widths))
-        print('centers: {}'.format(flc.input_granulation.centers))
-        print('consequences: {}'.format(flc.consequences))
+        print(f"sigmas: {flc.input_granulation.sigmas}")
+        print(f"log widths: {flc.input_granulation._log_widths}")
+        print(f"centers: {flc.input_granulation.centers}")
+        print(f"consequences: {flc.consequences}")
