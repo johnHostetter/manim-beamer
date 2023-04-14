@@ -1,13 +1,17 @@
+import os
 import unittest
+from pathlib import Path
+
 import torch
 
 from utils.reproducibility import set_rng
 from soft.computing.organize import stack_granules
+from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
-# the following algorithms are eligible for self-organizing neuro-fuzzy networks.
+# the following algorithms are eligible for self-organizing neuro-fuzzy networks
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
 from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
@@ -47,7 +51,7 @@ class TestSelfOrganize(unittest.TestCase):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.data = torch.rand(10, 5)
+        self.data = torch.load('small_data.pt')
         self.configuration = {}
 
     def test_empty_self_organize_kb(self):
@@ -226,9 +230,9 @@ class TestSelfOrganize(unittest.TestCase):
         Test a verbose definition of a self-organizing process (i.e., no shortcut method call).
 
         Returns:
-            None
+            KnowledgeBase
         """
-        number_of_rules = 9
+        number_of_rules = 10
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -303,13 +307,15 @@ class TestSelfOrganize(unittest.TestCase):
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
         assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
+        return knowledge_base
+
     def test_blueprint_clip_ecm_wm(self):
         """
         Test the self-organizing process with CLIP, followed by ECM, and then generate fuzzy logic
         rules with the Wang-Mendel method.
 
         Returns:
-            None
+            KnowledgeBase
         """
         number_of_rules = 10
         self_organize = clip_ecm_wm(self.data, config={})
@@ -320,35 +326,38 @@ class TestSelfOrganize(unittest.TestCase):
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
         assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
+        return knowledge_base
+
     def test_blueprint_clip_ftarm(self):
         """
         Test the self-organizing process with CLIP followed by the fuzzy temporal association
         rule mining method.
 
         Returns:
-            None
+            KnowledgeBase
         """
-        number_of_rules = 91
-        self_organize = clip_ftarm(self.data, config={})
+        number_of_rules = 142
+        self_organize = clip_ftarm(self.data, config={'minimum_support': 0.3,
+                                                      'minimum_confidence': 0.8})
         knowledge_base = self_organize.start()
-        # should be 91 rules (may change due to RNG)
         assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=FTARM)['output']
-        # should be 91 rules (may change due to RNG)
         assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
+
+        return knowledge_base
 
     def test_blueprint_clip_frequent_discernible(self):
         """
         Test the self-organizing process with CLIP followed by the frequent discernible method.
 
         Returns:
-            None
+            KnowledgeBase
         """
-        number_of_rules = 9
-        big_train_data = torch.rand(500, 142)
-        big_val_data = torch.rand(200, 142)
+        number_of_rules = 8
+        big_train_data = torch.load('big_train_data.pt')
+        big_val_data = torch.load('big_val_data.pt')
         config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
         self_organize = clip_frequent_discernible(big_train_data, big_val_data, config)
         knowledge_base = self_organize.start()
@@ -357,3 +366,22 @@ class TestSelfOrganize(unittest.TestCase):
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=frequent_discernible)['output']
         assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+
+        return knowledge_base
+
+    def test_save_load_knowledge_base(self):
+        """
+        Test that when we save and load the KnowledgeBase object,
+        that we retrieve the original KnowledgeBase.
+
+        Returns:
+            None
+        """
+        # TODO: fix TypeError: 'module' object is not callable
+        knowledge_base = self.test_blueprint_clip_ecm_wm()
+        path_to_this_script = Path(os.path.dirname(os.path.abspath(__file__)))
+        file_path = path_to_this_script / "models"
+        file_name = knowledge_base.save(file_path)
+        loaded_knowledge_base = KnowledgeBase.load(file_name)
+        # loaded_knowledge_base = KnowledgeBase().load(f"{file_path}/{file_name}")
+        assert knowledge_base == loaded_knowledge_base
