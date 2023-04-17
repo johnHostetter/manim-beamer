@@ -1,11 +1,12 @@
 import os
+import shutil
 import unittest
 from pathlib import Path
 
 import torch
 
-from soft.fuzzy.sets.continuous import Gaussian
 from utils.reproducibility import set_rng
+from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
@@ -17,9 +18,6 @@ from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
 from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
 from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_discernible
-
-
-set_rng(0)
 
 
 def test_kwargs(self_organize, testing_function):
@@ -63,6 +61,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         num_of_vertices, num_of_edges = 0, 0
         assert len(self_organize.graph.vs) == num_of_vertices
@@ -75,6 +74,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         self_organize.add_functions(CLIP)
         num_of_vertices, num_of_edges = 1, 0
@@ -88,6 +88,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -108,6 +109,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -129,6 +131,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -159,6 +162,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -192,6 +196,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -233,6 +238,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             KnowledgeBase
         """
+        set_rng(0)
         number_of_rules = 10
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
@@ -318,6 +324,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             KnowledgeBase
         """
+        set_rng(0)
         number_of_rules = 10
         self_organize = clip_ecm_wm(self.data, config={})
         knowledge_base = self_organize.start()
@@ -337,6 +344,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             KnowledgeBase
         """
+        set_rng(0)
         number_of_rules = 142
         self_organize = clip_ftarm(self.data, config={'minimum_support': 0.3,
                                                       'minimum_confidence': 0.8})
@@ -356,6 +364,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             KnowledgeBase
         """
+        set_rng(0)
         number_of_rules = 8
         big_train_data = torch.load('big_train_data.pt')
         big_val_data = torch.load('big_val_data.pt')
@@ -378,20 +387,36 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
-        knowledge_base = self.test_blueprint_clip_ecm_wm()
+        set_rng(0)
+        blueprints = [  # selected two methods
+            self.test_blueprint_clip_ecm_wm,
+            self.test_blueprint_clip_ftarm,
+        ]
         path_to_this_script = Path(os.path.dirname(os.path.abspath(__file__)))
         file_path = path_to_this_script / "models"
-        file_name = knowledge_base.save(file_path)
-        loaded_knowledge_base = KnowledgeBase.load(file_name)
-        for vertex, loaded_vertex in zip(knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
-            if isinstance(vertex['name'], Gaussian) and isinstance(loaded_vertex['name'], Gaussian):
-                assert (torch.isclose(
-                    vertex['name'].centers, loaded_vertex['name'].centers
-                ).all() and torch.isclose(
-                    vertex['name'].widths, loaded_vertex['name'].widths
-                ).all()).item()
-            else:
-                assert vertex.attributes() == loaded_vertex.attributes()
+        for blueprint in blueprints:
+            knowledge_base = blueprint()
+            file_name = knowledge_base.save(file_path)
+            loaded_knowledge_base = KnowledgeBase.load(file_name)
+            for vertex, loaded_vertex in zip(
+                    knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
+                if isinstance(vertex['name'], Gaussian) and \
+                        str(loaded_vertex['name'].__class__) == str(vertex['name'].__class__):
+                    # loaded vertex's class is different
+                    assert (torch.isclose(
+                        vertex['name'].centers, loaded_vertex['name'].centers
+                    ).all() and torch.isclose(
+                        vertex['name'].widths, loaded_vertex['name'].widths
+                    ).all()).item()
+                else:
+                    if not vertex.attributes() == loaded_vertex.attributes():
+                        # Python classes are 'different' after reload
+                        for attribute in vertex.attributes().keys():
+                            assert str(vertex[attribute]) == str(loaded_vertex[attribute])
+                    else:
+                        assert vertex.attributes() == loaded_vertex.attributes()
 
-        for edge, loaded_edge in zip(knowledge_base.graph.es, loaded_knowledge_base.graph.es):
-            assert edge.attributes() == loaded_edge.attributes()
+            for edge, loaded_edge in zip(knowledge_base.graph.es, loaded_knowledge_base.graph.es):
+                assert edge.attributes() == loaded_edge.attributes()
+
+        shutil.rmtree(file_path)  # clean up; delete the model files
