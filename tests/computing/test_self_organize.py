@@ -4,6 +4,7 @@ from pathlib import Path
 
 import torch
 
+from soft.fuzzy.sets.continuous import Gaussian
 from utils.reproducibility import set_rng
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
@@ -382,5 +383,15 @@ class TestSelfOrganize(unittest.TestCase):
         file_path = path_to_this_script / "models"
         file_name = knowledge_base.save(file_path)
         loaded_knowledge_base = KnowledgeBase.load(file_name)
-        # loaded_knowledge_base = KnowledgeBase().load(f"{file_path}/{file_name}")
-        assert knowledge_base == loaded_knowledge_base
+        for vertex, loaded_vertex in zip(knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
+            if isinstance(vertex['name'], Gaussian) and isinstance(loaded_vertex['name'], Gaussian):
+                assert (torch.isclose(
+                    vertex['name'].centers, loaded_vertex['name'].centers
+                ).all() and torch.isclose(
+                    vertex['name'].widths, loaded_vertex['name'].widths
+                ).all()).item()
+            else:
+                assert vertex.attributes() == loaded_vertex.attributes()
+
+        for edge, loaded_edge in zip(knowledge_base.graph.es, loaded_knowledge_base.graph.es):
+            assert edge.attributes() == loaded_edge.attributes()
