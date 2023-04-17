@@ -1,6 +1,5 @@
 # importing libraries
 import time
-import math
 
 
 # decorator to calculate duration taken by any function.

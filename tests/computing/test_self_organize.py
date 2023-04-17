@@ -377,7 +377,6 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
-        # TODO: fix TypeError: 'module' object is not callable
         knowledge_base = self.test_blueprint_clip_ecm_wm()
         path_to_this_script = Path(os.path.dirname(os.path.abspath(__file__)))
         file_path = path_to_this_script / "models"
