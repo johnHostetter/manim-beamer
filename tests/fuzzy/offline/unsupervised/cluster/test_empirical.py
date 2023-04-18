@@ -13,8 +13,6 @@ from utils.reproducibility import set_rng
 from soft.fuzzy.offline.unsupervised.cluster.empirical import multimodal_density, \
     find_local_maxima, select_prototypes, reduce_partitioning, Empirical as EFS
 
-set_rng(0)
-
 
 def simple_example():
     """
@@ -181,6 +179,7 @@ class TestEDA(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)  # has a randomness component to it
         input_train_data = iris_example()[:, :2]
         results = multimodal_density(input_train_data)
         local_maxima = find_local_maxima(results)
@@ -227,6 +226,7 @@ class TestEDA(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)  # has a randomness component to it
         input_train_data = iris_example()[:, :2]
         efs = EFS(input_train_data)
         expected_prototypes_centers = torch.tensor(
