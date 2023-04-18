@@ -30,7 +30,7 @@ def make_scenario_1():
 
     kb = expert_design(antecedents, rules, config={})
     links, offset = kb.matrix(AlgebraicProduct)
-    input_granulation = kb.graph.vs.find(source_eq=add_stacked_granule)['name']
+    input_granulation = kb.graph.vs.find(source_eq=add_stacked_granule.__name__)['name']
 
     num_of_consequent_terms = len(rules)
     consequences = torch.nn.parameter.Parameter(torch.zeros(num_of_consequent_terms, out_features))

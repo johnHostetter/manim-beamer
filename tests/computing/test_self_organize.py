@@ -1,20 +1,24 @@
+import os
+import shutil
 import unittest
+from pathlib import Path
+
+import numpy as np
 import torch
 
 from utils.reproducibility import set_rng
+from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.organize import stack_granules
+from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
-# the following algorithms are eligible for self-organizing neuro-fuzzy networks.
+# the following algorithms are eligible for self-organizing neuro-fuzzy networks
 from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
 from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
 from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
 from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_discernible
-
-
-set_rng(0)
 
 
 def test_kwargs(self_organize, testing_function):
@@ -45,9 +49,10 @@ class TestSelfOrganize(unittest.TestCase):
     it has finished, to conclude the construction
     of the KB.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.data = torch.rand(10, 5)
+        self.data = torch.load('small_data.pt')
         self.configuration = {}
 
     def test_empty_self_organize_kb(self):
@@ -58,6 +63,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         num_of_vertices, num_of_edges = 0, 0
         assert len(self_organize.graph.vs) == num_of_vertices
@@ -70,6 +76,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         self_organize.add_functions(CLIP)
         num_of_vertices, num_of_edges = 1, 0
@@ -83,6 +90,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -103,6 +111,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -124,6 +133,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -154,6 +164,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -187,6 +198,7 @@ class TestSelfOrganize(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -226,9 +238,10 @@ class TestSelfOrganize(unittest.TestCase):
         Test a verbose definition of a self-organizing process (i.e., no shortcut method call).
 
         Returns:
-            None
+            KnowledgeBase
         """
-        number_of_rules = 9
+        set_rng(0)
+        number_of_rules = 10
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
             CLIP,
@@ -303,14 +316,17 @@ class TestSelfOrganize(unittest.TestCase):
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
         assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
+        return knowledge_base
+
     def test_blueprint_clip_ecm_wm(self):
         """
         Test the self-organizing process with CLIP, followed by ECM, and then generate fuzzy logic
         rules with the Wang-Mendel method.
 
         Returns:
-            None
+            KnowledgeBase
         """
+        set_rng(0)
         number_of_rules = 10
         self_organize = clip_ecm_wm(self.data, config={})
         knowledge_base = self_organize.start()
@@ -320,35 +336,40 @@ class TestSelfOrganize(unittest.TestCase):
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
         assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
 
+        return knowledge_base
+
     def test_blueprint_clip_ftarm(self):
         """
         Test the self-organizing process with CLIP followed by the fuzzy temporal association
         rule mining method.
 
         Returns:
-            None
+            KnowledgeBase
         """
-        number_of_rules = 91
-        self_organize = clip_ftarm(self.data, config={})
+        set_rng(0)
+        number_of_rules = 142
+        self_organize = clip_ftarm(self.data, config={'minimum_support': 0.3,
+                                                      'minimum_confidence': 0.8})
         knowledge_base = self_organize.start()
-        # should be 91 rules (may change due to RNG)
         assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=FTARM)['output']
-        # should be 91 rules (may change due to RNG)
         assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
+
+        return knowledge_base
 
     def test_blueprint_clip_frequent_discernible(self):
         """
         Test the self-organizing process with CLIP followed by the frequent discernible method.
 
         Returns:
-            None
+            KnowledgeBase
         """
-        number_of_rules = 9
-        big_train_data = torch.rand(500, 142)
-        big_val_data = torch.rand(200, 142)
+        set_rng(0)
+        number_of_rules = 8
+        big_train_data = torch.load('big_train_data.pt')
+        big_val_data = torch.load('big_val_data.pt')
         config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
         self_organize = clip_frequent_discernible(big_train_data, big_val_data, config)
         knowledge_base = self_organize.start()
@@ -357,3 +378,56 @@ class TestSelfOrganize(unittest.TestCase):
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=frequent_discernible)['output']
         assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+
+        return knowledge_base
+
+    def test_save_load_knowledge_base(self):
+        """
+        Test that when we save and load the KnowledgeBase object,
+        that we retrieve the original KnowledgeBase.
+
+        Returns:
+            None
+        """
+        set_rng(0)
+        blueprints = [  # selected two methods
+            self.test_blueprint_clip_ecm_wm,
+            self.test_blueprint_clip_ftarm,
+        ]
+        path_to_this_script = Path(os.path.dirname(os.path.abspath(__file__)))
+        file_path = path_to_this_script / "models"
+        for blueprint in blueprints:
+            knowledge_base = blueprint()
+            file_name = knowledge_base.save(file_path)
+            loaded_knowledge_base = KnowledgeBase.load(file_name)
+
+            assert knowledge_base.config == loaded_knowledge_base.config
+            assert knowledge_base._Core__index == loaded_knowledge_base._Core__index
+            assert knowledge_base.attribute_table == loaded_knowledge_base.attribute_table
+            assert (np.array([
+                granule_vertex.index for granule_vertex in loaded_knowledge_base.granules]) == ([
+                granule_vertex.index for granule_vertex in loaded_knowledge_base.granules])
+                    ).all()
+
+            for vertex, loaded_vertex in zip(
+                    knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
+                if isinstance(vertex['name'], Gaussian) and \
+                        str(loaded_vertex['name'].__class__) == str(vertex['name'].__class__):
+                    # loaded vertex's class is different
+                    assert (torch.isclose(
+                        vertex['name'].centers, loaded_vertex['name'].centers
+                    ).all() and torch.isclose(
+                        vertex['name'].widths, loaded_vertex['name'].widths
+                    ).all()).item()
+                else:
+                    if not vertex.attributes() == loaded_vertex.attributes():
+                        # Python classes are 'different' after reload
+                        for attribute in vertex.attributes().keys():
+                            assert str(vertex[attribute]) == str(loaded_vertex[attribute])
+                    else:
+                        assert vertex.attributes() == loaded_vertex.attributes()
+
+            for edge, loaded_edge in zip(knowledge_base.graph.es, loaded_knowledge_base.graph.es):
+                assert edge.attributes() == loaded_edge.attributes()
+
+        shutil.rmtree(file_path)  # clean up; delete the model files

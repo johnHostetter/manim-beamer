@@ -38,7 +38,8 @@ def big_data_example(seed):
 class TestFTARM(unittest.TestCase):
     def test_fuzzy_representation(self):
         dataframe, knowledge_base = make_example()
-        input_granulation = knowledge_base.graph.vs.find(source_eq=add_stacked_granule)['name']
+        input_granulation = knowledge_base.graph.vs.find(
+            source_eq=add_stacked_granule.__name__)['name']
         cols = sorted(set(dataframe.columns) - {'date'})
         mus = input_granulation(torch.tensor(dataframe[cols].values).float())
         expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
