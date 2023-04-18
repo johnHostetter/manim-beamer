@@ -5,7 +5,6 @@ import unittest
 import numpy as np
 
 from utils.reproducibility import set_rng
-from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 
 # local implementations of CLIP that we know work but are written in Numpy
