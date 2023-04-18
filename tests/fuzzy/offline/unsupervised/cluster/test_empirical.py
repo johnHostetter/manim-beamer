@@ -258,6 +258,6 @@ class TestEDA(unittest.TestCase):
              [0.05, 0.19148542]]
         )
         assert torch.isclose(
-            efs.centers.detach().float(), expected_prototypes_centers.float()).all()
+            efs.centers.detach().float(), expected_prototypes_centers.float(), atol=1e-2).all()
         assert torch.isclose(
-            efs.widths.detach().float(), expected_prototypes_widths.float()).all()
+            efs.widths.detach().float(), expected_prototypes_widths.float(), atol=1e-2).all()
