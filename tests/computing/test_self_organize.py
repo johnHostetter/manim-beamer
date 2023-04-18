@@ -1,10 +1,10 @@
 import os
 import shutil
+import pathlib
 import unittest
-from pathlib import Path
 
-import numpy as np
 import torch
+import numpy as np
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
@@ -52,7 +52,10 @@ class TestSelfOrganize(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.data = torch.load('small_data.pt')
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_path = os.path.join(directory, 'small_data.pt')
+        self.data = torch.load(file_path)
+
         self.configuration = {}
 
     def test_empty_self_organize_kb(self):
@@ -368,8 +371,11 @@ class TestSelfOrganize(unittest.TestCase):
         """
         set_rng(0)
         number_of_rules = 8
-        big_train_data = torch.load('big_train_data.pt')
-        big_val_data = torch.load('big_val_data.pt')
+        directory = pathlib.Path(__file__).parent.resolve()
+        train_file_path = os.path.join(directory, 'big_train_data.pt')
+        val_file_path = os.path.join(directory, 'big_val_data.pt')
+        big_train_data = torch.load(train_file_path)
+        big_val_data = torch.load(val_file_path)
         config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
         self_organize = clip_frequent_discernible(big_train_data, big_val_data, config)
         knowledge_base = self_organize.start()
@@ -394,7 +400,7 @@ class TestSelfOrganize(unittest.TestCase):
             self.test_blueprint_clip_ecm_wm,
             self.test_blueprint_clip_ftarm,
         ]
-        path_to_this_script = Path(os.path.dirname(os.path.abspath(__file__)))
+        path_to_this_script = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
         file_path = path_to_this_script / "models"
         for blueprint in blueprints:
             knowledge_base = blueprint()
