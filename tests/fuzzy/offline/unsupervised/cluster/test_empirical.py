@@ -1,17 +1,28 @@
+"""
+Test the Empirical Fuzzy Set code.
+"""
+
 import os
-import torch
 import pathlib
 import unittest
+
+import torch
 import numpy as np
 
 from utils.reproducibility import set_rng
-from soft.fuzzy.offline.unsupervised.cluster.empirical import multimodal_density, find_local_maxima, \
-    select_prototypes, reduce_partitioning, Empirical as EFS
+from soft.fuzzy.offline.unsupervised.cluster.empirical import multimodal_density, \
+    find_local_maxima, select_prototypes, reduce_partitioning, Empirical as EFS
 
 set_rng(0)
 
 
 def simple_example():
+    """
+    Creates simple data to be used for an example.
+
+    Returns:
+        torch.Tensor
+    """
     return torch.tensor([[1., 2., 3.],
                          [1., 2., 3.],
                          [2., 3., 4.],
@@ -23,15 +34,30 @@ def simple_example():
 
 
 def iris_example():
+    """
+    Creates Iris data to be used for an example.
+
+    Returns:
+        torch.Tensor
+    """
     directory = pathlib.Path(__file__).parent.resolve()
     file_location = os.path.join(directory, 'iris.npy')
     return torch.tensor(np.load(file_location))
 
 
 class TestEDA(unittest.TestCase):
+    """
+    Test the Empirical Data Analysis code.
+    """
     def test_frequencies(self):
-        X = simple_example()
-        unique_observations, frequencies = np.unique(X, axis=0, return_counts=True)
+        """
+        Test that the calculation of frequencies is correct.
+
+        Returns:
+            None
+        """
+        input_train_data = simple_example()
+        unique_observations, frequencies = np.unique(input_train_data, axis=0, return_counts=True)
 
         expected_observations = np.array([
             [1, 2, 3],
@@ -47,15 +73,27 @@ class TestEDA(unittest.TestCase):
         assert np.isclose(frequencies, expected_frequencies).all()
 
     def test_multimodal_density(self):
-        X = simple_example()
-        results = multimodal_density(X)
-        expected_densities = torch.tensor([7.656387, 4.320169, 3.8905387, 3.7994518, 2.5289514, 3.1530216,
-                                           3.5224535])
+        """
+        Test that the multimodal density is calculated correctly.
+
+        Returns:
+            None
+        """
+        input_train_data = simple_example()
+        results = multimodal_density(input_train_data)
+        expected_densities = torch.tensor([
+            7.656387, 4.320169, 3.8905387, 3.7994518, 2.5289514, 3.1530216, 3.5224535])
         assert torch.isclose(results.densities, expected_densities).all()
 
     def test_local_maxima(self):
-        X = iris_example()[:, :2]
-        results = multimodal_density(X)
+        """
+        Test the local maxima is correctly identified.
+
+        Returns:
+            None
+        """
+        input_train_data = iris_example()[:, :2]
+        results = multimodal_density(input_train_data)
         local_maxima = find_local_maxima(results)
 
         expected_local_maxima = torch.tensor(
@@ -87,8 +125,14 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(local_maxima.float(), expected_local_maxima.float()).all()
 
     def test_select_prototypes(self):
-        X = iris_example()[:, :2]
-        results = multimodal_density(X)
+        """
+        Test that the selected prototypes are correct.
+
+        Returns:
+            None
+        """
+        input_train_data = iris_example()[:, :2]
+        results = multimodal_density(input_train_data)
         local_maxima = find_local_maxima(results)
         prototypes = select_prototypes(results, local_maxima)
 
@@ -130,8 +174,15 @@ class TestEDA(unittest.TestCase):
         assert torch.isclose(prototypes.float(), expected_prototypes.float()).all()
 
     def test_reduce_partitioning(self):
-        X = iris_example()[:, :2]
-        results = multimodal_density(X)
+        """
+        Test reducing the number of identified prototypes by only keeping those that strongly
+        envelop their nearby prototypes.
+
+        Returns:
+            None
+        """
+        input_train_data = iris_example()[:, :2]
+        results = multimodal_density(input_train_data)
         local_maxima = find_local_maxima(results)
         prototypes = select_prototypes(results, local_maxima)
         prototypes = reduce_partitioning(results, prototypes)
@@ -164,14 +215,20 @@ class TestEDA(unittest.TestCase):
              [0.36055513, 0.11547005],
              [0.05, 0.19148542]]
         )
-        # assert torch.isclose(prototypes.centers.detach().float(), expected_prototypes_centers.float()).all()
-        # assert torch.isclose(prototypes.widths.detach().float(), expected_prototypes_widths.float()).all()
-        assert torch.isclose(expected_prototypes_centers.float(), expected_prototypes_centers.float()).all()
-        assert torch.isclose(expected_prototypes_widths.float(), expected_prototypes_widths.float()).all()
+        assert torch.isclose(
+            prototypes.centers.detach().float(), expected_prototypes_centers.float()).all()
+        assert torch.isclose(
+            prototypes.widths.detach().float(), expected_prototypes_widths.float()).all()
 
     def test_empirical_fuzzy_sets(self):
-        X = iris_example()[:, :2]
-        efs = EFS(X)
+        """
+        Test the full procedure of generating Empirical Fuzzy Sets.
+
+        Returns:
+            None
+        """
+        input_train_data = iris_example()[:, :2]
+        efs = EFS(input_train_data)
         expected_prototypes_centers = torch.tensor(
             [[4.653333, 3.16],
              [4.86, 2.3],
@@ -200,7 +257,7 @@ class TestEDA(unittest.TestCase):
              [0.36055513, 0.11547005],
              [0.05, 0.19148542]]
         )
-        # assert torch.isclose(efs.centers.detach().float(), expected_prototypes_centers.float()).all()
-        # assert torch.isclose(efs.widths.detach().float(), expected_prototypes_widths.float()).all()
-        assert torch.isclose(expected_prototypes_centers.float(), expected_prototypes_centers.float()).all()
-        assert torch.isclose(expected_prototypes_widths.float(), expected_prototypes_widths.float()).all()
+        assert torch.isclose(
+            efs.centers.detach().float(), expected_prototypes_centers.float()).all()
+        assert torch.isclose(
+            efs.widths.detach().float(), expected_prototypes_widths.float()).all()
