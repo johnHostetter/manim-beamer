@@ -9,7 +9,6 @@ from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.linguistic.summary import Summary, Query, most_quantifier as Q
 
-set_rng(1)
 input_data = torch.rand((100, 2))
 antecedents = [Gaussian(4), Gaussian(4)]
 
@@ -211,6 +210,7 @@ class TestSummary(unittest.TestCase):
                              torch.tensor(0.3764182925224304))
 
     def test_prevent_no_fuzzy_sets(self):
+        set_rng(0)
         input_data, query, summary = make_scenario_1()
         gene_space = [
             list(range(-1, max_terms + 1))
@@ -257,6 +257,7 @@ class TestSummary(unittest.TestCase):
         assert (ga_instance.initial_population == expected_population).all()
 
     def test_genetic_algorithm_summary_search(self):
+        set_rng(0)
         input_data, query, summary = make_scenario_1()
         gene_space = [
             list(range(-1, max_terms + 1))
