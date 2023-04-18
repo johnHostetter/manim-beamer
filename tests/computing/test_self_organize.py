@@ -3,6 +3,7 @@ import shutil
 import unittest
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from utils.reproducibility import set_rng
@@ -48,6 +49,7 @@ class TestSelfOrganize(unittest.TestCase):
     it has finished, to conclude the construction
     of the KB.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data = torch.load('small_data.pt')
@@ -398,6 +400,15 @@ class TestSelfOrganize(unittest.TestCase):
             knowledge_base = blueprint()
             file_name = knowledge_base.save(file_path)
             loaded_knowledge_base = KnowledgeBase.load(file_name)
+
+            assert knowledge_base.config == loaded_knowledge_base.config
+            assert knowledge_base._Core__index == loaded_knowledge_base._Core__index
+            assert knowledge_base.attribute_table == loaded_knowledge_base.attribute_table
+            assert (np.array([
+                granule_vertex.index for granule_vertex in loaded_knowledge_base.granules]) == ([
+                granule_vertex.index for granule_vertex in loaded_knowledge_base.granules])
+                    ).all()
+
             for vertex, loaded_vertex in zip(
                     knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
                 if isinstance(vertex['name'], Gaussian) and \
