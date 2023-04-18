@@ -21,7 +21,7 @@ from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
 from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_discernible
 
 
-def test_kwargs(self_organize, testing_function):
+def get_keyword_arguments(self_organize, testing_function):
     """
     Finds the vertex for the given function and its predecessors, then returns the
     keyword arguments' values given to the function (testing_function).
@@ -273,20 +273,20 @@ class TestSelfOrganize(unittest.TestCase):
 
         # --- test info flowed properly from input data to CLIP ---
         testing_function = CLIP
-        actual_kwargs = test_kwargs(self_organize, testing_function)
+        actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'data': self.data}
         assert torch.isclose(actual_kwargs['data'], expected_kwargs['data']).all()
 
         # --- test info flowed properly from input data to ECM ---
         testing_function = ECM
-        actual_kwargs = test_kwargs(self_organize, testing_function)
+        actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'data': self.data}
         assert torch.isclose(actual_kwargs['data'], expected_kwargs['data']).all()
 
         # --- test info flowed properly from ECM to fetch_fuzzy_set_centers ---
         testing_function = fetch_fuzzy_set_centers
         ecm_output = self_organize.graph.vs.find(function_eq=ECM)['output']
-        actual_kwargs = test_kwargs(self_organize, testing_function)
+        actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'fuzzy_sets': ecm_output}
         assert torch.isclose(
             actual_kwargs['fuzzy_sets'].centers, expected_kwargs['fuzzy_sets'].centers).all()
@@ -297,7 +297,7 @@ class TestSelfOrganize(unittest.TestCase):
         testing_function = WM
         antecedents = self_organize.graph.vs.find(function_eq=CLIP)['output']
         input_data = self_organize.graph.vs.find(function_eq=fetch_fuzzy_set_centers)['output']
-        actual_kwargs = test_kwargs(self_organize, testing_function)
+        actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'antecedents': antecedents, 'input_data': input_data}
         assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
         assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
@@ -306,7 +306,7 @@ class TestSelfOrganize(unittest.TestCase):
         testing_function = expert_design
         antecedents = self_organize.graph.vs.find(function_eq=CLIP)['output']
         rules = self_organize.graph.vs.find(function_eq=WM)['output']
-        actual_kwargs = test_kwargs(self_organize, testing_function)
+        actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'antecedents': antecedents, 'rules': rules}
         assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
         assert actual_kwargs['rules'] == expected_kwargs['rules']

@@ -1,9 +1,10 @@
+import os
 import torch
+import pathlib
 import unittest
 import numpy as np
 
 from utils.reproducibility import set_rng
-from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.sets.continuous import Gaussian
 
 # local implementations of CLIP that we know work but are written in Numpy
@@ -77,10 +78,10 @@ class TestCLIP(unittest.TestCase):
         Returns:
             None
         """
-        train_X = np.random.random(size=(100, 4))
-
+        directory = pathlib.Path(__file__).parent.resolve()
+        file_path = os.path.join(directory, 'random_train_data.npy')
+        train_X = np.load(file_path)
         oldCLIP_terms = oldCLIP(train_X, train_X.min(axis=0), train_X.max(axis=0))
-        kb = KnowledgeBase()
         newCLIP_terms = newCLIP(torch.tensor(train_X), config={'eps': 0.2, 'kappa': 0.6})
 
         compare_results(oldCLIP_terms, newCLIP_terms)
