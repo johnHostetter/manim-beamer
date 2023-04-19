@@ -1,3 +1,6 @@
+"""
+Test that fuzzy sets are properly stored, or 'anchored', into a KnowledgeBase.
+"""
 import unittest
 
 from soft.fuzzy.sets.continuous import Gaussian
@@ -13,6 +16,12 @@ class TestAnchor(unittest.TestCase):
     processes and construction of FLCs, etc.
     """
     def test_anchor(self):
+        """
+        Test the 'anchoring' procedure of the KnowledgeBase.
+
+        Returns:
+            None
+        """
         granules = [Gaussian(8), Gaussian(4), Gaussian(6)]
         expected_anchors = {
             (0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5),

@@ -1,4 +1,8 @@
+"""
+Test the ZeroOrderTSK is working as intended, such as its output is correctly calculated.
+"""
 import unittest
+
 import torch
 
 from utils.reproducibility import set_rng
@@ -7,7 +11,6 @@ from soft.computing.design import expert_design
 from soft.fuzzy.logic.control.tsk import ZeroOrderTSK
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
-
 set_rng(0)
 
 
@@ -15,6 +18,7 @@ class TestTSK(unittest.TestCase):
     """
     Test the zero-order TSK neuro-fuzzy network.
     """
+
     def test_gradient_1(self):
         """
         First test that the gradient of PyTorch is working as intended.
@@ -72,10 +76,10 @@ class TestTSK(unittest.TestCase):
         ]
 
         # check that antecedents were correctly created
-        assert all(antecedents[0].centers == torch.tensor([1.2, 3.0, 5.0, 7.0]))
-        assert all(antecedents[0].widths == torch.tensor([0.1, 0.4, 0.6, 0.8]))
-        assert all(antecedents[1].centers == torch.tensor([0.2, 0.6, 0.9, 1.2]))
-        assert all(antecedents[1].widths == torch.tensor([0.4, 0.4, 0.5, 0.45]))
+        assert (antecedents[0].centers == torch.tensor([1.2, 3.0, 5.0, 7.0])).all()
+        assert (antecedents[0].widths == torch.tensor([0.1, 0.4, 0.6, 0.8])).all()
+        assert (antecedents[1].centers == torch.tensor([0.2, 0.6, 0.9, 1.2])).all()
+        assert (antecedents[1].widths == torch.tensor([0.4, 0.4, 0.5, 0.45])).all()
 
         rules = {
             frozenset({(0, 0), (1, 0)}), frozenset({(0, 1), (1, 0)}),
@@ -88,7 +92,7 @@ class TestTSK(unittest.TestCase):
         assert 'id' in rule_vertex.attributes()  # it has a unique id
 
         rule_vertices = knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)
-        assert len(rule_vertices) == 4  # there should be 4 fuzzy logic rules
+        assert len(rule_vertices) == len(rules)  # number of rule vertices should equal len(rules)
 
         # there should be 2 rules that use (1, 1);
         # the last rule has been simplified (redundant mention of condition)
@@ -100,12 +104,17 @@ class TestTSK(unittest.TestCase):
         assert knowledge_base.edges(AlgebraicProduct) == rules
 
         knowledge_base.attributes(rule_vertex['name'])
-        n_output = actual_y.ndim
-        flc = ZeroOrderTSK(n_output, knowledge_base, input_trainable=True)
+        flc = ZeroOrderTSK(out_features=actual_y.ndim, knowledge_base=knowledge_base,
+                           input_trainable=True)
         predicted_y = flc(input_data)
-        print(predicted_y)
+        assert (predicted_y == torch.zeros(input_data.shape[0])).all()
 
-        print(f"sigmas: {flc.input_granulation.sigmas}")
-        print(f"log widths: {flc.input_granulation._log_widths}")
-        print(f"centers: {flc.input_granulation.centers}")
-        print(f"consequences: {flc.consequences}")
+        assert (flc.input_granulation.centers == torch.tensor([
+            [1.2000, 3.0000, 5.0000, 7.0000],
+            [0.2000, 0.6000, 0.9000, 1.2000]
+        ])).all()
+        assert (flc.input_granulation.sigmas == torch.tensor([
+            [0.1000, 0.4000, 0.6000, 0.8000],
+            [0.4000, 0.4000, 0.5000, 0.4500]
+        ])).all()
+        assert (flc.consequences() == torch.zeros((len(rules), flc.out_features()))).all()

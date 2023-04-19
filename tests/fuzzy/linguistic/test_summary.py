@@ -1,6 +1,10 @@
+"""
+Test the linguistic summary code implementation.
+"""
+import unittest
+
 import torch
 import pygad
-import unittest
 import numpy as np
 
 from utils.reproducibility import set_rng
@@ -9,11 +13,17 @@ from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.linguistic.summary import Summary, Query, most_quantifier as Q
 
-input_data = torch.rand((100, 2))
-antecedents = [Gaussian(4), Gaussian(4)]
-
 
 def check_initial_population(ga_instance):
+    """
+    Wrapper method to modify the initial population, so it does not violate constraints.
+
+    Args:
+        ga_instance:
+
+    Returns:
+        None
+    """
     prevent_no_fuzzy_sets(ga_instance)
 
 
@@ -37,7 +47,8 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
 
     """
     if offspring_mutation is None:
-        population = ga_instance.initial_population  # check that each solution in the population is valid
+        # check that each solution in the population is valid
+        population = ga_instance.initial_population
     else:
         population = offspring_mutation
     indices_that_contain_no_chosen_fuzzy_sets = np.where((population < 0).all(axis=1))[0]
@@ -51,19 +62,52 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
         ga_instance.initial_population = ga_instance.population = population
 
 
-def fitness_function(self, solution, solution_idx):
-    global antecedents, input_data
-    candidate = tuple([  # term indices < 0 are reserved for "removed" fuzzy sets
-        (variable_index, int(term_index)) for variable_index, term_index in enumerate(solution) if
-        term_index >= 0])
-    knowledge_base = expert_design(antecedents, rules=[candidate], config={})
-    candidate = Summary(knowledge_base, quantifier=Q, truth=None)
-    query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
-    return candidate.degree_of_validity(input_data, alpha=0.3, query=query).item()
+def fitness_function_factory(input_data, antecedents):
+    """
+    Factory design pattern to initialize the fitness_function's environment with the necessary
+    variables, as the fitness_function expects a certain signature that cannot be modified.
+
+    Args:
+        input_data:
+        antecedents:
+
+    Returns:
+        fitness_function
+    """
+    def fitness_function(self, solution, solution_idx):
+        """
+        The fitness function for the genetic algorithm search.
+
+        Args:
+            self:
+            solution:
+            solution_idx:
+
+        Returns:
+
+        """
+        print(f"{self}: {solution_idx}")
+        candidate = (  # term indices < 0 are reserved for "removed" fuzzy sets
+            (variable_index, int(term_index))
+            for variable_index, term_index in enumerate(solution) if term_index >= 0
+        )
+        knowledge_base = expert_design(antecedents, rules=[candidate], config={})
+        candidate = Summary(knowledge_base, quantifier=Q, truth=None)
+        query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
+        return candidate.degree_of_validity(input_data, alpha=0.3, query=query).item()
+    return fitness_function
 
 
-def make_scenario_1():
-    terms = [Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])]
+def test_scenario_1():
+    """
+    Create a simple test scenario that has only a few terms and a couple data observations.
+
+    Returns:
+        torch.tensor, Query, Summary
+    """
+    terms = [
+        Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
+    ]
     knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))],
                                    config={})  # the 'rule' encodes the linguistic summary
     summary = Summary(knowledge_base, Q, None)
@@ -73,7 +117,30 @@ def make_scenario_1():
     return input_data, query, summary
 
 
+def test_scenario_2():
+    """
+    Create a larger but simpler test scenario that has only a some terms and more data observations.
+
+    Returns:
+        torch.tensor, Query, Summary, list (of Gaussian elements)
+    """
+    terms = [
+        Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
+    ]  # terms for the linguistic summary
+    knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))],
+                                   config={})  # the 'rule' encodes the linguistic summary
+    summary = Summary(knowledge_base, Q, None)
+    # we want the second attribute to satisfy this
+    query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
+    input_data = torch.rand((100, 2))
+    antecedents = [Gaussian(4), Gaussian(4)]
+    return input_data, query, summary, antecedents
+
+
 class TestSummary(unittest.TestCase):
+    """
+    Test the Summary class, which implements the linguistic summarization of data approach.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -90,23 +157,36 @@ class TestSummary(unittest.TestCase):
         assert Q(0.3) == 0.0
 
     def test_linguistic_quantified_proposition(self):
+        """
+        Test that a linguistically quantified proposition (e.g., 'most') is correctly calculated.
+
+        Returns:
+            None
+        """
         elements = torch.tensor([0.7, 0.6, 0.8, 0.9, 0.74, 0.45, 0.64, 0.2])
         n_inputs = 1
         property_mf = Gaussian(n_inputs, centers=[0.8], widths=[0.4])
         assert property_mf.centers.detach().numpy() == 0.8
         assert property_mf.sigmas.detach().numpy() == 0.4
-        mu = property_mf(elements)
-        x = mu.sum() / elements.nelement()
-        assert torch.isclose(x, torch.tensor(0.7572454810142517))  # compare to ground truth value
-        truth_of_proposition = Q(x)
+        elements_membership = property_mf(elements)
+        element = elements_membership.sum() / elements.nelement()
+        # compare to ground truth value
+        assert torch.isclose(element, torch.tensor(0.7572454810142517))
+        truth_of_proposition = Q(element)
         assert torch.isclose(truth_of_proposition,
                              torch.tensor(0.9145))  # compare to ground truth value
 
     def test_linguistic_quantified_proposition_with_importance(self):
+        """
+        Test that a linguistically quantified proposition (e.g., 'most') is correctly calculated
+        when there is an additional factor of 'importance' that weighs the calculation.
+
+        Returns:
+            None
+        """
         elements = torch.tensor([0.7, 0.6, 0.8, 0.9, 0.74, 0.45, 0.64, 0.2])
-        n_inputs = 1
-        property_mf = Gaussian(n_inputs, centers=[0.8], widths=[0.4])
-        importance_mf = Gaussian(n_inputs, centers=[0.6], widths=[0.2])
+        property_mf = Gaussian(in_features=1, centers=[0.8], widths=[0.4])
+        importance_mf = Gaussian(in_features=1, centers=[0.6], widths=[0.2])
         assert property_mf.centers.detach().numpy() == 0.8
         assert property_mf.sigmas.detach().numpy() == 0.4
         assert importance_mf.centers.detach().numpy() == 0.6
@@ -114,32 +194,40 @@ class TestSummary(unittest.TestCase):
         property_mu = property_mf(elements)
         importance_mu = importance_mf(elements)
         t_norm_results = property_mu * importance_mu
-        assert torch.isclose(t_norm_results.flatten(),
-                             torch.tensor([0.7316157, 0.77880085, 0.3678795, 0.09901349, 0.5989963,
-                                           0.26497352, 0.8187308, 0.00193045])).all()
+        assert torch.isclose(t_norm_results.flatten(), torch.tensor([
+            0.7316157, 0.77880085, 0.3678795, 0.09901349,
+            0.5989963, 0.26497352, 0.8187308, 0.00193045
+        ])).all()
         assert torch.isclose(importance_mu.sum(), torch.tensor(4.4135942459106445))
-        x = t_norm_results.sum() / importance_mu.sum()
-        assert torch.isclose(x, torch.tensor(0.8296958208084106))  # compare to ground truth value
-        truth_of_proposition = Q(x)
+        element = t_norm_results.sum() / importance_mu.sum()
+        # compare to ground truth value
+        assert torch.isclose(element, torch.tensor(0.8296958208084106))
+        truth_of_proposition = Q(element)
         assert torch.isclose(truth_of_proposition,
                              torch.tensor(1.0))  # compare to ground truth value
 
     def test_owa_with_importance(self):
+        """
+        Test that the ordered weighted averaging for a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
         importance = torch.tensor([0.2, 0.3, 0.1, 0.4])
         assert importance.sum() == 1.0
         in_features = len(importance)
-        p = in_features
-        x = torch.tensor([0, 0.7, 1.0, 0.2])
-        sorted_x = torch.sort(x,
+        element = torch.tensor([0, 0.7, 1.0, 0.2])
+        sorted_x = torch.sort(element,
                               descending=True)  # namedtuple with 'values' and 'indices' properties
-        assert torch.isclose(sorted_x.values, torch.tensor([1.0000, 0.7000, 0.2000, 0.0000])).all()
+        assert torch.isclose(
+            sorted_x.values, torch.tensor([1.0000, 0.7000, 0.2000, 0.0000])).all()
         sorted_importance = importance[sorted_x.indices]
         assert torch.isclose(sorted_importance,
                              torch.tensor([0.1000, 0.3000, 0.4000, 0.2000])).all()
 
         denominator = sorted_importance.sum()
         weights = []
-        for j in range(p):
+        for j in range(in_features):
             left_side = Q(sorted_importance[:j + 1].sum() / denominator)
             right_side = Q(sorted_importance[:j].sum() / denominator)
             weights.append((left_side - right_side).item())
@@ -147,12 +235,12 @@ class TestSummary(unittest.TestCase):
 
         owa = OWA(in_features, weights)
         assert torch.isclose(owa.weights, weights).all()
-        assert torch.isclose(owa(x), torch.tensor(0.30))
+        assert torch.isclose(owa(element), torch.tensor(0.30))
 
     def test_summarizer_membership(self):
         """
-        The membership of the summarizer should be equal to the minimum membership found across the list of fuzzy sets
-        seen in the summarizer argument.
+        The membership of the summarizer should be equal to the minimum membership found
+        across the list of fuzzy sets seen in the summarizer argument.
 
         Returns:
             None
@@ -163,13 +251,14 @@ class TestSummary(unittest.TestCase):
                                        config={})  # the 'rule' encodes the linguistic summary
         summary = Summary(knowledge_base, Q, None)
 
-        x = torch.tensor([[1., 0.5]])
-        assert torch.isclose(summary.summarizer_membership(x), torch.tensor(0.5272924900054932))
+        element = torch.tensor([[1., 0.5]])
+        assert torch.isclose(
+            summary.summarizer_membership(element), torch.tensor(0.5272924900054932))
 
     def test_summarizer_membership_query(self):
         """
-        The membership of the summarizer should be equal to the minimum membership found across the list of fuzzy sets
-        seen in the summarizer argument.
+        The membership of the summarizer should be equal to the minimum membership found
+        across the list of fuzzy set seen in the summarizer argument.
 
         Returns:
             None
@@ -180,38 +269,69 @@ class TestSummary(unittest.TestCase):
                                        config={})  # the 'rule' encodes the linguistic summary
         summary = Summary(knowledge_base, Q, None)
 
-        x = torch.tensor([[1., 0.5]])
+        element = torch.tensor([[1., 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
         query = Query(Gaussian(1, centers=0.3, widths=0.3), 1)
-        assert torch.isclose(summary.summarizer_membership(x, query),
+        assert torch.isclose(summary.summarizer_membership(element, query),
                              torch.tensor(0.5272924900054932))  # it should
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
-        # the given x does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(x, query),
+        # the given element does not match as well with the (fuzzy) query
+        assert torch.isclose(summary.summarizer_membership(element, query),
                              torch.tensor(0.4993517994880676))
 
     def test_degree_of_truth(self):
-        input_data, query, summary = make_scenario_1()
+        """
+        Test that the degree of truth for a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
+        input_data, query, summary = test_scenario_1()
         assert torch.isclose(summary.degree_of_truth(input_data, query=query),
                              torch.tensor(0.3612580895423889))
 
     def test_degree_of_imprecision(self):
-        input_data, query, summary = make_scenario_1()
+        """
+        Test that the degree of imprecision for a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
+        input_data, _, summary = test_scenario_1()
         assert torch.isclose(summary.degree_of_imprecision(input_data, alpha=0.3),
                              torch.tensor(1 / 4))
 
     def test_degree_of_covering(self):
-        input_data, query, summary = make_scenario_1()
+        """
+        Test that the degree of covering for a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
+        input_data, query, summary = test_scenario_1()
         assert torch.isclose(summary.degree_of_covering(input_data, alpha=0.3, query=query),
                              torch.tensor(2 / 3))
 
     def test_degree_of_appropriateness(self):
-        input_data, query, summary = make_scenario_1()
-        assert torch.isclose(summary.degree_of_appropriateness(input_data, alpha=0.3, query=query),
-                             torch.tensor(0.10416668653488159))
+        """
+        Test that the degree of appropriateness for a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
+        input_data, query, summary = test_scenario_1()
+        assert torch.isclose(
+            summary.degree_of_appropriateness(input_data, alpha=0.3, query=query),
+            torch.tensor(0.10416668653488159))
 
     def test_length(self):
+        """
+        Test that the length of a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
         terms = [
             Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
         ]
@@ -221,13 +341,25 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
     def test_degree_of_validity(self):
-        input_data, query, summary = make_scenario_1()
+        """
+        Test that the degree of validity for a linguistic summary is correctly calculated.
+
+        Returns:
+            None
+        """
+        input_data, query, summary = test_scenario_1()
         assert torch.isclose(summary.degree_of_validity(input_data, alpha=0.3, query=query),
                              torch.tensor(0.3764182925224304))
 
     def test_prevent_no_fuzzy_sets(self):
+        """
+        Test that no candidate in the genetic algorithm's population has selected no fuzzy sets.
+
+        Returns:
+            None
+        """
         set_rng(0)
-        input_data, query, summary = make_scenario_1()
+        dataset, _, summary, linguistic_terms = test_scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
             for max_terms in summary.knowledge_base.intra_dimensions()
@@ -235,7 +367,8 @@ class TestSummary(unittest.TestCase):
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
-                               fitness_func=fitness_function,
+                               fitness_func=fitness_function_factory(
+                                   input_data=dataset, antecedents=linguistic_terms),
                                sol_per_pop=10,
                                num_genes=summary.knowledge_base.variable_dimensions(),
                                mutation_num_genes=1,
@@ -274,8 +407,14 @@ class TestSummary(unittest.TestCase):
         assert (ga_instance.initial_population == expected_population).all()
 
     def test_genetic_algorithm_summary_search(self):
+        """
+        Test the genetic algorithm search for a linguistic summary.
+
+        Returns:
+            None
+        """
         set_rng(0)
-        input_data, query, summary = make_scenario_1()
+        dataset, _, summary, linguistic_terms = test_scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
             for max_terms in summary.knowledge_base.intra_dimensions()
@@ -283,7 +422,8 @@ class TestSummary(unittest.TestCase):
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
-                               fitness_func=fitness_function,
+                               fitness_func=fitness_function_factory(
+                                   input_data=dataset, antecedents=linguistic_terms),
                                sol_per_pop=10,
                                num_genes=summary.knowledge_base.variable_dimensions(),
                                mutation_num_genes=1,
