@@ -13,7 +13,7 @@ from utils.reproducibility import set_rng
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.organize import add_stacked_granule
-from examples.fuzzy.temporal.association.ftarm.demo_ftarm import make_example
+from examples.fuzzy.temporal.association.ftarm.demo import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, \
     TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM, AssociationRule
 
