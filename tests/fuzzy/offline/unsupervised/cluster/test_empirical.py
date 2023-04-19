@@ -11,7 +11,7 @@ import numpy as np
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.offline.unsupervised.cluster.empirical import multimodal_density, \
-    find_local_maxima, select_prototypes, reduce_partitioning, Empirical as EFS
+    find_local_maxima, select_prototypes, reduce_partitioning, find_empirical_fuzzy_sets
 
 
 def simple_example():
@@ -230,7 +230,7 @@ class TestEDA(unittest.TestCase):
         """
         set_rng(0)  # has a randomness component to it
         input_train_data = iris_example()[:, :2]
-        efs = EFS(input_train_data)
+        empirical_fuzzy_sets = find_empirical_fuzzy_sets(input_train_data)
         expected_prototypes_centers = torch.tensor(
             [[4.653333, 3.16],
              [4.86, 2.3],
@@ -260,8 +260,8 @@ class TestEDA(unittest.TestCase):
              [0.05, 0.19148542]]
         )
         assert torch.isclose(
-            efs.centers.detach().float(), expected_prototypes_centers.float(),
+            empirical_fuzzy_sets.centers.detach().float(), expected_prototypes_centers.float(),
             atol=1e-1).all()
         assert torch.isclose(
-            efs.widths.detach().float(), expected_prototypes_widths.float(),
+            empirical_fuzzy_sets.widths.detach().float(), expected_prototypes_widths.float(),
             atol=1e-1).all()

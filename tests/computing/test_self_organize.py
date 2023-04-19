@@ -15,9 +15,10 @@ from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
 # the following algorithms are eligible for self-organizing neuro-fuzzy networks
-from soft.fuzzy.online.unsupervised.cluster.ecm import ECM
-from soft.fuzzy.online.unsupervised.granulation.clip import CLIP
-from soft.fuzzy.offline.unsupervised.cluster.empirical import Empirical as EFS
+from soft.fuzzy.online.unsupervised.cluster.ecm import apply_evolving_clustering_method
+from soft.fuzzy.online.unsupervised.granulation.clip import \
+    apply_categorical_learning_induced_partitioning
+from soft.fuzzy.offline.unsupervised.cluster.empirical import find_empirical_fuzzy_sets
 from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_discernible
 
 
@@ -81,7 +82,7 @@ class TestSelfOrganize(unittest.TestCase):
         """
         set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
-        self_organize.add_functions(CLIP)
+        self_organize.add_functions(apply_categorical_learning_induced_partitioning)
         num_of_vertices, num_of_edges = 1, 0
         assert len(self_organize.graph.vs) == num_of_vertices
         assert len(self_organize.graph.es) == num_of_edges
@@ -96,9 +97,9 @@ class TestSelfOrganize(unittest.TestCase):
         set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
-            CLIP,
-            ECM,
-            EFS,
+            apply_categorical_learning_induced_partitioning,
+            apply_evolving_clustering_method,
+            find_empirical_fuzzy_sets,
             WM
         ]
         self_organize.add_functions(functions)
@@ -117,13 +118,14 @@ class TestSelfOrganize(unittest.TestCase):
         set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
-            CLIP,
-            ECM,
-            EFS,
+            apply_categorical_learning_induced_partitioning,
+            apply_evolving_clustering_method,
+            find_empirical_fuzzy_sets,
             WM
         ]
         self_organize.add_functions(functions)
-        edges = (CLIP, WM, 1)  # CLIP produces antecedents & WM expects 2nd arg. to be antecedents
+        # CLIP produces antecedents & WM expects 2nd arg. to be antecedents
+        edges = (apply_categorical_learning_induced_partitioning, WM, 1)
         self_organize.link_functions(edges)
         num_of_vertices, num_of_edges = len(functions), len([edges])
         assert len(self_organize.graph.vs) == num_of_vertices
@@ -139,15 +141,15 @@ class TestSelfOrganize(unittest.TestCase):
         set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
-            CLIP,
-            ECM,
-            EFS,
+            apply_categorical_learning_induced_partitioning,
+            apply_evolving_clustering_method,
+            find_empirical_fuzzy_sets,
             WM
         ]
         self_organize.add_functions(functions)
         edges = [
-            (ECM, WM, 0),
-            (CLIP, WM, 1),
+            (apply_evolving_clustering_method, WM, 0),
+            (apply_categorical_learning_induced_partitioning, WM, 1),
         ]
         self_organize.link_functions(edges)
         num_of_vertices, num_of_edges = len(functions), len(edges)
@@ -155,7 +157,7 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(self_organize.graph.es) == num_of_edges
 
         edges = [
-            (ECM, WM, 0),
+            (apply_evolving_clustering_method, WM, 0),
         ]
         self_organize.link_functions(edges)
 
@@ -170,15 +172,15 @@ class TestSelfOrganize(unittest.TestCase):
         set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
-            CLIP,
-            ECM,
-            EFS,
+            apply_categorical_learning_induced_partitioning,
+            apply_evolving_clustering_method,
+            find_empirical_fuzzy_sets,
             WM
         ]
         self_organize.add_functions(functions)
         edges = [
-            (ECM, WM, 0),
-            (CLIP, WM, 1),
+            (apply_evolving_clustering_method, WM, 0),
+            (apply_categorical_learning_induced_partitioning, WM, 1),
         ]
         self_organize.link_functions(edges)
         self_organize.add_data(self.data, name='input')
@@ -187,8 +189,8 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(self_organize.graph.es) == num_of_edges
 
         more_edges = [
-            ('input', ECM, 0),
-            ('input', CLIP, 0),
+            ('input', apply_evolving_clustering_method, 0),
+            ('input', apply_categorical_learning_induced_partitioning, 0),
         ]
         self_organize.link_functions(more_edges)
         num_of_edges = len(edges) + len(more_edges)
@@ -204,28 +206,31 @@ class TestSelfOrganize(unittest.TestCase):
         set_rng(0)
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
-            CLIP,
-            ECM,
-            EFS,
+            apply_categorical_learning_induced_partitioning,
+            apply_evolving_clustering_method,
+            find_empirical_fuzzy_sets,
             WM
         ]
         self_organize.add_functions(functions)
         edges = [
-            (ECM, WM, 0),
-            (CLIP, WM, 1),
+            (apply_evolving_clustering_method, WM, 0),
+            (apply_categorical_learning_induced_partitioning, WM, 1),
         ]
         self_organize.link_functions(edges)
         self_organize.add_data(self.data, name='input')
-        num_of_vertices, num_of_edges = len(functions) + 1, len(edges)
-        assert len(self_organize.graph.vs) == num_of_vertices  # (incl. data vertex)
+        self_organize.add_data({}, name='config')
+        num_of_vertices, num_of_edges = len(functions) + 2, len(edges)
+        assert len(self_organize.graph.vs) == num_of_vertices  # (incl. data & config vertices)
         assert len(self_organize.graph.es) == num_of_edges
 
         edges = [
-            ('input', ECM, 0),
-            ('input', CLIP, 0),
+            ('input', apply_evolving_clustering_method, 0),
+            ('config', apply_evolving_clustering_method, 1),
+            ('input', apply_categorical_learning_induced_partitioning, 0),
+            ('config', apply_categorical_learning_induced_partitioning, 1),
         ]
         self_organize.link_functions(edges)
-        assert len(self_organize.graph.es) == 4  # the Self-Organize Knowledge Base has 4 edges
+        assert len(self_organize.graph.es) == num_of_edges + len(edges)  # edges added to existing
 
         # find the vertex for this function & its predecessors
         target_vertex = self_organize.graph.vs.find(function_eq=WM)
@@ -247,9 +252,9 @@ class TestSelfOrganize(unittest.TestCase):
         number_of_rules = 10
         self_organize = SelfOrganize(config=self.configuration)
         functions = [
-            CLIP,
-            ECM,
-            EFS,
+            apply_categorical_learning_induced_partitioning,
+            apply_evolving_clustering_method,
+            find_empirical_fuzzy_sets,
             WM,
             stack_granules,
             fetch_fuzzy_set_centers,
@@ -259,12 +264,14 @@ class TestSelfOrganize(unittest.TestCase):
         self_organize.add_data(self.data, name='input')
         self_organize.add_data(self.configuration, name='config')
         edges = [
-            ('input', ECM, 0),
-            ('input', CLIP, 0),
-            (ECM, fetch_fuzzy_set_centers, 0),
+            ('input', apply_evolving_clustering_method, 0),
+            ('config', apply_evolving_clustering_method, 1),
+            ('input', apply_categorical_learning_induced_partitioning, 0),
+            ('config', apply_categorical_learning_induced_partitioning, 1),
+            (apply_evolving_clustering_method, fetch_fuzzy_set_centers, 0),
             (fetch_fuzzy_set_centers, WM, 0),
-            (CLIP, WM, 1),
-            (CLIP, expert_design, 0),
+            (apply_categorical_learning_induced_partitioning, WM, 1),
+            (apply_categorical_learning_induced_partitioning, expert_design, 0),
             (WM, expert_design, 1),
             ('config', expert_design, 2)
         ]
@@ -272,20 +279,21 @@ class TestSelfOrganize(unittest.TestCase):
         knowledge_base = self_organize.start(functions)
 
         # --- test info flowed properly from input data to CLIP ---
-        testing_function = CLIP
+        testing_function = apply_categorical_learning_induced_partitioning
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'data': self.data}
-        assert torch.isclose(actual_kwargs['data'], expected_kwargs['data']).all()
+        expected_kwargs = {'input_data': self.data, 'config': {}}
+        assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
 
         # --- test info flowed properly from input data to ECM ---
-        testing_function = ECM
+        testing_function = apply_evolving_clustering_method
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'data': self.data}
-        assert torch.isclose(actual_kwargs['data'], expected_kwargs['data']).all()
+        expected_kwargs = {'input_data': self.data, 'config': {}}
+        assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
 
         # --- test info flowed properly from ECM to fetch_fuzzy_set_centers ---
         testing_function = fetch_fuzzy_set_centers
-        ecm_output = self_organize.graph.vs.find(function_eq=ECM)['output']
+        ecm_output = self_organize.graph.vs.find(
+            function_eq=apply_evolving_clustering_method)['output']
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'fuzzy_sets': ecm_output}
         assert torch.isclose(
@@ -295,8 +303,10 @@ class TestSelfOrganize(unittest.TestCase):
 
         # --- test info flowed properly from CLIP and fetch_fuzzy_set_centers to Wang-Mendel ---
         testing_function = WM
-        antecedents = self_organize.graph.vs.find(function_eq=CLIP)['output']
-        input_data = self_organize.graph.vs.find(function_eq=fetch_fuzzy_set_centers)['output']
+        antecedents = self_organize.graph.vs.find(
+            function_eq=apply_categorical_learning_induced_partitioning)['output']
+        input_data = self_organize.graph.vs.find(
+            function_eq=fetch_fuzzy_set_centers)['output']
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'antecedents': antecedents, 'input_data': input_data}
         assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
@@ -304,7 +314,8 @@ class TestSelfOrganize(unittest.TestCase):
 
         # --- test info flowed properly from CLIP and Wang-Mendel to expert_design ---
         testing_function = expert_design
-        antecedents = self_organize.graph.vs.find(function_eq=CLIP)['output']
+        antecedents = self_organize.graph.vs.find(
+            function_eq=apply_categorical_learning_induced_partitioning)['output']
         rules = self_organize.graph.vs.find(function_eq=WM)['output']
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
         expected_kwargs = {'antecedents': antecedents, 'rules': rules}
@@ -313,11 +324,13 @@ class TestSelfOrganize(unittest.TestCase):
 
         # check that the fuzzy logic rules are added
 
-        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(
+            relation_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
-        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(
+            relation_eq=AlgebraicProduct)) == number_of_rules
 
         return knowledge_base
 
@@ -333,11 +346,13 @@ class TestSelfOrganize(unittest.TestCase):
         number_of_rules = 10
         self_organize = clip_ecm_wm(self.data, config={})
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(
+            relation_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
-        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(
+            relation_eq=AlgebraicProduct)) == number_of_rules
 
         return knowledge_base
 

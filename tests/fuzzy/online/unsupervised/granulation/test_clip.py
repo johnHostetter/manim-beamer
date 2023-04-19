@@ -11,7 +11,7 @@ from soft.fuzzy.sets.continuous import Gaussian
 from tests.fuzzy.online.unsupervised.granulation.clip import CLIP as oldCLIP, R as oldR
 from soft.fuzzy.online.unsupervised.granulation.clip import find_indices_to_closest_neighbors
 # actual implementation of CLIP that may break and is written in PyTorch
-from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP, regulator as newR
+from soft.fuzzy.online.unsupervised.granulation.clip import apply_categorical_learning_induced_partitioning as newCLIP, regulator as newR
 
 set_rng(0)
 

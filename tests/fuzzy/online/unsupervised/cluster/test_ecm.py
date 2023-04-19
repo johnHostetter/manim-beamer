@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 # actual implementation of CLIP that may break and is written in PyTorch
-from soft.fuzzy.online.unsupervised.cluster.ecm import ECM as newECM, general_euclidean_distance as newDistance
+from soft.fuzzy.online.unsupervised.cluster.ecm import apply_evolving_clustering_method as newECM, general_euclidean_distance as newDistance
 # local implementations of CLIP that we know work but are written in Numpy
 from tests.fuzzy.online.unsupervised.cluster.ecm import ECM as oldECM, general_euclidean_distance as oldDistance
 
