@@ -39,4 +39,5 @@ class TestFuzzyLogicRule(unittest.TestCase):
         """
         antecedents, consequents, rules = toy_mamdani()
         knowledge_base = expert_design(antecedents, consequents, rules, config={})
-        assert len(knowledge_base.graph.vs.select(name_eq='Rule')) == len(rules)
+        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == len(rules)
+        assert knowledge_base.get_fuzzy_logic_rules() == rules

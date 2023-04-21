@@ -40,7 +40,7 @@ def big_data_example(seed):
         3: Gaussian(in_features=4),
     }
 
-    knowledge_base = expert_design(variables.values(), rules=[], config={})
+    knowledge_base = expert_design(variables.values(), consequents={}, rules=[], config={})
     return dataframe, knowledge_base
 
 
@@ -48,6 +48,7 @@ class TestFTARM(unittest.TestCase):
     """
     Test the Fuzzy Temporal Association Rule Mining algorithm.
     """
+
     def test_fuzzy_representation(self):
         """
         Test the fuzzy representation calculated by the KnowledgeBase.
@@ -57,7 +58,7 @@ class TestFTARM(unittest.TestCase):
         """
         dataframe, knowledge_base = make_example()
         input_granulation = knowledge_base.graph.vs.find(
-            source_eq=add_stacked_granule.__name__)['name']
+            source_eq=add_stacked_granule.__name__)['type']
         cols = sorted(set(dataframe.columns) - {'date'})
         mus = input_granulation(torch.tensor(dataframe[cols].values).float())
         expected_membership = torch.tensor([
@@ -348,17 +349,21 @@ class TestFTARM(unittest.TestCase):
 
         # we need to get each temporal item's corresponding starting period
         item_indices_in_each_candidate = [
-            (pair[0] for pair in candidate) for candidate in c2_indices
+            tuple(pair[0] for pair in candidate) for candidate in c2_indices
         ]
         # (0, 1) means the first and second items in ti_table.terms.keys(), and so on
         assert item_indices_in_each_candidate == [(0, 1), (0, 3), (0, 4), (1, 3), (1, 4), (3, 4)]
 
         starting_periods_per_item_in_each_candidate = [
-            [ftarm.ti_table.starting_periods.values[0, var_idx]
-             for var_idx in candidate_indices]
-            for candidate_indices in item_indices_in_each_candidate]
-        assert starting_periods_per_item_in_each_candidate == [[0, 0], [0, 1], [0, 1], [0, 1],
-                                                               [0, 1], [1, 1]]
+            [
+                ftarm.ti_table.starting_periods.values[0, var_idx]
+                for var_idx in candidate_indices
+            ]
+            for candidate_indices in item_indices_in_each_candidate
+        ]
+        assert starting_periods_per_item_in_each_candidate == [
+            [0, 0], [0, 1], [0, 1], [0, 1], [0, 1], [1, 1]
+        ]
 
         # get the maximum starting period within each candidate to calculate fuzzy temporal support
         max_starting_periods = np.array(starting_periods_per_item_in_each_candidate).max(axis=1)

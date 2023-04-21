@@ -8,6 +8,7 @@ import torch
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
+from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.logic.control.tsk import ZeroOrderTSK
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
@@ -82,28 +83,34 @@ class TestTSK(unittest.TestCase):
         assert (antecedents[1].widths == torch.tensor([0.4, 0.4, 0.5, 0.45])).all()
 
         rules = {
-            frozenset({(0, 0), (1, 0)}), frozenset({(0, 1), (1, 0)}),
-            frozenset({(0, 1), (1, 1)}), frozenset({(1, 1), (1, 1)})
+            Rule(premise=frozenset({(0, 0), (1, 0)}),
+                 consequence=frozenset(), implication=AlgebraicProduct),
+            Rule(premise=frozenset({(0, 1), (1, 0)}),
+                 consequence=frozenset(), implication=AlgebraicProduct),
+            Rule(premise=frozenset({(0, 1), (1, 1)}),
+                 consequence=frozenset(), implication=AlgebraicProduct),
+            Rule(premise=frozenset({(1, 1), (1, 1)}),
+                 consequence=frozenset(), implication=AlgebraicProduct)
         }
-        knowledge_base = expert_design(antecedents, rules, config={})
+        knowledge_base = expert_design(antecedents, consequents=[], rules=rules, config={})
 
-        rule_vertex = knowledge_base.graph.vs.find(relation_eq=AlgebraicProduct)
-        assert rule_vertex['relation'] == AlgebraicProduct  # it is the correct relation we wanted
-        assert 'id' in rule_vertex.attributes()  # it has a unique id
+        rule_vertex = knowledge_base.graph.vs.find(type_eq=AlgebraicProduct)
+        assert rule_vertex['type'] == AlgebraicProduct  # it is the correct relation we wanted
+        assert 'type' in rule_vertex.attributes()  # it has 'type' attribute
 
-        rule_vertices = knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)
+        rule_vertices = knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)
         assert len(rule_vertices) == len(rules)  # number of rule vertices should equal len(rules)
 
         # there should be 2 rules that use (1, 1);
         # the last rule has been simplified (redundant mention of condition)
-        assert knowledge_base[(1, 1)] == {
-            AlgebraicProduct: [frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})]
+        assert list(knowledge_base[(1, 1)].keys())[0] == AlgebraicProduct
+        assert set(knowledge_base[(1, 1)][AlgebraicProduct]) == {
+            frozenset({(0, 1), (1, 1)}), frozenset({(1, 1)})
         }
 
         # the rules we have added should exist how we expected them
-        assert knowledge_base.edges(AlgebraicProduct) == rules
+        assert knowledge_base.get_fuzzy_logic_rules() == rules
 
-        knowledge_base.attributes(rule_vertex['name'])
         flc = ZeroOrderTSK(out_features=actual_y.ndim, knowledge_base=knowledge_base,
                            input_trainable=True)
         predicted_y = flc(input_data)

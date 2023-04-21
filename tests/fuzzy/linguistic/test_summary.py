@@ -10,6 +10,8 @@ import numpy as np
 from utils.reproducibility import set_rng
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
+from soft.fuzzy.logic.rules.creation import Rule
+from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.linguistic.summary import Summary, Query, most_quantifier as Q
 
@@ -91,7 +93,8 @@ def fitness_function_factory(input_data, antecedents):
             (variable_index, int(term_index))
             for variable_index, term_index in enumerate(solution) if term_index >= 0
         )
-        knowledge_base = expert_design(antecedents, rules=[candidate], config={})
+        rule = Rule(premise=candidate, consequence=frozenset(), implication=AlgebraicProduct)
+        knowledge_base = expert_design(antecedents, consequents=[], rules=[rule], config={})
         candidate = Summary(knowledge_base, quantifier=Q, truth=None)
         query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
         return candidate.degree_of_validity(input_data, alpha=0.3, query=query).item()
@@ -108,8 +111,10 @@ def test_scenario_1():
     terms = [
         Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
     ]
-    knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))],
-                                   config={})  # the 'rule' encodes the linguistic summary
+    rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+                implication=AlgebraicProduct)
+    knowledge_base = expert_design(
+        terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the linguistic summary
     summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
@@ -127,8 +132,10 @@ def test_scenario_2():
     terms = [
         Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
     ]  # terms for the linguistic summary
-    knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))],
-                                   config={})  # the 'rule' encodes the linguistic summary
+    rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+                implication=AlgebraicProduct)
+    knowledge_base = expert_design(
+        terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the linguistic summary
     summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
@@ -247,8 +254,9 @@ class TestSummary(unittest.TestCase):
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
                  Gaussian(1, centers=[0.4], widths=[0.25])]
-        knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))],
-                                       config={})  # the 'rule' encodes the linguistic summary
+        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(), implication=AlgebraicProduct)
+        knowledge_base = expert_design(
+            terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the inguistic summary
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -265,8 +273,9 @@ class TestSummary(unittest.TestCase):
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
                  Gaussian(1, centers=[0.4], widths=[0.25])]
-        knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))],
-                                       config={})  # the 'rule' encodes the linguistic summary
+        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(), implication=AlgebraicProduct)
+        knowledge_base = expert_design(
+            terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the inguistic summary
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -336,7 +345,9 @@ class TestSummary(unittest.TestCase):
             Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
         ]
         # the 'rule' encodes the linguistic summary
-        knowledge_base = expert_design(terms, rules=[((0, 0), (1, 0))], config={})
+        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+                    implication=AlgebraicProduct)
+        knowledge_base = expert_design(terms, consequents=[], rules=[rule], config={})
         summary = Summary(knowledge_base, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 

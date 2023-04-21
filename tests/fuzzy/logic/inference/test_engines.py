@@ -8,6 +8,7 @@ import torch
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
+from soft.fuzzy.logic.rules.creation import Rule
 from soft.computing.organize import add_stacked_granule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.inference.engines import ProductInference, MinimumInference
@@ -31,17 +32,22 @@ def make_test_scenario():
         Gaussian(3, centers=torch.tensor([-1, 0., 1.]), widths=torch.tensor([1., 1., 1.])),
         Gaussian(3, centers=torch.tensor([-1., 0., 1.]), widths=torch.tensor([1., 1., 1.]))]
     rules = [
-        ((0, 0), (1, 0)),
-        ((0, 0), (1, 1)),
-        ((0, 1), (1, 0)),
-        ((0, 1), (1, 1)),
-        ((0, 1), (1, 2)),
+        Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+             implication=AlgebraicProduct),
+        Rule(premise=frozenset({(0, 0), (1, 1)}), consequence=frozenset(),
+             implication=AlgebraicProduct),
+        Rule(premise=frozenset({(0, 1), (1, 0)}), consequence=frozenset(),
+             implication=AlgebraicProduct),
+        Rule(premise=frozenset({(0, 1), (1, 1)}), consequence=frozenset(),
+             implication=AlgebraicProduct),
+        Rule(premise=frozenset({(0, 1), (1, 2)}), consequence=frozenset(),
+             implication=AlgebraicProduct),
     ]
 
-    knowledge_base = expert_design(antecedents, rules, config={})
+    knowledge_base = expert_design(antecedents, consequents=[], rules=rules, config={})
     links, offset = knowledge_base.matrix(AlgebraicProduct)
     input_granulation = knowledge_base.graph.vs.find(
-        source_eq=add_stacked_granule.__name__)['name']
+        source_eq=add_stacked_granule.__name__)['type']
 
     out_features = 1
     num_of_consequent_terms = len(rules)

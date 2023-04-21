@@ -6,6 +6,7 @@ adding rules using the granules to that same KnowledgeBase.
 import unittest
 
 from soft.fuzzy.sets.continuous import Gaussian
+from soft.fuzzy.logic.rules.creation import Rule
 from soft.computing.knowledge import KnowledgeBase
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
@@ -33,7 +34,7 @@ class TestGranulation(unittest.TestCase):
         }
 
         assert {
-                   vertex['name'] for vertex in knowledge_base.graph.vs.select(layer_eq=1)
+                   vertex['type'] for vertex in knowledge_base.graph.vs.select(layer_eq=1)
                } == expected_nodes
 
     def test_add_rules(self):
@@ -47,16 +48,21 @@ class TestGranulation(unittest.TestCase):
         knowledge_base = KnowledgeBase(self.granules)
         knowledge_base.add_fuzzy_granules(self.granules)
         # each tuple is (variable index, term index)
-        edges = {
-            frozenset({(0, 1), (1, 1)}), frozenset({(1, 2), (2, 3)}),
-            frozenset({(0, 7), (1, 3), (2, 5)})
+        rules = {
+            Rule(premise=frozenset({(0, 1), (1, 1)}), consequence=frozenset(),
+                 implication=AlgebraicProduct),
+            Rule(premise=frozenset({(1, 2), (2, 3)}), consequence=frozenset(),
+                 implication=AlgebraicProduct),
+            Rule(premise=frozenset({(0, 7), (1, 3), (2, 5)}), consequence=frozenset(),
+                 implication=AlgebraicProduct)
         }
-        knowledge_base.add_parent_relation(AlgebraicProduct, edges)
+
+        knowledge_base.add_fuzzy_logic_rules(rules)
 
         # only 3 AlgebraicProduct vertices should have been added to the graph;
         # representing the fuzzy logic rule nodes
         algebraic_product_vertices = knowledge_base.graph.vs.select(
-            relation_eq=AlgebraicProduct)
+            type_eq=AlgebraicProduct)
         assert len(algebraic_product_vertices) == 3
         # check the edges have not changed after being added to the graph
-        assert knowledge_base.edges(AlgebraicProduct) == edges
+        assert knowledge_base.get_fuzzy_logic_rules() == rules
