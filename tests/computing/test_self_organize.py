@@ -263,6 +263,8 @@ class TestSelfOrganize(unittest.TestCase):
         self_organize.add_functions(functions)
         self_organize.add_data(self.data, name='input')
         self_organize.add_data(self.configuration, name='config')
+        self_organize.add_data([], name='consequent terms')  # no consequent terms; zero-order TSK
+
         edges = [
             ('input', apply_evolving_clustering_method, 0),
             ('config', apply_evolving_clustering_method, 1),
@@ -272,8 +274,10 @@ class TestSelfOrganize(unittest.TestCase):
             (fetch_fuzzy_set_centers, WM, 0),
             (apply_categorical_learning_induced_partitioning, WM, 1),
             (apply_categorical_learning_induced_partitioning, expert_design, 0),
-            (WM, expert_design, 1),
-            ('config', expert_design, 2)
+            ('consequent terms', expert_design, 1),
+            (WM, expert_design, 2),
+            ('config', expert_design, 3)
+
         ]
         self_organize.link_functions(edges)
         knowledge_base = self_organize.start(functions)
@@ -323,14 +327,17 @@ class TestSelfOrganize(unittest.TestCase):
         assert actual_kwargs['rules'] == expected_kwargs['rules']
 
         # check that the fuzzy logic rules are added
-
         assert len(knowledge_base.graph.vs.select(
-            relation_eq=AlgebraicProduct)) == number_of_rules
+            layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(
+            type_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
         assert len(knowledge_base.graph.vs.select(
-            relation_eq=AlgebraicProduct)) == number_of_rules
+            layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(
+            type_eq=AlgebraicProduct)) == number_of_rules
 
         return knowledge_base
 
@@ -346,13 +353,17 @@ class TestSelfOrganize(unittest.TestCase):
         number_of_rules = 10
         self_organize = clip_ecm_wm(self.data, config={})
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(
-            relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(  # select from the 'Rule' layer
+            layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(  # select from the 'type' of implication
+            type_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
-        assert len(knowledge_base.graph.vs.select(
-            relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(  # select from the 'Rule' layer
+            layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(  # select from the 'type' of implication
+            type_eq=AlgebraicProduct)) == number_of_rules
 
         return knowledge_base
 
@@ -365,15 +376,17 @@ class TestSelfOrganize(unittest.TestCase):
             KnowledgeBase
         """
         set_rng(0)
-        number_of_rules = 142
+        number_of_rules = 17
         self_organize = clip_ftarm(self.data, config={'minimum_support': 0.3,
                                                       'minimum_confidence': 0.8})
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=FTARM)['output']
-        assert len(knowledge_base.graph.vs.select(relation_eq=Minimum)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
         return knowledge_base
 
@@ -394,11 +407,13 @@ class TestSelfOrganize(unittest.TestCase):
         config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
         self_organize = clip_frequent_discernible(big_train_data, big_val_data, config)
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(function_eq=frequent_discernible)['output']
-        assert len(knowledge_base.graph.vs.select(relation_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)) == number_of_rules
 
         return knowledge_base
 
@@ -432,13 +447,13 @@ class TestSelfOrganize(unittest.TestCase):
 
             for vertex, loaded_vertex in zip(
                     knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
-                if isinstance(vertex['name'], Gaussian) and \
-                        str(loaded_vertex['name'].__class__) == str(vertex['name'].__class__):
+                if isinstance(vertex['type'], Gaussian) and \
+                        str(loaded_vertex['type'].__class__) == str(vertex['type'].__class__):
                     # loaded vertex's class is different
                     assert (torch.isclose(
-                        vertex['name'].centers, loaded_vertex['name'].centers
+                        vertex['type'].centers, loaded_vertex['type'].centers
                     ).all() and torch.isclose(
-                        vertex['name'].widths, loaded_vertex['name'].widths
+                        vertex['type'].widths, loaded_vertex['type'].widths
                     ).all()).item()
                 else:
                     if not vertex.attributes() == loaded_vertex.attributes():

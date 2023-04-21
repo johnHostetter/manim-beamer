@@ -130,10 +130,8 @@ class TestGaussian(unittest.TestCase):
         set_rng(0)
         elements = torch.tensor([[0.41737163], [0.78705574], [0.40919196], [0.72005216]])
         sigmas = torch.tensor(
-            [-0.1, 0.25, -0.5, 0.75, 1.0])  # any < 0 sigma values will be > 0 sigma values
+            [0.1, 0.25, 0.5, 0.75, 1.0])  # negative widths are missing sets
         gaussian_mf = Gaussian(in_features=elements.shape[1], widths=sigmas)
-        # we will now update the sigmas to be abs. value
-        sigmas = torch.abs(sigmas)
         mu_pytorch = gaussian_mf(elements)
         mu_numpy = gaussian_numpy(elements, gaussian_mf.centers.detach().numpy(), sigmas)
 
@@ -154,10 +152,8 @@ class TestGaussian(unittest.TestCase):
         elements = torch.tensor([[0.41737163], [0.78705574], [0.40919196], [0.72005216]])
         centers = torch.tensor([-0.5, -0.25, 0.25, 0.5, 0.75])
         sigmas = torch.tensor(
-            [-0.1, 0.25, -0.5, 0.75, 1.0])  # any < 0 sigma values will be > 0 sigma values
+            [0.1, 0.25, 0.5, 0.75, 1.0])  # negative widths are missing sets
         gaussian_mf = Gaussian(in_features=elements.shape[1], centers=centers, widths=sigmas)
-        # we will now update the sigmas to be abs. value
-        sigmas = torch.abs(sigmas)
         mu_pytorch = gaussian_mf(elements)
         mu_numpy = gaussian_numpy(elements, centers.detach().numpy(), sigmas)
 
@@ -283,11 +279,8 @@ class TestTriangular(unittest.TestCase):
         """
         set_rng(0)
         elements = torch.tensor([[0.41737163], [0.78705574], [0.40919196], [0.72005216]])
-        # any < 0 sigma values will be > 0 sigma values
-        widths = np.array([-0.1, 0.25, -0.5, 0.75, 1.0])
+        widths = np.array([0.1, 0.25, 0.5, 0.75, 1.0])  # negative widths are missing sets
         triangular_mf = Triangular(in_features=elements.shape[1], widths=widths)
-        # we will now update the widths to be abs. value
-        widths = np.abs(widths)
         centers = triangular_mf.centers.detach().numpy()
         mu_pytorch = triangular_mf(elements)
         mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
@@ -309,11 +302,8 @@ class TestTriangular(unittest.TestCase):
         set_rng(0)
         elements = torch.tensor([[0.41737163], [0.78705574], [0.40919196], [0.72005216]])
         centers = np.array([-0.5, -0.25, 0.25, 0.5, 0.75])
-        # any < 0 sigma values will be > 0 sigma values
-        widths = np.array([-0.1, 0.25, -0.5, 0.75, 1.0])
+        widths = np.array([0.1, 0.25, 0.5, 0.75, 1.0])  # negative widths are missing sets
         triangular_mf = Triangular(in_features=elements.shape[1], centers=centers, widths=widths)
-        # we will now update the widths to be abs. value
-        widths = np.abs(widths)
         mu_pytorch = triangular_mf(elements)
         mu_numpy = triangular_numpy(elements.detach().numpy(), centers, widths)
 
