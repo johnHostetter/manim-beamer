@@ -1,48 +1,26 @@
+"""
+Test various components necessary in implementing the
+Categorical Learning Induced Partitioning algorithm.
+"""
 import os
-import torch
 import pathlib
 import unittest
+
+import torch
 import numpy as np
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
-
-# local implementations of CLIP that we know work but are written in Numpy
-from tests.fuzzy.online.unsupervised.granulation.clip import CLIP as oldCLIP, R as oldR
 from soft.fuzzy.online.unsupervised.granulation.clip import find_indices_to_closest_neighbors
-# actual implementation of CLIP that may break and is written in PyTorch
-from soft.fuzzy.online.unsupervised.granulation.clip import CLIP as newCLIP, regulator as newR
-
-set_rng(0)
-
-
-def compare_results(oldCLIP_terms, newCLIP_terms):
-    """
-    Compare the results between the original CLIP implementation and the new
-    CLIP implementation (PyTorch).
-
-    Args:
-        oldCLIP_terms: The terms that are produced by the original CLIP implementation.
-        newCLIP_terms: The terms that are produced by the new CLIP implementation (PyTorch).
-        eq: Whether the results should be equal, by default is True. Some mistakes in the
-            original implementation however were noticed afterwards, and so in some settings,
-            this should be set to be False.
-
-    Returns:
-        None
-    """
-    for linguistic_variable_idx, linguistic_variable in enumerate(zip(oldCLIP_terms, newCLIP_terms)):
-        original_results, new_results = linguistic_variable[0], linguistic_variable[1]
-        original_centers = [term['center'] for term in original_results]
-        original_sigmas = [term['sigma'] for term in original_results]
-
-        assert len(original_centers) == len(new_results.centers.detach().numpy())  # results should be of same size
-        assert np.isclose(original_centers, new_results.centers.detach().numpy()).all()  # approx equal centers
-        assert len(original_sigmas) == len(new_results.widths.detach().numpy())
-        assert np.isclose(original_sigmas, new_results.widths.detach().numpy()).all()
+from soft.fuzzy.online.unsupervised.granulation.clip import regulator, \
+    apply_categorical_learning_induced_partitioning as CLIP
 
 
 class TestCLIP(unittest.TestCase):
+    """
+    Test the Categorical Learning Induced Partitioning algorithm, and its supporting functions
+    such as the 'regular' function.
+    """
 
     def test_regulator(self):
         """
@@ -52,7 +30,11 @@ class TestCLIP(unittest.TestCase):
         Returns:
             None
         """
-        assert np.isclose(oldR(1.0, 1.0), newR(1.0, 1.0))
+        assert regulator(sigma_1=1.0, sigma_2=1.0) == 1.0
+        assert regulator(sigma_1=0.5, sigma_2=1.0) == 0.75
+        assert regulator(sigma_1=1.0, sigma_2=0.5) == 0.75
+        assert regulator(sigma_1=0.5, sigma_2=0.5) == 0.5
+        assert regulator(sigma_1=0, sigma_2=1.0) == 0.5
 
     def test_find_indices_to_closest_neighbors(self):
         """
@@ -64,9 +46,10 @@ class TestCLIP(unittest.TestCase):
         """
         # a new cluster is created in the input dimension based on the presented value
         dimension = 1
-        x = torch.tensor([0., 3., 2., 3])
+        element = torch.tensor([0., 3., 2., 3])
         terms = [[], Gaussian(in_features=4, centers=torch.tensor([-2., 2., 4., 6]))]
-        left_neighbor_idx, right_neighbor_idx = find_indices_to_closest_neighbors(x, terms, dimension)
+        left_neighbor_idx, right_neighbor_idx = find_indices_to_closest_neighbors(
+            element, terms, dimension)
 
         assert left_neighbor_idx == 1
         assert right_neighbor_idx == 2
@@ -78,10 +61,26 @@ class TestCLIP(unittest.TestCase):
         Returns:
             None
         """
+        set_rng(0)
         directory = pathlib.Path(__file__).parent.resolve()
         file_path = os.path.join(directory, 'random_train_data.npy')
-        train_X = np.load(file_path)
-        oldCLIP_terms = oldCLIP(train_X, train_X.min(axis=0), train_X.max(axis=0))
-        newCLIP_terms = newCLIP(torch.tensor(train_X), config={'eps': 0.2, 'kappa': 0.6})
+        input_data = np.load(file_path)
+        linguistic_terms = CLIP(torch.tensor(input_data), config={'eps': 0.2, 'kappa': 0.6})
+        expected_terms = [
+            Gaussian(in_features=3, centers=[0.5488135, 0.96366276, 0.0202184],
+                     widths=[0.38547637, 0.3542887, 0.38547637]),
+            Gaussian(in_features=4, centers=[0.71518937, 0.38344152, 0.10204481, 0.95274901],
+                     widths=[0.25629429, 0.27357153, 0.27357153, 0.25629429]),
+            Gaussian(in_features=3, centers=[0.60276338, 0.07103606, 0.94374808],
+                     widths=[0.33559839, 0.40241628, 0.33559839]),
+            Gaussian(in_features=3, centers=[0.54488318, 0.891773, 0.0871293],
+                     widths=[0.34311335, 0.32540311, 0.34311335]),
+        ]
+        for linguistic_term, expected_term in zip(linguistic_terms, expected_terms):
+            assert linguistic_term.in_features, expected_term.in_features
+            assert torch.isclose(
+                linguistic_term.centers.float(), expected_term.centers.float()).all()
+            assert torch.isclose(
+                linguistic_term.widths.float(), expected_term.widths.float()).all()
 
-        compare_results(oldCLIP_terms, newCLIP_terms)
+        # compare_results(oldCLIP_terms, newCLIP_terms)

@@ -1,38 +1,83 @@
+"""
+Implement SummaryStatistics class and a function 'evaluate_on_environment' where the evaluation
+on the environment returns an instance of SummaryStatistics - an object that allows for various
+metrics to be easily applied.
+"""
+from collections import deque
+
 import torch
 import numpy as np
 
-from collections import deque
-
 
 class SummaryStatistics:
+    """
+    A class that allows easy access to various metrics of interest.
+    """
     def __init__(self, values):
         self.values = values
         self.params = {}
 
     def min(self):
+        """
+        Calculate the minimum of the scores.
+
+        Returns:
+            Minimum of self.values.
+        """
         return np.min(self.values)
 
     def mean(self):
+        """
+        Calculate the mean of the scores.
+
+        Returns:
+            Mean of self.values.
+        """
         return np.mean(self.values)
 
     def std(self):
+        """
+        Calculate the standard deviation of the scores.
+
+        Returns:
+            Standard deviation of self.values.
+        """
         return np.std(self.values)
 
     def median(self):
+        """
+        Calculate the median of the scores.
+
+        Returns:
+            Median of self.values.
+        """
         return np.median(self.values)
 
     def max(self):
+        """
+        Calculate the maximum of the scores.
+
+        Returns:
+            Maximum of self.values.
+        """
         return np.max(self.values)
 
     def to_dict(self):
-        return {'min': self.min(), 'mean': self.mean(), 'std': self.std(), 'median': self.median(), 'max': self.max()}
+        """
+        Store metric results in dictionary.
+
+        Returns:
+            A dictionary.
+        """
+        return {
+            'min': self.min(), 'mean': self.mean(), 'std': self.std(),
+            'median': self.median(), 'max': self.max()
+        }
 
 
-"""
-The following code block comes from the `d3rlpy` library, 
-but it has been modified to return both the average and 
-standard deviation of the online evaluation.
-"""
+# The following code block comes from the `d3rlpy` library,
+# but it has been modified to return both the average and
+# standard deviation of the online evaluation.
 
 
 def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=False):
@@ -75,17 +120,20 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
 
     def scorer(algo, *args):
         if text:
-            print('Evaluating online for {} episodes.'.format(n_trials))
+            print(f"args: {args}")
+            print(f"Evaluating online for {n_trials} episodes.")
         scores_window = deque(maxlen=100)  # last 100 scores
         for trial_idx in range(n_trials):
-            observation, info = env.reset()
+            observation, _ = env.reset()  # environment, info
             episode_reward = 0.0
             while True:
                 if np.random.random() < epsilon:
                     action = env.action_space.sample()
                 else:
-                    action = torch.argmax(algo.predict(torch.tensor(np.array([observation])))).item()
-                observation, reward, terminated, truncated, info = env.step(action)
+                    action = torch.argmax(
+                        algo.predict(torch.tensor(np.array([observation])))
+                    ).item()
+                observation, reward, terminated, truncated, _ = env.step(action)  # last is 'info'
                 episode_reward += reward
 
                 if render:
@@ -95,9 +143,11 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
                     break
 
             if text and len(scores_window) > 0:
-                print('\rEpisode: {}\tAverage Score: {:.6f}'.format(trial_idx + 1, np.mean(scores_window)), end='')
+                print(f"\rEpisode: {trial_idx + 1}\tAverage Score: {np.mean(scores_window):.6f}",
+                      end="")
                 if trial_idx > 0 and trial_idx % 100 == 0:
-                    print('\rEpisode: {}\tAverage Score: {:.6f}'.format(trial_idx + 1, np.mean(scores_window)))
+                    print(
+                        f"\rEpisode: {trial_idx + 1}\tAverage Score: {np.mean(scores_window):.6f}")
 
             scores_window.append(episode_reward)
         if text:

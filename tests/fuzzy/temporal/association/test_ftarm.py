@@ -10,10 +10,10 @@ import numpy as np
 import pandas as pd
 
 from utils.reproducibility import set_rng
+from examples.fuzzy.temporal.association.ftarm.demo import make_example
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.organize import add_stacked_granule
-from examples.fuzzy.temporal.association.ftarm.demo_ftarm import make_example
 from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engine, \
     TemporalInformationTable as TI, FuzzyTemporalAssocationRuleMining as FTARM, AssociationRule
 
@@ -21,6 +21,15 @@ set_rng(5)
 
 
 def big_data_example(seed):
+    """
+    Generate an example with a large amount of data for benchmarking computational performance.
+
+    Args:
+        seed: Random number generator seed.
+
+    Returns:
+        pd.DataFrame, soft.computing.knowledge.KnowledgeBase
+    """
     set_rng(seed)
     dataframe = pd.DataFrame(np.random.rand(4000, 4))
     dataframe['date'] = 0
@@ -31,25 +40,42 @@ def big_data_example(seed):
         3: Gaussian(in_features=4),
     }
 
-    knowledge_base = expert_design(variables.values(), rules=[], config={})
+    knowledge_base = expert_design(variables.values(), consequents={}, rules=[], config={})
     return dataframe, knowledge_base
 
 
 class TestFTARM(unittest.TestCase):
+    """
+    Test the Fuzzy Temporal Association Rule Mining algorithm.
+    """
+
     def test_fuzzy_representation(self):
+        """
+        Test the fuzzy representation calculated by the KnowledgeBase.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         input_granulation = knowledge_base.graph.vs.find(
-            source_eq=add_stacked_granule.__name__)['name']
+            source_eq=add_stacked_granule.__name__)['type']
         cols = sorted(set(dataframe.columns) - {'date'})
         mus = input_granulation(torch.tensor(dataframe[cols].values).float())
-        expected_membership = torch.tensor([[1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
-                                            [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                            [0.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
-                                            [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                                            [0.5, 0.0, 0.75, 0.25, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]])
+        expected_membership = torch.tensor([
+            [1.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
+            [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 2 / 3, 1 / 3, 0.0, 0.0, 0.0, 0.0],
+            [0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.5, 0.0, 0.75, 0.25, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]])
         assert (torch.isclose(mus.reshape(5, 10), expected_membership)).all()
 
     def test_temporal_information_table(self):
+        """
+        Test the information being stored by the Temporal Information (TI) table is correct.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         attribute_names = [col for col in dataframe.columns if col != 'date']
         ti_table = TI(dataframe, variables=attribute_names)
@@ -71,6 +97,13 @@ class TestFTARM(unittest.TestCase):
         assert (ftarm.ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
     def test_step_2(self):
+        """
+        Test that the described 'step 2' of the Fuzzy Temporal Association Rule Mining algorithm
+        is working as intended.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -80,6 +113,13 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_scalar_cardinality.flatten(), expected_scalar_cardinality).all()
 
     def test_step_3(self):
+        """
+        Test that the described 'step 3' of the Fuzzy Temporal Association Rule Mining algorithm
+        is working as intended.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -92,6 +132,13 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_output).all()
 
     def test_step_4(self):
+        """
+        Test that the described 'step 4' of the Fuzzy Temporal Association Rule Mining algorithm
+        is working as intended.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -114,6 +161,14 @@ class TestFTARM(unittest.TestCase):
         ]
 
     def test_candidate_fuzzy_representation_functions(self):
+        """
+        Test that the generated candidates found with the Fuzzy Temporal Association Rule
+        Mining algorithm are consistent with the expected results - and that the intermediate
+        results are also consistent.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -228,6 +283,12 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_rules_applicability, expected_output).all()
 
     def test_candidate_fuzzy_representation_ftarm(self):
+        """
+        Test that the fuzzy representation of the generated candidates is correctly calculated.
+
+        Returns:
+            None
+        """
         dataframe, linguistic_variables = make_example()
         ftarm = FTARM(dataframe, linguistic_variables,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -248,6 +309,12 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(ftarm.fuzzy_representation(c2_indices), expected_output).all()
 
     def test_candidate_scalar_cardinality(self):
+        """
+        Test that the scalar cardinality of the generated candidates is correctly calculated.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -261,6 +328,12 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_scalar_cardinality, expected_scalar_cardinality).all()
 
     def test_candidate_fuzzy_temporal_supports(self):
+        """
+        Test that the fuzzy temporal supports of the generated candidates is correctly calculated.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -276,17 +349,21 @@ class TestFTARM(unittest.TestCase):
 
         # we need to get each temporal item's corresponding starting period
         item_indices_in_each_candidate = [
-            tuple([pair[0] for pair in candidate]) for candidate in c2_indices
+            tuple(pair[0] for pair in candidate) for candidate in c2_indices
         ]
         # (0, 1) means the first and second items in ti_table.terms.keys(), and so on
         assert item_indices_in_each_candidate == [(0, 1), (0, 3), (0, 4), (1, 3), (1, 4), (3, 4)]
 
         starting_periods_per_item_in_each_candidate = [
-            [ftarm.ti_table.starting_periods.values[0, var_idx]
-             for var_idx in candidate_indices]
-            for candidate_indices in item_indices_in_each_candidate]
-        assert starting_periods_per_item_in_each_candidate == [[0, 0], [0, 1], [0, 1], [0, 1],
-                                                               [0, 1], [1, 1]]
+            [
+                ftarm.ti_table.starting_periods.values[0, var_idx]
+                for var_idx in candidate_indices
+            ]
+            for candidate_indices in item_indices_in_each_candidate
+        ]
+        assert starting_periods_per_item_in_each_candidate == [
+            [0, 0], [0, 1], [0, 1], [0, 1], [0, 1], [1, 1]
+        ]
 
         # get the maximum starting period within each candidate to calculate fuzzy temporal support
         max_starting_periods = np.array(starting_periods_per_item_in_each_candidate).max(axis=1)
@@ -317,6 +394,13 @@ class TestFTARM(unittest.TestCase):
         assert (l2_indices == torch.tensor([0, 1, 3, 4, 5])).all()
 
     def test_make_candidate_3_itemsets(self):
+        """
+        Test that the algorithm produces the correct 3-itemsets,
+        as outlined in the original paper.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -330,6 +414,13 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports).all()
 
     def test_make_candidate_4_itemsets(self):
+        """
+        Test that the algorithm does not incorrectly find any 4-itemset candidates,
+        as outlined in the original paper.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -340,6 +431,13 @@ class TestFTARM(unittest.TestCase):
         assert c4_indices == expected_candidate_indices
 
     def test_execute(self):
+        """
+        Test that the algorithm - when fully executed, finds the expected candidates,
+        as outlined in the original paper.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -353,6 +451,13 @@ class TestFTARM(unittest.TestCase):
         assert candidates_family[1] == [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
 
     def test_find_association_rules(self):
+        """
+        Test that the algorithm - when fully executed, finds the expected association rules,
+        as outlined in the original paper.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -430,6 +535,12 @@ class TestFTARM(unittest.TestCase):
         ]
 
     def test_closed_itemsets(self):
+        """
+        Test that the correct itemsets are being identified as closed itemsets.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
@@ -444,6 +555,12 @@ class TestFTARM(unittest.TestCase):
         }
 
     def test_maximal_itemsets(self):
+        """
+        Test that the correct itemsets are being identified as maximal itemsets.
+
+        Returns:
+            None
+        """
         dataframe, knowledge_base = make_example()
         ftarm = FTARM(dataframe, knowledge_base,
                       config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
