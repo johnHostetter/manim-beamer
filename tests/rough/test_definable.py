@@ -7,7 +7,8 @@ class TestDefinable(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(0, 11)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.E1 = {'x0', 'x1'}
         self.E2 = {'x2', 'x6', 'x9'}
         self.E3 = {'x3', 'x5'}

@@ -7,7 +7,8 @@ class TestRoughSets(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
-        self.gg = KnowledgeBase(self.universe)
+        self.gg = KnowledgeBase()
+        self.gg.set_granules(self.universe)
         self.E1 = {'x1', 'x4', 'x8'}
         self.E2 = {'x2', 'x5', 'x7'}
         self.E3 = {'x3'}
@@ -86,7 +87,8 @@ class TestApproximationOfClassifications(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.X1 = {'x1', 'x3', 'x5'}
         self.X2 = {'x2', 'x4'}
         self.X3 = {'x6', 'x7', 'x8'}

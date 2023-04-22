@@ -9,7 +9,8 @@ class TestEquivalenceRelation(unittest.TestCase):
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
 
     def test_get_category(self):
-        kb = KnowledgeBase(self.universe)
+        kb = KnowledgeBase()
+        kb.set_granules(self.universe)
         kb.add_parent_relation('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
         kb.add_parent_relation('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
         kb.add_parent_relation('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
@@ -65,7 +66,8 @@ class TestIndiscernibilityRelation(unittest.TestCase):
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 10)])
 
     def test_indiscernibility(self):
-        kb = KnowledgeBase(self.universe)
+        kb = KnowledgeBase()
+        kb.set_granules(self.universe)
         kb.add_parent_relation('R1', ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}))
         kb.add_parent_relation('R2', ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}))
         kb.add_parent_relation('R3', ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'}))
@@ -80,7 +82,8 @@ class TestRoughEqualityOfSets(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.E1 = {'x2', 'x3'}
         self.E2 = {'x1', 'x4', 'x5'}
         self.E3 = {'x6'}
@@ -115,7 +118,8 @@ class TestRoughInclusionOfSets(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.E1 = {'x2', 'x3'}
         self.E2 = {'x1', 'x4', 'x5'}
         self.E3 = {'x6'}

@@ -7,7 +7,8 @@ class TestDiscernibility(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 6))
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.kb.add_parent_relation('a', ({1}, {2, 3, 5}, {4}))
         self.kb.add_parent_relation('b', ({3}, {1, 4, 5}, {2}))
         self.kb.add_parent_relation('c', ({2, 4, 5}, {3}, {1}))

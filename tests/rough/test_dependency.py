@@ -18,7 +18,8 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         Returns:
 
         """
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.kb.add_parent_relation('P', ({1, 5}, {2, 8}, {3}, {4}, {6}, {7}))
         self.kb.add_parent_relation('Q', ({1, 5}, {2, 7, 8}, {3, 4, 6}))
 
@@ -32,7 +33,8 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
             assert self.kb.lower({'P'}, X)
 
     def test_partial_depends_on(self):
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         X1, X2, X3, X4, X5 = {1}, {2, 7}, {3, 6}, {4}, {5, 8}
         Y1, Y2, Y3, Y4, Y5, Y6 = {1, 5}, {2, 8}, {3}, {4}, {6}, {7}
         self.kb.add_parent_relation('Q', (X1, X2, X3, X4, X5))

@@ -7,8 +7,10 @@ class TestEquivalentKnowledge(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 10)])
-        self.knowledge_1 = KnowledgeBase(self.universe)
-        self.knowledge_2 = KnowledgeBase(self.universe)
+        self.knowledge_1 = KnowledgeBase()
+        self.knowledge_1.set_granules(self.universe)
+        self.knowledge_2 = KnowledgeBase()
+        self.knowledge_2.set_granules(self.universe)
 
     def test_equivalent_knowledge(self):
         for kb in [self.knowledge_1, self.knowledge_2]:
@@ -45,7 +47,8 @@ class TestReductionOfKnowledge(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 10)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.kb.add_parent_relation('P', {frozenset({'x1', 'x4', 'x5'}), frozenset({'x2', 'x8'}),
                                           frozenset({'x3'}), frozenset({'x6', 'x7'})})
         self.kb.add_parent_relation('Q', {frozenset({'x1', 'x3', 'x5'}), frozenset({'x6'}),
@@ -90,7 +93,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.kb.add_parent_relation('P', {frozenset({'x1', 'x3', 'x4', 'x5', 'x6', 'x7'}), frozenset({'x2', 'x8'})})
         self.kb.add_parent_relation('Q', {frozenset({'x1', 'x3', 'x4', 'x5'}), frozenset({'x2', 'x6', 'x7', 'x8'})})
         self.kb.add_parent_relation('R', {frozenset({'x1', 'x5', 'x6'}), frozenset({'x2', 'x7', 'x8'}), frozenset({'x3', 'x4'})})
@@ -152,7 +156,8 @@ class TestReductionOfCategories(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(['x{}'.format(i) for i in range(1, 9)])
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
 
     def test_family_intersection(self):
         self.kb.add_parent_relation('X', {frozenset({'x1', 'x3', 'x8'})})

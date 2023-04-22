@@ -7,7 +7,8 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 9))
-        self.kb = KnowledgeBase(self.universe)
+        self.kb = KnowledgeBase()
+        self.kb.set_granules(self.universe)
         self.kb.add_parent_relation('a', ({2, 8}, {1, 4, 5}, {3, 6, 7}))
         self.kb.add_parent_relation('b', ({1, 3, 5}, {2, 4, 7, 8}, {6}))
         self.kb.add_parent_relation('c', ({3, 4, 6}, {2, 7, 8}, {1, 5}))
