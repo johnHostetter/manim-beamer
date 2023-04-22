@@ -4,6 +4,7 @@ Test the Mamdani FLC is working as intended, such as its output is correctly cal
 import unittest
 
 import torch
+import numpy as np
 
 from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
@@ -74,6 +75,19 @@ class TestMamdani(unittest.TestCase):
 
         flc = Mamdani(
             out_features=len(consequents), knowledge_base=knowledge_base, learning_rate=1e-3)
+
+        # check the intra-dimensionality of the input & output spaces are correctly calculated
+        assert all(flc.knowledge_base.intra_dimensions(True) == np.array([
+            term.in_features for term in antecedents]))
+        assert all(flc.knowledge_base.intra_dimensions(False) == np.array([
+            term.in_features for term in consequents]))
+        # the above is required to generate the correct links shape for fuzzy inference
+
+        # check the variable dimensionality of the input & output spaces is correctly calculated
+        assert flc.knowledge_base.variable_dimensions(True) == len(antecedents)
+        assert flc.knowledge_base.variable_dimensions(False) == len(consequents)
+        # the above is required to generate the correct links shape for fuzzy inference
+
         predicted_y = flc(input_data)
         assert (predicted_y == torch.zeros(input_data.shape[0])).all()
 
