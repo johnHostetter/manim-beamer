@@ -20,9 +20,9 @@ class TestMamdani(unittest.TestCase):
     Test the Mamdani neuro-fuzzy network.
     """
 
-    def test_tsk(self):
+    def test_mamdani(self):
         """
-        Test the zero-order TSK neuro-fuzzy network.
+        Test the Mamdani neuro-fuzzy network.
 
         Returns:
             None
@@ -33,21 +33,21 @@ class TestMamdani(unittest.TestCase):
         actual_y = torch.tensor([1.5, 0.6, 0.9, 0.7, 1.3]).float()
 
         antecedents = [
-            Gaussian(4, centers=torch.tensor([1.2, 3.0, 5.0, 7.0]).float(),
+            Gaussian(in_features=4, centers=torch.tensor([1.2, 3.0, 5.0, 7.0]).float(),
                      widths=torch.tensor([0.1, 0.4, 0.6, 0.8]).float()),
-            Gaussian(4, centers=torch.tensor([0.2, 0.6, 0.9, 1.2]).float(),
+            Gaussian(in_features=4, centers=torch.tensor([0.2, 0.6, 0.9, 1.2]).float(),
                      widths=torch.tensor([0.4, 0.4, 0.5, 0.45]).float())
         ]
 
         consequents = [
             Gaussian(
                 in_features=4,
-                centers=torch.tensor([1.2, 3.0, 5.0, 7.0]).float(),
+                centers=torch.tensor([0.5, 0.3, 0.1, 0.9]).float(),
                 widths=torch.tensor([0.1, 0.4, 0.6, 0.8]).float()
             ),
             Gaussian(
                 in_features=3,
-                centers=torch.tensor([0.2, 0.6, 0.9]).float(),
+                centers=torch.tensor([-0.2, -0.7, -0.9]).float(),
                 widths=torch.tensor([0.4, 0.4, 0.5]).float()
             )
         ]
@@ -72,7 +72,8 @@ class TestMamdani(unittest.TestCase):
         # the rules we have added should exist how we expected them
         assert knowledge_base.get_fuzzy_logic_rules() == rules
 
-        flc = Mamdani(knowledge_base=knowledge_base, learning_rate=1e-3)
+        flc = Mamdani(
+            out_features=len(consequents), knowledge_base=knowledge_base, learning_rate=1e-3)
         predicted_y = flc(input_data)
         assert (predicted_y == torch.zeros(input_data.shape[0])).all()
 
