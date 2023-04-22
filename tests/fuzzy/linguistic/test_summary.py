@@ -101,7 +101,7 @@ def fitness_function_factory(input_data, antecedents):
     return fitness_function
 
 
-def test_scenario_1():
+def scenario_1():
     """
     Create a simple test scenario that has only a few terms and a couple data observations.
 
@@ -122,7 +122,7 @@ def test_scenario_1():
     return input_data, query, summary
 
 
-def test_scenario_2():
+def scenario_2():
     """
     Create a larger but simpler test scenario that has only a some terms and more data observations.
 
@@ -296,7 +296,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(summary.degree_of_truth(input_data, query=query),
                              torch.tensor(0.3612580895423889))
 
@@ -307,7 +307,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, _, summary = test_scenario_1()
+        input_data, _, summary = scenario_1()
         assert torch.isclose(summary.degree_of_imprecision(input_data, alpha=0.3),
                              torch.tensor(1 / 4))
 
@@ -318,7 +318,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(summary.degree_of_covering(input_data, alpha=0.3, query=query),
                              torch.tensor(2 / 3))
 
@@ -329,7 +329,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(
             summary.degree_of_appropriateness(input_data, alpha=0.3, query=query),
             torch.tensor(0.10416668653488159))
@@ -358,7 +358,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(summary.degree_of_validity(input_data, alpha=0.3, query=query),
                              torch.tensor(0.3764182925224304))
 
@@ -370,7 +370,7 @@ class TestSummary(unittest.TestCase):
             None
         """
         set_rng(0)
-        dataset, _, summary, linguistic_terms = test_scenario_2()
+        dataset, _, summary, linguistic_terms = scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
             for max_terms in summary.knowledge_base.intra_dimensions()
@@ -425,7 +425,7 @@ class TestSummary(unittest.TestCase):
             None
         """
         set_rng(0)
-        dataset, _, summary, linguistic_terms = test_scenario_2()
+        dataset, _, summary, linguistic_terms = scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
             for max_terms in summary.knowledge_base.intra_dimensions()

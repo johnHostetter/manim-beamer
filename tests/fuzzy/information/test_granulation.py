@@ -26,7 +26,8 @@ class TestGranulation(unittest.TestCase):
         Returns:
             None
         """
-        knowledge_base = KnowledgeBase(self.granules)
+        knowledge_base = KnowledgeBase()
+        knowledge_base.set_granules(self.granules)
         knowledge_base.add_fuzzy_granules(self.granules)
         expected_nodes = {
             (0, 1), (0, 7), (2, 4), (1, 2), (0, 4), (2, 1), (0, 0), (1, 1), (0, 3),
