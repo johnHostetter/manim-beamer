@@ -1,3 +1,7 @@
+"""
+Test the self-organizing procedures of the soft computing library, such as self-organizing fuzzy
+reinforcement learning.
+"""
 import os
 import shutil
 import pathlib
@@ -7,13 +11,13 @@ import torch
 import numpy as np
 
 from utils.reproducibility import set_rng
-from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
-from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
+from soft.fuzzy.sets.continuous import Gaussian
+from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 # the following algorithms are eligible for self-organizing neuro-fuzzy networks
 from soft.fuzzy.online.unsupervised.cluster.ecm import apply_evolving_clustering_method
 from soft.fuzzy.online.unsupervised.granulation.clip import \

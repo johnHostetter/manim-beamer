@@ -1,130 +1,230 @@
+"""
+Test the KnowledgeBase correctly handles fundamental rough set theory operations such as the
+calculations of cores, reducts, dispensability, etc.
+"""
 import unittest
 
 from soft.computing.knowledge import KnowledgeBase
 
 
+def make_example():
+    """
+    Make an example that is commonly used between different test scenarios.
+
+    Returns:
+        universe of discourse (frozenset), KnowledgeBase
+    """
+    universe = frozenset(range(1, 9))
+    knowledge_base = KnowledgeBase()
+    knowledge_base.set_granules(universe)
+    knowledge_base.add_parent_relation('a', ({2, 8}, {1, 4, 5}, {3, 6, 7}))
+    knowledge_base.add_parent_relation('b', ({1, 3, 5}, {2, 4, 7, 8}, {6}))
+    knowledge_base.add_parent_relation('c', ({3, 4, 6}, {2, 7, 8}, {1, 5}))
+    knowledge_base.add_parent_relation('d', ({5, 8}, {2, 3, 6, 7}, {1, 4}))
+    knowledge_base.add_parent_relation('e', ({1}, {3, 5, 6, 8}, {2, 4, 7}))
+    return universe, knowledge_base
+
+
 class TestKnowledgeRepresentationSystem(unittest.TestCase):
+    """
+    Test the KnowledgeBase correctly handles various functionality such as cores, reducts, etc.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.universe = frozenset(range(1, 9))
-        self.kb = KnowledgeBase(self.universe)
-        self.kb.add_parent_relation('a', ({2, 8}, {1, 4, 5}, {3, 6, 7}))
-        self.kb.add_parent_relation('b', ({1, 3, 5}, {2, 4, 7, 8}, {6}))
-        self.kb.add_parent_relation('c', ({3, 4, 6}, {2, 7, 8}, {1, 5}))
-        self.kb.add_parent_relation('d', ({5, 8}, {2, 3, 6, 7}, {1, 4}))
-        self.kb.add_parent_relation('e', ({1}, {3, 5, 6, 8}, {2, 4, 7}))
+        self.universe, self.knowledge_base = make_example()
 
     def test_exemplary_partitions(self):
-        assert self.kb.IND('a') == {frozenset({8, 2}), frozenset({3, 6, 7}), frozenset({1, 4, 5})}
-        assert self.kb.IND('b') == {frozenset({8, 2, 4, 7}), frozenset({1, 3, 5}), frozenset({6})}
-        assert self.kb.IND({'c', 'd'}) == {
-            frozenset({3, 6}), frozenset({8}), frozenset({1}), frozenset({5}), frozenset({2, 7}), frozenset({4})
+        """
+        Test the exemplary partitions of the KnowledgeBase, which are calculated using the
+        indiscernibility relation.
+
+        Returns:
+            None
+        """
+        assert self.knowledge_base.IND('a') == {
+            frozenset({8, 2}), frozenset({3, 6, 7}), frozenset({1, 4, 5})}
+        assert self.knowledge_base.IND('b') == {
+            frozenset({8, 2, 4, 7}), frozenset({1, 3, 5}), frozenset({6})}
+        assert self.knowledge_base.IND({'c', 'd'}) == {
+            frozenset({3, 6}), frozenset({8}), frozenset({1}),
+            frozenset({5}), frozenset({2, 7}), frozenset({4})
         }
-        assert self.kb.IND({'a', 'b', 'c'}) == {
-            frozenset({8, 2}), frozenset({7}), frozenset({3}), frozenset({1, 5}), frozenset({6}), frozenset({4})
+        assert self.knowledge_base.IND({'a', 'b', 'c'}) == {
+            frozenset({8, 2}), frozenset({7}), frozenset({3}),
+            frozenset({1, 5}), frozenset({6}), frozenset({4})
         }
 
     def test_set_approximations(self):
-        C, X = {'a', 'b', 'c'}, set(range(1, 6))
+        """
+        Test that set approximations with lower, upper, and boundary are correctly calculated.
 
-        assert self.kb.lower(C, X) == frozenset({1, 3, 4, 5})
-        assert self.kb.upper(C, X) == frozenset({1, 2, 3, 4, 5, 8})
-        # unable to decide if 2 or 8 belong to the set X or not, using attributes C
-        assert self.kb.boundary(C, X) == frozenset({2, 8})
+        Returns:
+            None
+        """
+        set_c, set_x = {'a', 'b', 'c'}, set(range(1, 6))
+
+        assert self.knowledge_base.lower(set_c, set_x) == frozenset({1, 3, 4, 5})
+        assert self.knowledge_base.upper(set_c, set_x) == frozenset({1, 2, 3, 4, 5, 8})
+        # unable to decide if 2 or 8 belong to the set set_x or not, using attributes set_c
+        assert self.knowledge_base.boundary(set_c, set_x) == frozenset({2, 8})
 
     def test_dispensability(self):
-        C = {'a', 'b', 'c'}
+        """
+        Test attribute dispensability.
 
-        # the set of attributes C are dependent
-        assert self.kb.dependent(C, self.kb.IND)
+        Returns:
+            None
+        """
+        set_c = {'a', 'b', 'c'}
+
+        # the set of attributes set_c are dependent
+        assert self.knowledge_base.dependent(set_c, self.knowledge_base.IND)
         # attributes 'a' and 'b' are indispensable
-        assert self.kb.indispensable(C, 'a', self.kb.IND)
-        assert self.kb.indispensable(C, 'b', self.kb.IND)
+        assert self.knowledge_base.indispensable(set_c, 'a', self.knowledge_base.IND)
+        assert self.knowledge_base.indispensable(set_c, 'b', self.knowledge_base.IND)
         # attribute 'c' is dispensable
-        assert self.kb.dispensable(C, 'c', self.kb.IND)
+        assert self.knowledge_base.dispensable(set_c, 'c', self.knowledge_base.IND)
 
     def test_reduct(self):
-        C = {'a', 'b', 'c'}
+        """
+        Test that the reduct is correctly calculated.
 
-        # only one reduct in the set C
-        assert self.kb.RED(C, self.kb.IND) == frozenset({frozenset({'a', 'b'})})
+        Returns:
+            None
+        """
+        set_c = {'a', 'b', 'c'}
+
+        # only one reduct in the set set_c
+        assert self.knowledge_base.RED(set_c, self.knowledge_base.IND) == frozenset(
+            {frozenset({'a', 'b'})})
 
     def test_core(self):
-        C = {'a', 'b', 'c'}
+        """
+        Test that the core is correctly calculated.
 
-        # only one core in the set C
-        assert self.kb.CORE(C, self.kb.IND) == frozenset({'a', 'b'})
+        Returns:
+            None
+        """
+        set_c = {'a', 'b', 'c'}
+
+        # only one core in the set set_c
+        assert self.knowledge_base.CORE(set_c, self.knowledge_base.IND) == frozenset(
+            {'a', 'b'})
 
     def test_dependency(self):
-        # since {'a', 'b'} are the reduct & core of set C, then we have the dependency: {'a', 'b'} ==> {'c'}
-        assert self.kb.depends_on({'a', 'b'}, {'c'})
-        assert self.kb.IND({'a', 'b'}) == {
-            frozenset({1, 5}), frozenset({2, 8}), frozenset({3}), frozenset({4}), frozenset({6}), frozenset({7})
+        """
+        Test that dependency is correctly calculated.
+
+        Returns:
+            None
+        """
+        # since {'a', 'b'} are the reduct & core of set set_c,
+        # then we have the dependency: {'a', 'b'} ==> {'c'}
+        assert self.knowledge_base.depends_on({'a', 'b'}, {'c'})
+        assert self.knowledge_base.IND({'a', 'b'}) == {
+            frozenset({1, 5}), frozenset({2, 8}), frozenset({3}),
+            frozenset({4}), frozenset({6}), frozenset({7})
         }
-        assert self.kb.IND({'c'}) == {frozenset({1, 5}), frozenset({2, 7, 8}), frozenset({3, 4, 6})}
+        assert self.knowledge_base.IND({'c'}) == {
+            frozenset({1, 5}), frozenset({2, 7, 8}), frozenset({3, 4, 6})
+        }
 
     def test_attribute_dependency(self):
-        C, D = {'a', 'b', 'c'}, {'d', 'e'}
-        X1, X2, X3, X4, X5 = {1}, {2, 7}, {3, 6}, {4}, {5, 8}
-        Y1, Y2, Y3, Y4, Y5, Y6 = {1, 5}, {2, 8}, {3}, {4}, {6}, {7}
+        """
+        Test the dependency between two groups of attributes.
 
-        assert self.kb.IND(D) == {
-            frozenset(X1), frozenset(X2), frozenset(X3), frozenset(X4), frozenset(X5)
+        Returns:
+            None
+        """
+        set_c, set_d = {'a', 'b', 'c'}, {'d', 'e'}
+        set_x_1, set_x_2, set_x_3, set_x_4, set_x_5 = {1}, {2, 7}, {3, 6}, {4}, {5, 8}
+        set_y_1, set_y_2, set_y_3, set_y_4, set_y_5, set_y_6 = {1, 5}, {2, 8}, {3}, {4}, {6}, {7}
+
+        assert self.knowledge_base.IND(set_d) == {
+            frozenset(set_x_1), frozenset(set_x_2), frozenset(set_x_3),
+            frozenset(set_x_4), frozenset(set_x_5)
         }
 
-        assert self.kb.IND(C) == {
-            frozenset(Y1), frozenset(Y2), frozenset(Y3), frozenset(Y4), frozenset(Y5), frozenset(Y6)
+        assert self.knowledge_base.IND(set_c) == {
+            frozenset(set_y_1), frozenset(set_y_2), frozenset(set_y_3),
+            frozenset(set_y_4), frozenset(set_y_5), frozenset(set_y_6)
         }
 
-        assert self.kb.lower(C, X1) == frozenset()
-        assert self.kb.lower(C, X2) == frozenset(Y6)
-        assert self.kb.lower(C, X3) == frozenset(Y3.union(Y5))
-        assert self.kb.lower(C, X4) == frozenset(Y4)
-        assert self.kb.lower(C, X5) == frozenset()
+        assert self.knowledge_base.lower(set_c, set_x_1) == frozenset()
+        assert self.knowledge_base.lower(set_c, set_x_2) == frozenset(set_y_6)
+        assert self.knowledge_base.lower(
+            set_c, set_x_3) == frozenset(set_y_3.union(set_y_5))
+        assert self.knowledge_base.lower(set_c, set_x_4) == frozenset(set_y_4)
+        assert self.knowledge_base.lower(set_c, set_x_5) == frozenset()
 
-        # only these elements can be classified into blocks of the partition U / IND(D) using C
-        assert self.kb.POS(C, D) == frozenset(Y3).union(Y4, Y5, Y6)
+        # only these elements can be classified into
+        # blocks of the partition U / IND(set_d) using set_c
+        assert self.knowledge_base.POS(
+            set_c, set_d) == frozenset(set_y_3).union(set_y_4, set_y_5, set_y_6)
 
-        assert self.kb.partial_depends_on(C, D) == 0.5
+        assert self.knowledge_base.partial_depends_on(set_c, set_d) == 0.5
 
-        assert self.kb.independent_of(C, D)
-        assert self.kb.indispensable(C, 'a', self.kb.POS, D)
-        assert not self.kb.dispensable(C, 'a', self.kb.POS, D)
+        assert self.knowledge_base.independent_of(set_c, set_d)
+        assert self.knowledge_base.indispensable(set_c, 'a', self.knowledge_base.POS, set_d)
+        assert not self.knowledge_base.dispensable(set_c, 'a', self.knowledge_base.POS, set_d)
 
-        assert self.kb.Q_CORE(C, D) == frozenset({'a'})
-        assert self.kb.Q_RED(C, D) == frozenset({frozenset({'a', 'b'}), frozenset({'a', 'c'})})
+        assert self.knowledge_base.Q_CORE(set_c, set_d) == frozenset({'a'})
+        assert self.knowledge_base.Q_RED(set_c, set_d) == frozenset({
+            frozenset({'a', 'b'}), frozenset({'a', 'c'})})
 
         # the above means that the following dependencies hold:
-        # TODO: this may be wrong, but the same example says that using C we can only classify 4 objects in U / IND(D)
-        assert self.kb.partial_depends_on({'a', 'b'}, {'d', 'e'}) > 0
-        assert self.kb.partial_depends_on({'a', 'c'}, {'d', 'e'}) > 0
+        # WARNING: this may be wrong, but the same example says that
+        # using set_c we can only classify 4 objects in U / IND(set_d)
+        assert self.knowledge_base.partial_depends_on({'a', 'b'}, {'d', 'e'}) > 0
+        assert self.knowledge_base.partial_depends_on({'a', 'c'}, {'d', 'e'}) > 0
 
     def test_significance_of_attributes(self):
-        C, D = {'a', 'b', 'c'}, {'d', 'e'}
+        """
+        Test that the significance of attributes is correctly calculated. The attribute's
+        significance is determined by whether the partial dependency changes after its removal.
 
-        assert self.kb.IND({'b', 'c'}) == {
-            frozenset({1, 5}), frozenset({2, 7, 8}), frozenset({3}), frozenset({4}), frozenset({6})}
-        assert self.kb.IND({'a', 'c'}) == {
-            frozenset({1, 5}), frozenset({2, 8}), frozenset({3, 6}), frozenset({4}), frozenset({7})}
-        assert self.kb.IND({'a', 'b'}) == {
-            frozenset({1, 5}), frozenset({2, 8}), frozenset({3}), frozenset({4}), frozenset({6}), frozenset({7})}
-        assert self.kb.IND({'d', 'e'}) == {
-            frozenset({1}), frozenset({2, 7}), frozenset({3, 6}), frozenset({4}), frozenset({5, 8})
+        Returns:
+            None
+        """
+        set_c, set_d = {'a', 'b', 'c'}, {'d', 'e'}
+
+        assert self.knowledge_base.IND({'b', 'c'}) == {
+            frozenset({1, 5}), frozenset({2, 7, 8}), frozenset({3}),
+            frozenset({4}), frozenset({6})}
+        assert self.knowledge_base.IND({'a', 'c'}) == {
+            frozenset({1, 5}), frozenset({2, 8}), frozenset({3, 6}),
+            frozenset({4}), frozenset({7})}
+        assert self.knowledge_base.IND({'a', 'b'}) == {
+            frozenset({1, 5}), frozenset({2, 8}), frozenset({3}),
+            frozenset({4}), frozenset({6}), frozenset({7})}
+        assert self.knowledge_base.IND({'d', 'e'}) == {
+            frozenset({1}), frozenset({2, 7}), frozenset({3, 6}),
+            frozenset({4}), frozenset({5, 8})
         }
 
-        assert self.kb.POS(C - {'a'}, D) == frozenset({3, 4, 6})
-        assert self.kb.POS(C - {'b'}, D) == frozenset({3, 4, 6, 7})
-        assert self.kb.POS(C - {'c'}, D) == frozenset({3, 4, 6, 7})
+        assert self.knowledge_base.POS(set_c - {'a'}, set_d) == frozenset({3, 4, 6})
+        assert self.knowledge_base.POS(set_c - {'b'}, set_d) == frozenset({3, 4, 6, 7})
+        assert self.knowledge_base.POS(set_c - {'c'}, set_d) == frozenset({3, 4, 6, 7})
 
-        # attribute significance is the difference in the partial dependency upon the removal of attributes (pg. 58)
-        # attribute 'a' is the most significant (i.e., w/o 'a' we cannot classify object 7 to classes of U / IND(D))
-        assert (self.kb.partial_depends_on(C, D) - self.kb.partial_depends_on(C - {'a'}, D)) == 0.125
-        assert (self.kb.partial_depends_on(C, D) - self.kb.partial_depends_on(C - {'b'}, D)) == 0.
-        assert (self.kb.partial_depends_on(C, D) - self.kb.partial_depends_on(C - {'c'}, D)) == 0.
+        # attribute significance is the difference in the partial dependency
+        # upon the removal of attributes (pg. 58)
+        # attribute 'a' is the most significant
+        # (i.e., w/o 'a' we cannot classify object 7 to classes of U / IND(set_d))
+        assert self.knowledge_base.partial_depends_on(
+            set_c, set_d) - self.knowledge_base.partial_depends_on(set_c - {'a'}, set_d) == 0.125
+        assert self.knowledge_base.partial_depends_on(
+            set_c, set_d) - self.knowledge_base.partial_depends_on(set_c - {'b'}, set_d) == 0.
+        assert self.knowledge_base.partial_depends_on(
+            set_c, set_d) - self.knowledge_base.partial_depends_on(set_c - {'c'}, set_d) == 0.
 
-        assert not self.kb.Q_dispensable(C, D, 'a')  # attribute 'a' is D-indispensable
-        assert self.kb.Q_dispensable(C, D, 'b')  # attribute 'b' is D-dispensable
-        assert self.kb.Q_dispensable(C, D, 'c')  # attribute 'c' is D-dispensable
+        assert not self.knowledge_base.Q_dispensable(
+            set_c, set_d, 'a')  # attribute 'a' is set_d-indispensable
+        assert self.knowledge_base.Q_dispensable(
+            set_c, set_d, 'b')  # attribute 'b' is set_d-dispensable
+        assert self.knowledge_base.Q_dispensable(
+            set_c, set_d, 'c')  # attribute 'c' is set_d-dispensable
 
-        assert self.kb.Q_CORE(C, D) == frozenset({'a'})
-        assert self.kb.Q_RED(C, D) == frozenset({frozenset({'a', 'b'}), frozenset({'a', 'c'})})
+        assert self.knowledge_base.Q_CORE(
+            set_c, set_d) == frozenset({'a'})
+        assert self.knowledge_base.Q_RED(
+            set_c, set_d) == frozenset({frozenset({'a', 'b'}), frozenset({'a', 'c'})})

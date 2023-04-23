@@ -101,7 +101,7 @@ def fitness_function_factory(input_data, antecedents):
     return fitness_function
 
 
-def test_scenario_1():
+def scenario_1():
     """
     Create a simple test scenario that has only a few terms and a couple data observations.
 
@@ -122,7 +122,7 @@ def test_scenario_1():
     return input_data, query, summary
 
 
-def test_scenario_2():
+def scenario_2():
     """
     Create a larger but simpler test scenario that has only a some terms and more data observations.
 
@@ -254,9 +254,11 @@ class TestSummary(unittest.TestCase):
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
                  Gaussian(1, centers=[0.4], widths=[0.25])]
-        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(), implication=AlgebraicProduct)
-        knowledge_base = expert_design(
-            terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the inguistic summary
+        rule = Rule(
+            premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+            implication=AlgebraicProduct)
+        knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
+            terms, consequents=[], rules=[rule], config={})
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -273,9 +275,11 @@ class TestSummary(unittest.TestCase):
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
                  Gaussian(1, centers=[0.4], widths=[0.25])]
-        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(), implication=AlgebraicProduct)
-        knowledge_base = expert_design(
-            terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the inguistic summary
+        rule = Rule(
+            premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+            implication=AlgebraicProduct)
+        knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
+            terms, consequents=[], rules=[rule], config={})
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -296,7 +300,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(summary.degree_of_truth(input_data, query=query),
                              torch.tensor(0.3612580895423889))
 
@@ -307,7 +311,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, _, summary = test_scenario_1()
+        input_data, _, summary = scenario_1()
         assert torch.isclose(summary.degree_of_imprecision(input_data, alpha=0.3),
                              torch.tensor(1 / 4))
 
@@ -318,7 +322,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(summary.degree_of_covering(input_data, alpha=0.3, query=query),
                              torch.tensor(2 / 3))
 
@@ -329,7 +333,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(
             summary.degree_of_appropriateness(input_data, alpha=0.3, query=query),
             torch.tensor(0.10416668653488159))
@@ -358,7 +362,7 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        input_data, query, summary = test_scenario_1()
+        input_data, query, summary = scenario_1()
         assert torch.isclose(summary.degree_of_validity(input_data, alpha=0.3, query=query),
                              torch.tensor(0.3764182925224304))
 
@@ -370,10 +374,10 @@ class TestSummary(unittest.TestCase):
             None
         """
         set_rng(0)
-        dataset, _, summary, linguistic_terms = test_scenario_2()
+        dataset, _, summary, linguistic_terms = scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
-            for max_terms in summary.knowledge_base.intra_dimensions()
+            for max_terms in summary.knowledge_base.intra_dimensions(is_input=True)
         ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
@@ -381,7 +385,7 @@ class TestSummary(unittest.TestCase):
                                fitness_func=fitness_function_factory(
                                    input_data=dataset, antecedents=linguistic_terms),
                                sol_per_pop=10,
-                               num_genes=summary.knowledge_base.variable_dimensions(),
+                               num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
                                mutation_num_genes=1,
                                gene_space=gene_space,
                                on_start=check_initial_population,
@@ -425,10 +429,10 @@ class TestSummary(unittest.TestCase):
             None
         """
         set_rng(0)
-        dataset, _, summary, linguistic_terms = test_scenario_2()
+        dataset, _, summary, linguistic_terms = scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
-            for max_terms in summary.knowledge_base.intra_dimensions()
+            for max_terms in summary.knowledge_base.intra_dimensions(is_input=True)
         ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
@@ -436,7 +440,7 @@ class TestSummary(unittest.TestCase):
                                fitness_func=fitness_function_factory(
                                    input_data=dataset, antecedents=linguistic_terms),
                                sol_per_pop=10,
-                               num_genes=summary.knowledge_base.variable_dimensions(),
+                               num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
                                mutation_num_genes=1,
                                gene_space=gene_space,
                                on_start=check_initial_population,

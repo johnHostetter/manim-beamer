@@ -191,7 +191,7 @@ class TestFTARM(unittest.TestCase):
               [0., 0., 0., 0., 0., 0.]]]
         )
 
-        assert (minimum_inference_engine.links == expected_links).all()
+        assert (minimum_inference_engine.links['input'] == expected_links).all()
 
         expected_offset = torch.tensor(
             [[0., 0., 0., 1., 1., 1.],
@@ -201,7 +201,7 @@ class TestFTARM(unittest.TestCase):
              [1., 1., 0., 1., 0., 0.]]
         )
 
-        assert (minimum_inference_engine.offset == expected_offset).all()
+        assert (minimum_inference_engine.offset['input'] == expected_offset).all()
 
         actual_antecedents_memberships = ftarm.granulation(
             torch.tensor(dataframe[ftarm.variables].values).float())
@@ -235,7 +235,7 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(
             actual_antecedents_memberships, expected_memberships, equal_nan=True).all()
 
-        actual_intermediate_output = minimum_inference_engine.calc_intermediate_output(
+        actual_intermediate_output = minimum_inference_engine.calc_intermediate_input(
             actual_antecedents_memberships)
         expected_intermediate_output = torch.tensor(
             [[[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],

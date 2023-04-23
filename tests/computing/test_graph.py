@@ -1,3 +1,6 @@
+"""
+Test properties of KnowledgeBase, such as how attributes of observations or granules are stored.
+"""
 import unittest
 
 from soft.computing.knowledge import KnowledgeBase
@@ -19,7 +22,8 @@ class TestKnowledgeBase(unittest.TestCase):
             None
         """
         universe = frozenset([f"x{i}" for i in range(1, 11)])
-        knowledge_base = KnowledgeBase(universe)
+        knowledge_base = KnowledgeBase()
+        knowledge_base.set_granules(universe)
         # group up data points that share the same value for the respective attribute
         attribute_groupings = {
             # for example, 'x1', 'x2', 'x10' have the same value for attribute 'a'
