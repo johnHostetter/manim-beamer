@@ -254,9 +254,11 @@ class TestSummary(unittest.TestCase):
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
                  Gaussian(1, centers=[0.4], widths=[0.25])]
-        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(), implication=AlgebraicProduct)
-        knowledge_base = expert_design(
-            terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the inguistic summary
+        rule = Rule(
+            premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+            implication=AlgebraicProduct)
+        knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
+            terms, consequents=[], rules=[rule], config={})
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -273,9 +275,11 @@ class TestSummary(unittest.TestCase):
         """
         terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
                  Gaussian(1, centers=[0.4], widths=[0.25])]
-        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(), implication=AlgebraicProduct)
-        knowledge_base = expert_design(
-            terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the inguistic summary
+        rule = Rule(
+            premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
+            implication=AlgebraicProduct)
+        knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
+            terms, consequents=[], rules=[rule], config={})
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
