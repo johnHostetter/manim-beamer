@@ -73,23 +73,24 @@ class TestMamdani(unittest.TestCase):
         # the rules we have added should exist how we expected them
         assert knowledge_base.get_fuzzy_logic_rules() == rules
 
-        flc = Mamdani(
-            out_features=len(consequents), knowledge_base=knowledge_base, learning_rate=1e-3)
-
         # check the intra-dimensionality of the input & output spaces are correctly calculated
-        assert all(flc.knowledge_base.intra_dimensions(True) == np.array([
+        assert all(knowledge_base.intra_dimensions(True) == np.array([
             term.in_features for term in antecedents]))
-        assert all(flc.knowledge_base.intra_dimensions(False) == np.array([
+        assert all(knowledge_base.intra_dimensions(False) == np.array([
             term.in_features for term in consequents]))
         # the above is required to generate the correct links shape for fuzzy inference
 
         # check the variable dimensionality of the input & output spaces is correctly calculated
-        assert flc.knowledge_base.variable_dimensions(True) == len(antecedents)
-        assert flc.knowledge_base.variable_dimensions(False) == len(consequents)
+        assert knowledge_base.variable_dimensions(True) == len(antecedents)
+        assert knowledge_base.variable_dimensions(False) == len(consequents)
         # the above is required to generate the correct links shape for fuzzy inference
 
-        predicted_y = flc(input_data)
-        assert (predicted_y == torch.zeros(input_data.shape[0])).all()
+        input_links, input_offset = knowledge_base.matrix(AlgebraicProduct, is_input=True)
+        output_links, output_offset = knowledge_base.matrix(AlgebraicProduct, is_input=False)
+        knowledge_base.graph.vs[20]['type'].area()
+
+        flc = Mamdani(
+            out_features=len(consequents), knowledge_base=knowledge_base, learning_rate=1e-3)
 
         assert (flc.input_granulation.centers == torch.tensor([
             [1.2000, 3.0000, 5.0000, 7.0000],
@@ -99,4 +100,16 @@ class TestMamdani(unittest.TestCase):
             [0.1000, 0.4000, 0.6000, 0.8000],
             [0.4000, 0.4000, 0.5000, 0.4500]
         ])).all()
-        assert (flc.consequences() == torch.zeros((len(rules), flc.out_features()))).all()
+
+        areas = flc.output_granulation.area()
+        rule_activations = flc.fuzzy_inference(input_data).unsqueeze(dim=1).repeat(1, 2, 1)
+        intermediate_output = torch.max(
+            rule_activations.unsqueeze(dim=-1) * output_links.transpose(0, 1), dim=2).values
+        numerator = intermediate_output * flc.output_granulation.centers * areas
+        denominator = intermediate_output * flc.output_granulation.centers
+        output = (numerator / denominator).nansum(-1)
+        # temp * calculated_consequence.sum(-1).transpose(0, 1)
+        predicted_y = flc(input_data)
+        # assert (predicted_y == torch.zeros(input_data.shape[0])).all()
+
+        assert predicted_y == output
