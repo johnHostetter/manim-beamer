@@ -11,7 +11,7 @@ from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.computing.organize import add_stacked_granule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
-from soft.fuzzy.logic.inference.engines import ProductInference, MinimumInference
+from soft.fuzzy.logic.inference.engines import TSKProductInference, TSKMinimumInference
 
 set_rng(0)
 
@@ -71,8 +71,8 @@ class TestFuzzyInference(unittest.TestCase):
             None
         """
         out_features, consequences, links, offset, antecedents_memberships = make_test_scenario()
-        product_inference = ProductInference(out_features=out_features, consequences=consequences,
-                                             links=links, offset=offset)
+        product_inference = TSKProductInference(out_features=out_features, consequences=consequences,
+                                                links=links, offset=offset)
         actual_output = product_inference.calc_rules_applicability(antecedents_memberships)
         expected_output = torch.tensor([
             [9.52992122e-04, 1.44050468e-03, 5.64775779e-02, 8.53692423e-02, 1.74637646e-02],
@@ -90,8 +90,8 @@ class TestFuzzyInference(unittest.TestCase):
             None
         """
         out_features, consequences, links, offset, antecedents_memberships = make_test_scenario()
-        minimum_inference = MinimumInference(out_features=out_features, consequences=consequences,
-                                             links=links, offset=offset)
+        minimum_inference = TSKMinimumInference(out_features=out_features, consequences=consequences,
+                                                links=links, offset=offset)
         actual_output = minimum_inference.calc_rules_applicability(antecedents_memberships)
         expected_output = torch.tensor(
             [[0.00157003, 0.00157003, 0.09304529, 0.09304529, 0.09304529],

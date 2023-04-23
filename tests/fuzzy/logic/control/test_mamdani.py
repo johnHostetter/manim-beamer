@@ -10,8 +10,8 @@ from utils.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
-from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.control.controller import Mamdani
+from soft.fuzzy.relation.tnorm import AlgebraicProduct
 
 set_rng(0)
 
@@ -31,7 +31,6 @@ class TestMamdani(unittest.TestCase):
         input_data = torch.tensor([
             [1.2, 0.2], [1.1, 0.3], [2.1, 0.1], [2.7, 0.15], [1.7, 0.25]
         ]).float()
-        actual_y = torch.tensor([1.5, 0.6, 0.9, 0.7, 1.3]).float()
 
         antecedents = [
             Gaussian(in_features=4, centers=torch.tensor([1.2, 3.0, 5.0, 7.0]).float(),
@@ -85,13 +84,27 @@ class TestMamdani(unittest.TestCase):
         assert knowledge_base.variable_dimensions(False) == len(consequents)
         # the above is required to generate the correct links shape for fuzzy inference
 
-        input_links, input_offset = knowledge_base.matrix(AlgebraicProduct, is_input=True)
-        output_links, output_offset = knowledge_base.matrix(AlgebraicProduct, is_input=False)
-        knowledge_base.graph.vs[20]['type'].area()
-
         flc = Mamdani(
             out_features=len(consequents), knowledge_base=knowledge_base, learning_rate=1e-3)
 
+        # check that the intermediate structure of the Mamdani FLC is correctly built
+        input_links, input_offset = knowledge_base.matrix(AlgebraicProduct, is_input=True)
+        output_links, output_offset = knowledge_base.matrix(AlgebraicProduct, is_input=False)
+
+        # the following checks that the links between antecedents' memberships (input_links)
+        # and the links between rules' activations (output_links) to the consequence layer
+        # is correctly constructed and stored in the Mamdani FLC inference engine
+        assert torch.isclose(input_links, flc.engine.links['input']).all()
+        assert torch.isclose(output_links, flc.engine.links['output']).all()
+
+        # the following checks that the offset matrix is correctly constructed and stored in the
+        # Mamdani FLC inference engine; it is added to the steps in the event that a fuzzy set is
+        # missing in the input space (input_offset) or the output space (output_offset)
+        assert torch.isclose(input_offset, flc.engine.offset['input']).all()
+        assert torch.isclose(output_offset, flc.engine.offset['output']).all()
+
+        # check that the antecedents of the Mamdani FLC refers to the input
+        # granulation layer (i.e., the fuzzy sets defined in the input space)
         assert (flc.input_granulation.centers == torch.tensor([
             [1.2000, 3.0000, 5.0000, 7.0000],
             [0.2000, 0.6000, 0.9000, 1.2000]
@@ -101,15 +114,25 @@ class TestMamdani(unittest.TestCase):
             [0.4000, 0.4000, 0.5000, 0.4500]
         ])).all()
 
-        areas = flc.output_granulation.area()
-        rule_activations = flc.fuzzy_inference(input_data).unsqueeze(dim=1).repeat(1, 2, 1)
-        intermediate_output = torch.max(
-            rule_activations.unsqueeze(dim=-1) * output_links.transpose(0, 1), dim=2).values
-        numerator = intermediate_output * flc.output_granulation.centers * areas
-        denominator = intermediate_output * flc.output_granulation.centers
-        output = (numerator / denominator).nansum(-1)
-        # temp * calculated_consequence.sum(-1).transpose(0, 1)
-        predicted_y = flc(input_data)
-        # assert (predicted_y == torch.zeros(input_data.shape[0])).all()
+        # check that the consequence of the Mamdani FLC inference engine refers to the output
+        # granulation layer (i.e., the fuzzy sets defined in the output space)
+        # specifically, the centers are used in the Mamdani FLC inference prediction
+        assert torch.isclose(flc.engine.consequences.centers, torch.tensor([
+            [0.5000, 0.3000, 0.1000, 0.9000],
+            [-0.2000, -0.7000, -0.9000, 0.0000]
+        ])).all()
+        assert torch.isclose(flc.engine.consequences.widths, torch.tensor([
+            [0.1000, 0.4000, 0.6000, 0.8000],
+            [0.4000, 0.4000, 0.5000, -1.0000]
+        ])).all()
 
-        assert predicted_y == output
+        expected_y = torch.tensor(np.array([
+            [0.74682458, 1.94174445],
+            [0.74682458, 1.94174445],
+            [0.74682458, 1.94174445],
+            [0.74682458, 1.34428394],
+            [0.74682458, 1.94174445]
+        ]))
+        predicted_y = flc(input_data)
+
+        assert torch.isclose(predicted_y, expected_y).all()
