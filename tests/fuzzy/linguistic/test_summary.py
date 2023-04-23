@@ -377,7 +377,7 @@ class TestSummary(unittest.TestCase):
         dataset, _, summary, linguistic_terms = scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
-            for max_terms in summary.knowledge_base.intra_dimensions()
+            for max_terms in summary.knowledge_base.intra_dimensions(is_input=True)
         ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
@@ -385,7 +385,7 @@ class TestSummary(unittest.TestCase):
                                fitness_func=fitness_function_factory(
                                    input_data=dataset, antecedents=linguistic_terms),
                                sol_per_pop=10,
-                               num_genes=summary.knowledge_base.variable_dimensions(),
+                               num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
                                mutation_num_genes=1,
                                gene_space=gene_space,
                                on_start=check_initial_population,
@@ -432,7 +432,7 @@ class TestSummary(unittest.TestCase):
         dataset, _, summary, linguistic_terms = scenario_2()
         gene_space = [
             list(range(-1, max_terms + 1))
-            for max_terms in summary.knowledge_base.intra_dimensions()
+            for max_terms in summary.knowledge_base.intra_dimensions(is_input=True)
         ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
         ga_instance = pygad.GA(num_generations=10,
@@ -440,7 +440,7 @@ class TestSummary(unittest.TestCase):
                                fitness_func=fitness_function_factory(
                                    input_data=dataset, antecedents=linguistic_terms),
                                sol_per_pop=10,
-                               num_genes=summary.knowledge_base.variable_dimensions(),
+                               num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
                                mutation_num_genes=1,
                                gene_space=gene_space,
                                on_start=check_initial_population,
