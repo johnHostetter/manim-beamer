@@ -8,6 +8,7 @@ import unittest
 import torch
 import numpy as np
 
+from utils.reproducibility import default_configuration
 from soft.fuzzy.online.unsupervised.cluster.ecm import \
     apply_evolving_clustering_method as ECM, general_euclidean_distance
 from soft.fuzzy.sets.continuous import ContinuousFuzzySet
@@ -18,6 +19,10 @@ class TestECM(unittest.TestCase):
     Test the Evolving Clustering Method and its accompanying functions, such as the general
     Euclidean distance metric, and the algorithm itself.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
+
     def test_general_euclidean_distance(self):
         """
         The regulator function implemented using PyTorch should perform
@@ -45,12 +50,11 @@ class TestECM(unittest.TestCase):
         Returns:
 
         """
-        distance_threshold = 0.7
         directory = pathlib.Path(__file__).parent.resolve()
         file_location = os.path.join(directory, 'ecm_input.npy')
         input_data = np.load(file_location)
 
-        clusters = ECM(torch.tensor(input_data), config={'dthr': distance_threshold})
+        clusters = ECM(torch.tensor(input_data), config=self.config)
         expected_clusters_centers = torch.tensor(
             [[0.05652926, 0.06268818, -0.11167774, -0.38759786],
              [-0.20636721, -1.3460023, -0.15555668, 0.53961074],

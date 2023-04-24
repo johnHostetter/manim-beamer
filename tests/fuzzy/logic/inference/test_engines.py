@@ -5,7 +5,7 @@ import unittest
 
 import torch
 
-from utils.reproducibility import set_rng
+from utils.reproducibility import set_rng, default_configuration
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
@@ -16,7 +16,7 @@ from soft.fuzzy.logic.inference.engines import TSKProductInference, TSKMinimumIn
 set_rng(0)
 
 
-def make_test_scenario():
+def make_test_scenario(configuration):
     """
     Makes a test scenario, with sample data, antecedents, rules, etc.
 
@@ -62,6 +62,9 @@ class TestFuzzyInference(unittest.TestCase):
     """
     Test the various implementations of fuzzy logic inference.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
 
     def test_product_inference_output(self):
         """
@@ -70,7 +73,9 @@ class TestFuzzyInference(unittest.TestCase):
         Returns:
             None
         """
-        out_features, consequences, links, offset, antecedents_memberships = make_test_scenario()
+        out_features, consequences, links, offset, antecedents_memberships = make_test_scenario(
+            configuration=self.config
+        )
         product_inference = TSKProductInference(
             out_features=out_features, consequences=consequences,
             links=links, offset=offset)
@@ -90,7 +95,9 @@ class TestFuzzyInference(unittest.TestCase):
         Returns:
             None
         """
-        out_features, consequences, links, offset, antecedents_memberships = make_test_scenario()
+        out_features, consequences, links, offset, antecedents_memberships = make_test_scenario(
+            configuration=self.config
+        )
         minimum_inference = TSKMinimumInference(
             out_features=out_features, consequences=consequences,
             links=links, offset=offset)

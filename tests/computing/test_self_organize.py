@@ -10,7 +10,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng
+from utils.reproducibility import set_rng, default_configuration
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
@@ -60,8 +60,9 @@ class TestSelfOrganize(unittest.TestCase):
         directory = pathlib.Path(__file__).parent.resolve()
         file_path = os.path.join(directory, 'small_data.pt')
         self.data = torch.load(file_path)
-
-        self.configuration = {}
+        self.config = default_configuration()
+        with self.config.unfreeze():
+            self.config.clustering.distance_threshold = 1e-3
 
     def test_empty_self_organize_kb(self):
         """
@@ -72,7 +73,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         num_of_vertices, num_of_edges = 0, 0
         assert len(self_organize.graph.vs) == num_of_vertices
         assert len(self_organize.graph.es) == num_of_edges
@@ -85,7 +86,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         self_organize.add_functions(apply_categorical_learning_induced_partitioning)
         num_of_vertices, num_of_edges = 1, 0
         assert len(self_organize.graph.vs) == num_of_vertices
@@ -99,7 +100,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         functions = [
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
@@ -120,7 +121,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         functions = [
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
@@ -143,7 +144,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         functions = [
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
@@ -174,7 +175,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         functions = [
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
@@ -208,7 +209,7 @@ class TestSelfOrganize(unittest.TestCase):
             None
         """
         set_rng(0)
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         functions = [
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
@@ -254,7 +255,7 @@ class TestSelfOrganize(unittest.TestCase):
         """
         set_rng(0)
         number_of_rules = 10
-        self_organize = SelfOrganize(config=self.configuration)
+        self_organize = SelfOrganize(config=self.config)
         functions = [
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
@@ -266,7 +267,7 @@ class TestSelfOrganize(unittest.TestCase):
         ]
         self_organize.add_functions(functions)
         self_organize.add_data(self.data, name='input')
-        self_organize.add_data(self.configuration, name='config')
+        self_organize.add_data(self.config, name='config')  # 'name' is a reference used in 'edges'
         self_organize.add_data([], name='consequent terms')  # no consequent terms; zero-order TSK
 
         edges = [
@@ -355,7 +356,7 @@ class TestSelfOrganize(unittest.TestCase):
         """
         set_rng(0)
         number_of_rules = 10
-        self_organize = clip_ecm_wm(self.data, config={})
+        self_organize = clip_ecm_wm(self.data, self.config)
         knowledge_base = self_organize.start()
         assert len(knowledge_base.graph.vs.select(  # select from the 'Rule' layer
             layer_eq='Rule')) == number_of_rules
@@ -381,8 +382,7 @@ class TestSelfOrganize(unittest.TestCase):
         """
         set_rng(0)
         number_of_rules = 17
-        self_organize = clip_ftarm(self.data, config={'minimum_support': 0.3,
-                                                      'minimum_confidence': 0.8})
+        self_organize = clip_ftarm(self.data, config=self.config)
         knowledge_base = self_organize.start()
         assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
@@ -408,8 +408,10 @@ class TestSelfOrganize(unittest.TestCase):
         val_file_path = os.path.join(directory, 'big_val_data.pt')
         big_train_data = torch.load(train_file_path)
         big_val_data = torch.load(val_file_path)
-        config = {'lr': 1e-4, 'batch_size': 128, 'latent_space_dim': 2, 'max_epochs': 10}
-        self_organize = clip_frequent_discernible(big_train_data, big_val_data, config)
+        with self.config.unfreeze():
+            self.config.training.data.batch = self.config.validation.data.batch = 128
+
+        self_organize = clip_frequent_discernible(big_train_data, big_val_data, self.config)
         knowledge_base = self_organize.start()
         assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
         assert len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)) == number_of_rules

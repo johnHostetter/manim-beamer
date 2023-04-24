@@ -9,7 +9,7 @@ import torch
 import numpy as np
 import pandas as pd
 
-from utils.reproducibility import set_rng
+from utils.reproducibility import set_rng, default_configuration
 from examples.fuzzy.temporal.association.ftarm.demo import make_example
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
@@ -20,12 +20,13 @@ from soft.fuzzy.temporal.association.ftarm import make_candidates_inference_engi
 set_rng(5)
 
 
-def big_data_example(seed):
+def big_data_example(seed, configuration):
     """
     Generate an example with a large amount of data for benchmarking computational performance.
 
     Args:
         seed: Random number generator seed.
+        configuration: YACS.yacs.Config
 
     Returns:
         pd.DataFrame, soft.computing.knowledge.KnowledgeBase
@@ -40,7 +41,8 @@ def big_data_example(seed):
         3: Gaussian(in_features=4),
     }
 
-    knowledge_base = expert_design(variables.values(), consequents={}, rules=[], config={})
+    knowledge_base = expert_design(variables.values(), consequents={},
+                                   rules=[], config=configuration)
     return dataframe, knowledge_base
 
 
@@ -48,6 +50,9 @@ class TestFTARM(unittest.TestCase):
     """
     Test the Fuzzy Temporal Association Rule Mining algorithm.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
 
     def test_fuzzy_representation(self):
         """
@@ -87,8 +92,7 @@ class TestFTARM(unittest.TestCase):
         assert (ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])).all()
 
         # now checking that FTARM creates the same TI Table as above
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         # temporal item A occurs in the first transaction,
         # B occurs in the second, C occurs in the first, and so on
         assert (ftarm.ti_table.first_transaction_indices == np.array([0, 1, 0, 3, 4])).all()
@@ -105,8 +109,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         actual_scalar_cardinality = ftarm.scalar_cardinality()
         expected_scalar_cardinality = torch.tensor(
             [2.5, 0.0, 1.75, 0.25, 4 / 3, 2 / 3, 0.0, 2.0, 1.0, 0.0])
@@ -121,8 +124,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         expected_output = torch.tensor([[0.5, 0.],  # low A, high A
                                         [0.35, 0.05],  # low B, high B
@@ -140,12 +142,11 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         # start of step 4
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         # L1 --> low A, low B, high D, and low E
-        assert ((actual_fuzzy_temporal_supports >= ftarm.config['minimum_support']) ==
+        assert ((actual_fuzzy_temporal_supports >= ftarm.config.association_rule_mining.min_support) ==
                 torch.tensor([
                     [True, False], [True, False], [False, False], [False, True], [True, False]])
                 ).all()
@@ -170,8 +171,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         c2_indices = ftarm.make_candidates()
 
         # step 8.1:
@@ -290,8 +290,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, linguistic_variables = make_example()
-        ftarm = FTARM(dataframe, linguistic_variables,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, linguistic_variables, config=self.config)
 
         c2_indices = ftarm.make_candidates()
 
@@ -316,8 +315,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
 
         c2_indices = ftarm.make_candidates()
 
@@ -335,8 +333,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         c2_indices = ftarm.make_candidates()
         # the following candidate order is assumed for the following assertions
         assert c2_indices == [
@@ -388,8 +385,8 @@ class TestFTARM(unittest.TestCase):
         assert torch.isclose(ftarm.fuzzy_temporal_supports(c2_indices),
                              expected_fuzzy_temporal_supports).all()
 
-        l2_indices = torch.where(fuzzy_temporal_supports >= ftarm.config['minimum_support'])[
-            0]  # L2 items' indices
+        l2_indices = torch.where(fuzzy_temporal_supports >= torch.tensor(
+            ftarm.config.association_rule_mining.min_support))[0]  # L2 items' indices
 
         assert (l2_indices == torch.tensor([0, 1, 3, 4, 5])).all()
 
@@ -402,8 +399,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         c2_indices = ftarm.make_candidates()
         c3_indices = ftarm.make_candidates(c2_indices)
         expected_candidate_indices = [{(1, 0), (3, 1), (0, 0)}, {(1, 0), (4, 0), (3, 1)}]
@@ -422,8 +418,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         c2_indices = ftarm.make_candidates()
         c3_indices = ftarm.make_candidates(c2_indices)
         c4_indices = ftarm.make_candidates(c3_indices)
@@ -439,8 +434,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -459,8 +453,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
 
         # required to build the lattice structure which is later used to find rules
         _ = ftarm.find_candidates()
@@ -496,9 +489,8 @@ class TestFTARM(unittest.TestCase):
         Returns:
             None
         """
-        dataframe, knowledge_base = big_data_example(seed=0)
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        dataframe, knowledge_base = big_data_example(seed=0, configuration=self.config)
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -519,9 +511,8 @@ class TestFTARM(unittest.TestCase):
         Returns:
             None
         """
-        dataframe, knowledge_base = big_data_example(seed=5)
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        dataframe, knowledge_base = big_data_example(seed=5, configuration=self.config)
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
         candidates_family = ftarm.find_candidates()
         # the first item in the family should match the expected 2-itemsets
         assert candidates_family[0] == [
@@ -542,8 +533,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
 
         # required to build the lattice structure which is later used to find rules
         _ = ftarm.find_candidates()
@@ -562,8 +552,7 @@ class TestFTARM(unittest.TestCase):
             None
         """
         dataframe, knowledge_base = make_example()
-        ftarm = FTARM(dataframe, knowledge_base,
-                      config={'minimum_support': 0.3, 'minimum_confidence': 0.8})
+        ftarm = FTARM(dataframe, knowledge_base, config=self.config)
 
         # required to build the lattice structure which is later used to find rules
         _ = ftarm.find_candidates()

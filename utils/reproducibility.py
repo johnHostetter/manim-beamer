@@ -3,9 +3,12 @@ Provides functions that help guarantee reproducibility.
 """
 import os
 import random
+import pathlib
 
 import torch
 import numpy as np
+
+from YACS.yacs import Config
 
 
 def set_rng(seed):
@@ -38,3 +41,8 @@ def env_seed(env, seed):
     set_rng(seed)
     env.reset(seed=seed)
     env.action_space.seed(seed)
+
+
+def default_configuration():
+    file_path = pathlib.Path(__file__).parent.parent / "default_config.yaml"
+    return Config(str(file_path))

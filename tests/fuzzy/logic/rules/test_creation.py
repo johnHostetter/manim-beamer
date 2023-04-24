@@ -3,6 +3,7 @@ Test the various mechanisms in which a fuzzy logic rule can be created.
 """
 import unittest
 
+from utils.reproducibility import default_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
@@ -13,6 +14,10 @@ class TestFuzzyLogicRule(unittest.TestCase):
     """
     Test the operations and functions of a fuzzy logic rule.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
+
     def test_constructor(self):
         """
         Test that a (Mamdani) fuzzy logic rule is correctly created.
@@ -38,6 +43,6 @@ class TestFuzzyLogicRule(unittest.TestCase):
             None
         """
         antecedents, consequents, rules = toy_mamdani()
-        knowledge_base = expert_design(antecedents, consequents, rules, config={})
+        knowledge_base = expert_design(antecedents, consequents, rules, config=self.config)
         assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == len(rules)
         assert knowledge_base.get_fuzzy_logic_rules() == rules
