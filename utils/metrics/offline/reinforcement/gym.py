@@ -13,6 +13,7 @@ class SummaryStatistics:
     """
     A class that allows easy access to various metrics of interest.
     """
+
     def __init__(self, values):
         self.values = values
         self.params = {}
@@ -70,8 +71,11 @@ class SummaryStatistics:
             A dictionary.
         """
         return {
-            'min': self.min(), 'mean': self.mean(), 'std': self.std(),
-            'median': self.median(), 'max': self.max()
+            "min": self.min(),
+            "mean": self.mean(),
+            "std": self.std(),
+            "median": self.median(),
+            "max": self.max(),
         }
 
 
@@ -81,7 +85,7 @@ class SummaryStatistics:
 
 
 def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=False):
-    """ Returns scorer function of evaluation on environment.
+    """Returns scorer function of evaluation on environment.
 
     This function returns scorer function, which is suitable to the standard
     scikit-learn scorer function style.
@@ -133,7 +137,9 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
                     action = torch.argmax(
                         algo.predict(torch.tensor(np.array([observation])))
                     ).item()
-                observation, reward, terminated, truncated, _ = env.step(action)  # last is 'info'
+                observation, reward, terminated, truncated, _ = env.step(
+                    action
+                )  # last is 'info'
                 episode_reward += reward
 
                 if render:
@@ -143,11 +149,14 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
                     break
 
             if text and len(scores_window) > 0:
-                print(f"\rEpisode: {trial_idx + 1}\tAverage Score: {np.mean(scores_window):.6f}",
-                      end="")
+                print(
+                    f"\rEpisode: {trial_idx + 1}\tAverage Score: {np.mean(scores_window):.6f}",
+                    end="",
+                )
                 if trial_idx > 0 and trial_idx % 100 == 0:
                     print(
-                        f"\rEpisode: {trial_idx + 1}\tAverage Score: {np.mean(scores_window):.6f}")
+                        f"\rEpisode: {trial_idx + 1}\tAverage Score: {np.mean(scores_window):.6f}"
+                    )
 
             scores_window.append(episode_reward)
         if text:

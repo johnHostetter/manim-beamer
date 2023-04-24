@@ -13,4 +13,4 @@ def debugger_is_active() -> bool:
     Returns:
         True or False
     """
-    return hasattr(sys, 'gettrace') and sys.gettrace() is not None
+    return hasattr(sys, "gettrace") and sys.gettrace() is not None

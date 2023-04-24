@@ -21,7 +21,7 @@ def set_rng(seed):
     Returns:
         None
     """
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
