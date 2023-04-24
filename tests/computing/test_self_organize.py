@@ -14,7 +14,8 @@ from utils.reproducibility import set_rng, default_configuration
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
-from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
+from soft.computing.wrappers import fetch_fuzzy_set_centers, \
+    fuzzy_temporal_association_rule_mining_wrapper
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
@@ -388,7 +389,8 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
-        knowledge_base = self_organize.graph.vs.find(function_eq=FTARM)['output']
+        knowledge_base = self_organize.graph.vs.find(
+            function_eq=fuzzy_temporal_association_rule_mining_wrapper)['output']
         assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
