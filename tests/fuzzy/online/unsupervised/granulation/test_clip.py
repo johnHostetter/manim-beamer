@@ -9,7 +9,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng
+from utils.reproducibility import set_rng, default_configuration
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.online.unsupervised.granulation.clip import find_indices_to_closest_neighbors
 from soft.fuzzy.online.unsupervised.granulation.clip import regulator, \
@@ -21,6 +21,9 @@ class TestCLIP(unittest.TestCase):
     Test the Categorical Learning Induced Partitioning algorithm, and its supporting functions
     such as the 'regular' function.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
 
     def test_regulator(self):
         """
@@ -65,7 +68,7 @@ class TestCLIP(unittest.TestCase):
         directory = pathlib.Path(__file__).parent.resolve()
         file_path = os.path.join(directory, 'random_train_data.npy')
         input_data = np.load(file_path)
-        linguistic_terms = CLIP(torch.tensor(input_data), config={'eps': 0.2, 'kappa': 0.6})
+        linguistic_terms = CLIP(torch.tensor(input_data), config=self.config)
         expected_terms = [
             Gaussian(in_features=3, centers=[0.5488135, 0.96366276, 0.0202184],
                      widths=[0.38547637, 0.3542887, 0.38547637]),

@@ -1,0 +1,29 @@
+inference:
+  type: TSK
+  order: 0
+
+training:
+  learning_rate: 1e-4
+  optimizer: adam
+  epochs: 10
+  loss: mse
+  data:
+    batch: 32
+
+validation:
+  data:
+    batch: 32
+
+clustering:
+  distance_threshold: 0.7  # e.g., ECM
+
+association_rule_mining:  # e.g., FTARM
+  min_support: 0.3
+  min_confidence: 0.8
+
+auto_encoder:
+  dimensionality: 2
+
+fuzzy_antecedents_generation:  # e.g., CLIP
+  alpha: 0.2
+  beta: 0.6

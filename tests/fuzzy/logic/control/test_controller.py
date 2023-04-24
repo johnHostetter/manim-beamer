@@ -6,7 +6,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng
+from utils.reproducibility import set_rng, default_configuration
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
@@ -20,6 +20,9 @@ class TestTSK(unittest.TestCase):
     """
     Test the zero-order TSK neuro-fuzzy network.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
 
     def test_gradient_1(self):
         """
@@ -93,7 +96,7 @@ class TestTSK(unittest.TestCase):
             Rule(premise=frozenset({(1, 1), (1, 1)}),
                  consequence=frozenset(), implication=AlgebraicProduct)
         }
-        knowledge_base = expert_design(antecedents, consequents=[], rules=rules, config={})
+        knowledge_base = expert_design(antecedents, consequents=[], rules=rules, config=self.config)
 
         rule_vertex = knowledge_base.graph.vs.find(type_eq=AlgebraicProduct)
         assert rule_vertex['type'] == AlgebraicProduct  # it is the correct relation we wanted
@@ -132,6 +135,9 @@ class TestMamdani(unittest.TestCase):
     """
     Test the Mamdani neuro-fuzzy network.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = default_configuration()
 
     def test_mamdani(self):
         """
@@ -172,7 +178,7 @@ class TestMamdani(unittest.TestCase):
                  implication=AlgebraicProduct),
         }
 
-        knowledge_base = expert_design(antecedents, consequents, rules=rules, config={})
+        knowledge_base = expert_design(antecedents, consequents, rules=rules, config=self.config)
 
         rule_vertex = knowledge_base.graph.vs.find(type_eq=AlgebraicProduct)
         assert rule_vertex['type'] == AlgebraicProduct  # it is the correct relation we wanted
