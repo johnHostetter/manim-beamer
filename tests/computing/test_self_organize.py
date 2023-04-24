@@ -42,7 +42,7 @@ def get_keyword_arguments(self_organize, testing_function):
     target_vertex = self_organize.graph.vs.find(function_eq=testing_function)
     predecessors_indices = self_organize.graph.predecessors(target_vertex)
     predecessors_vertices = self_organize.graph.vs[predecessors_indices]
-    return self_organize._SelfOrganize__get_kwargs(
+    return self_organize.get_keyword_arguments(
         testing_function, predecessors_vertices, target_vertex)
 
 
@@ -244,7 +244,7 @@ class TestSelfOrganize(unittest.TestCase):
         predecessors_vertices = self_organize.graph.vs[predecessors_indices]
 
         expected_kwargs = {'antecedents': None, 'input_data': None}
-        assert self_organize._SelfOrganize__get_kwargs(
+        assert self_organize.get_keyword_arguments(
             WM, predecessors_vertices, target_vertex) == expected_kwargs
 
     def test_start(self):

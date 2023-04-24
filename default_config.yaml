@@ -1,3 +1,6 @@
+output:
+  verbose: True
+
 inference:
   type: TSK
   order: 0

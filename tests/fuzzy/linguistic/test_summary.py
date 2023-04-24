@@ -7,7 +7,7 @@ import torch
 import pygad
 import numpy as np
 
-from utils.reproducibility import set_rng
+from utils.reproducibility import set_rng, default_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.logic.rules.creation import Rule
@@ -64,7 +64,7 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
         ga_instance.initial_population = ga_instance.population = population
 
 
-def fitness_function_factory(input_data, antecedents):
+def fitness_function_factory(input_data, antecedents, config):
     """
     Factory design pattern to initialize the fitness_function's environment with the necessary
     variables, as the fitness_function expects a certain signature that cannot be modified.
@@ -72,6 +72,7 @@ def fitness_function_factory(input_data, antecedents):
     Args:
         input_data:
         antecedents:
+        config: YACS.yacs.Config
 
     Returns:
         fitness_function
@@ -94,7 +95,8 @@ def fitness_function_factory(input_data, antecedents):
             for variable_index, term_index in enumerate(solution) if term_index >= 0
         )
         rule = Rule(premise=candidate, consequence=frozenset(), implication=AlgebraicProduct)
-        knowledge_base = expert_design(antecedents, consequents=[], rules=[rule], config={})
+        knowledge_base = expert_design(
+            antecedents, consequents=[], rules=[rule], config=config)
         candidate = Summary(knowledge_base, quantifier=Q, truth=None)
         query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
         return candidate.degree_of_validity(input_data, alpha=0.3, query=query).item()
@@ -108,13 +110,14 @@ def scenario_1():
     Returns:
         torch.tensor, Query, Summary
     """
+    configuration = default_configuration()
     terms = [
         Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
     ]
     rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
                 implication=AlgebraicProduct)
-    knowledge_base = expert_design(
-        terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the linguistic summary
+    knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
+        terms, consequents=[], rules=[rule], config=configuration)
     summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
@@ -129,13 +132,14 @@ def scenario_2():
     Returns:
         torch.tensor, Query, Summary, list (of Gaussian elements)
     """
+    configuration = default_configuration()
     terms = [
         Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
     ]  # terms for the linguistic summary
     rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
                 implication=AlgebraicProduct)
-    knowledge_base = expert_design(
-        terms, consequents=[], rules=[rule], config={})  # the 'rule' encodes the linguistic summary
+    knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
+        terms, consequents=[], rules=[rule], config=configuration)
     summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
@@ -150,6 +154,7 @@ class TestSummary(unittest.TestCase):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.config = default_configuration()
 
     def test_most_quantifier(self):
         """
@@ -258,7 +263,7 @@ class TestSummary(unittest.TestCase):
             premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
             implication=AlgebraicProduct)
         knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
-            terms, consequents=[], rules=[rule], config={})
+            terms, consequents=[], rules=[rule], config=self.config)
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -279,7 +284,7 @@ class TestSummary(unittest.TestCase):
             premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
             implication=AlgebraicProduct)
         knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
-            terms, consequents=[], rules=[rule], config={})
+            terms, consequents=[], rules=[rule], config=self.config)
         summary = Summary(knowledge_base, Q, None)
 
         element = torch.tensor([[1., 0.5]])
@@ -351,7 +356,8 @@ class TestSummary(unittest.TestCase):
         # the 'rule' encodes the linguistic summary
         rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
                     implication=AlgebraicProduct)
-        knowledge_base = expert_design(terms, consequents=[], rules=[rule], config={})
+        knowledge_base = expert_design(
+            terms, consequents=[], rules=[rule], config=self.config)
         summary = Summary(knowledge_base, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
@@ -383,7 +389,8 @@ class TestSummary(unittest.TestCase):
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
                                fitness_func=fitness_function_factory(
-                                   input_data=dataset, antecedents=linguistic_terms),
+                                   input_data=dataset, antecedents=linguistic_terms,
+                                   config=self.config),
                                sol_per_pop=10,
                                num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
                                mutation_num_genes=1,
@@ -438,7 +445,8 @@ class TestSummary(unittest.TestCase):
         ga_instance = pygad.GA(num_generations=10,
                                num_parents_mating=2,
                                fitness_func=fitness_function_factory(
-                                   input_data=dataset, antecedents=linguistic_terms),
+                                   input_data=dataset, antecedents=linguistic_terms,
+                                   config=self.config),
                                sol_per_pop=10,
                                num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
                                mutation_num_genes=1,
