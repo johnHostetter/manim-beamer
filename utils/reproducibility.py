@@ -21,7 +21,7 @@ def set_rng(seed):
     Returns:
         None
     """
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -44,5 +44,12 @@ def env_seed(env, seed):
 
 
 def default_configuration():
+    """
+    Load and return the default configuration that should be used for models, if another
+    overriding configuration is not used in its place.
+
+    Returns:
+        YACS.yacs.Config
+    """
     file_path = pathlib.Path(__file__).parent.parent / "default_config.yaml"
     return Config(str(file_path))

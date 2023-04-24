@@ -146,10 +146,15 @@ class TestFTARM(unittest.TestCase):
         # start of step 4
         actual_fuzzy_temporal_supports = ftarm.fuzzy_temporal_supports()
         # L1 --> low A, low B, high D, and low E
-        assert ((actual_fuzzy_temporal_supports >= ftarm.config.association_rule_mining.min_support) ==
+        assert ((actual_fuzzy_temporal_supports >= ftarm
+                 .config.association_rule_mining.min_support) ==
                 torch.tensor([
-                    [True, False], [True, False], [False, False], [False, True], [True, False]])
-                ).all()
+                    [True, False],
+                    [True, False],
+                    [False, False],
+                    [False, True],
+                    [True, False]
+                ])).all()
 
         c2_indices = ftarm.make_candidates()
 

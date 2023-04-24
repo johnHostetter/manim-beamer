@@ -6,12 +6,13 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng, default_configuration
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.logic.controller import ZeroOrderTSK, Mamdani
+from utils.reproducibility import set_rng, default_configuration
+from examples.fuzzy.offline.supervised.demo_mamdani import toy_mamdani
 
 set_rng(0)
 
@@ -20,6 +21,7 @@ class TestTSK(unittest.TestCase):
     """
     Test the zero-order TSK neuro-fuzzy network.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = default_configuration()
@@ -138,6 +140,9 @@ class TestMamdani(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = default_configuration()
+        self.antecedents, self.consequents, self.rules = toy_mamdani()
+        self.knowledge_base = expert_design(
+            self.antecedents, self.consequents, rules=self.rules, config=self.config)
 
     def test_mamdani(self):
         """
@@ -150,64 +155,36 @@ class TestMamdani(unittest.TestCase):
             [1.2, 0.2], [1.1, 0.3], [2.1, 0.1], [2.7, 0.15], [1.7, 0.25]
         ]).float()
 
-        antecedents = [
-            Gaussian(in_features=4, centers=torch.tensor([1.2, 3.0, 5.0, 7.0]).float(),
-                     widths=torch.tensor([0.1, 0.4, 0.6, 0.8]).float()),
-            Gaussian(in_features=4, centers=torch.tensor([0.2, 0.6, 0.9, 1.2]).float(),
-                     widths=torch.tensor([0.4, 0.4, 0.5, 0.45]).float())
-        ]
-
-        consequents = [
-            Gaussian(
-                in_features=4,
-                centers=torch.tensor([0.5, 0.3, 0.1, 0.9]).float(),
-                widths=torch.tensor([0.1, 0.4, 0.6, 0.8]).float()
-            ),
-            Gaussian(
-                in_features=3,
-                centers=torch.tensor([-0.2, -0.7, -0.9]).float(),
-                widths=torch.tensor([0.4, 0.4, 0.5]).float()
-            )
-        ]
-        rules = {
-            Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset({(2, 0), (3, 1)}),
-                 implication=AlgebraicProduct),
-            Rule(premise=frozenset({(0, 1), (1, 0)}), consequence=frozenset({(2, 1), (3, 2)}),
-                 implication=AlgebraicProduct),
-            Rule(premise=frozenset({(0, 1), (1, 1)}), consequence=frozenset({(2, 0), (3, 0)}),
-                 implication=AlgebraicProduct),
-        }
-
-        knowledge_base = expert_design(antecedents, consequents, rules=rules, config=self.config)
-
-        rule_vertex = knowledge_base.graph.vs.find(type_eq=AlgebraicProduct)
+        rule_vertex = self.knowledge_base.graph.vs.find(type_eq=AlgebraicProduct)
         assert rule_vertex['type'] == AlgebraicProduct  # it is the correct relation we wanted
         assert 'type' in rule_vertex.attributes()  # it has 'type' attribute
 
-        rule_vertices = knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)
-        assert len(rule_vertices) == len(rules)  # number of rule vertices should equal len(rules)
+        rule_vertices = self.knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)
+        # number of rule vertices should equal len(rules)
+        assert len(rule_vertices) == len(self.rules)
 
         # the rules we have added should exist how we expected them
-        assert knowledge_base.get_fuzzy_logic_rules() == rules
+        assert self.knowledge_base.get_fuzzy_logic_rules() == self.rules
 
         # check the intra-dimensionality of the input & output spaces are correctly calculated
-        assert all(knowledge_base.intra_dimensions(True) == np.array([
-            term.in_features for term in antecedents]))
-        assert all(knowledge_base.intra_dimensions(False) == np.array([
-            term.in_features for term in consequents]))
+        assert all(self.knowledge_base.intra_dimensions(True) == np.array([
+            term.in_features for term in self.antecedents]))
+        assert all(self.knowledge_base.intra_dimensions(False) == np.array([
+            term.in_features for term in self.consequents]))
         # the above is required to generate the correct links shape for fuzzy inference
 
         # check the variable dimensionality of the input & output spaces is correctly calculated
-        assert knowledge_base.variable_dimensions(True) == len(antecedents)
-        assert knowledge_base.variable_dimensions(False) == len(consequents)
+        assert self.knowledge_base.variable_dimensions(True) == len(self.antecedents)
+        assert self.knowledge_base.variable_dimensions(False) == len(self.consequents)
         # the above is required to generate the correct links shape for fuzzy inference
 
         flc = Mamdani(
-            out_features=len(consequents), knowledge_base=knowledge_base, learning_rate=1e-3)
+            out_features=len(self.consequents), knowledge_base=self.knowledge_base,
+            learning_rate=1e-3)
 
         # check that the intermediate structure of the Mamdani FLC is correctly built
-        input_links, input_offset = knowledge_base.matrix(AlgebraicProduct, is_input=True)
-        output_links, output_offset = knowledge_base.matrix(AlgebraicProduct, is_input=False)
+        input_links, input_offset = self.knowledge_base.matrix(AlgebraicProduct, is_input=True)
+        output_links, output_offset = self.knowledge_base.matrix(AlgebraicProduct, is_input=False)
 
         # the following checks that the links between antecedents' memberships (input_links)
         # and the links between rules' activations (output_links) to the consequence layer
@@ -245,12 +222,12 @@ class TestMamdani(unittest.TestCase):
         ])).all()
 
         expected_y = torch.tensor(np.array([
-            [0.74682458, 1.94174445],
-            [0.74682458, 1.94174445],
-            [0.74682458, 1.94174445],
-            [0.74682458, 1.34428394],
-            [0.74682458, 1.94174445]
-        ]))
+            [5.0000000e-01, -6.9999999e-01],
+            [1.7279544e-01, -2.4191362e-01],
+            [2.4472545e-03, -5.6169494e-03],
+            [2.4864213e-01, -5.3699726e-01],
+            [1.3655053e-05, -2.5326384e-05]
+        ])).float()
         predicted_y = flc(input_data)
 
         assert torch.isclose(predicted_y, expected_y).all()

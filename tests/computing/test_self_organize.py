@@ -14,7 +14,8 @@ from utils.reproducibility import set_rng, default_configuration
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
-from soft.computing.wrappers import fetch_fuzzy_set_centers, FTARM
+from soft.computing.wrappers import fetch_fuzzy_set_centers, \
+    fuzzy_temporal_association_rule_mining_wrapper
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
@@ -41,7 +42,7 @@ def get_keyword_arguments(self_organize, testing_function):
     target_vertex = self_organize.graph.vs.find(function_eq=testing_function)
     predecessors_indices = self_organize.graph.predecessors(target_vertex)
     predecessors_vertices = self_organize.graph.vs[predecessors_indices]
-    return self_organize._SelfOrganize__get_kwargs(
+    return self_organize.get_keyword_arguments(
         testing_function, predecessors_vertices, target_vertex)
 
 
@@ -243,7 +244,7 @@ class TestSelfOrganize(unittest.TestCase):
         predecessors_vertices = self_organize.graph.vs[predecessors_indices]
 
         expected_kwargs = {'antecedents': None, 'input_data': None}
-        assert self_organize._SelfOrganize__get_kwargs(
+        assert self_organize.get_keyword_arguments(
             WM, predecessors_vertices, target_vertex) == expected_kwargs
 
     def test_start(self):
@@ -388,7 +389,8 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
-        knowledge_base = self_organize.graph.vs.find(function_eq=FTARM)['output']
+        knowledge_base = self_organize.graph.vs.find(
+            function_eq=fuzzy_temporal_association_rule_mining_wrapper)['output']
         assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 

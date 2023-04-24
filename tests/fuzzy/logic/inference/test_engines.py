@@ -44,7 +44,7 @@ def make_test_scenario(configuration):
              implication=AlgebraicProduct),
     ]
 
-    knowledge_base = expert_design(antecedents, consequents=[], rules=rules, config={})
+    knowledge_base = expert_design(antecedents, consequents=[], rules=rules, config=configuration)
     links, offset = knowledge_base.links_and_offsets(AlgebraicProduct)
     input_granulation = knowledge_base.graph.vs.find(
         source_eq=add_stacked_granule.__name__)['type']
