@@ -5,15 +5,13 @@ import unittest
 
 import torch
 
+from examples.fuzzy.offline.supervised.demo_tsk import toy_tsk
 from utils.reproducibility import set_rng, default_configuration
-from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.design import expert_design
-from soft.fuzzy.logic.rules.creation import Rule
 from soft.computing.organize import add_stacked_granule
+from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.inference.engines import TSKProductInference, TSKMinimumInference
-
-set_rng(0)
 
 
 def make_test_scenario(configuration):
@@ -24,6 +22,7 @@ def make_test_scenario(configuration):
         Number of output features, consequences (torch.nn.parameter.Parameter), links,
         offset, antecedents_memberships
     """
+    set_rng(0)
     input_data = torch.tensor(
         [
             [1.5409961, -0.2934289],
@@ -32,6 +31,8 @@ def make_test_scenario(configuration):
             [0.40334684, 0.83802634],
         ]
     )
+
+    _, rules = toy_tsk()
     antecedents = [
         Gaussian(
             3,
@@ -42,33 +43,6 @@ def make_test_scenario(configuration):
             3,
             centers=torch.tensor([-1.0, 0.0, 1.0]),
             widths=torch.tensor([1.0, 1.0, 1.0]),
-        ),
-    ]
-    rules = [
-        Rule(
-            premise=frozenset({(0, 0), (1, 0)}),
-            consequence=frozenset(),
-            implication=AlgebraicProduct,
-        ),
-        Rule(
-            premise=frozenset({(0, 0), (1, 1)}),
-            consequence=frozenset(),
-            implication=AlgebraicProduct,
-        ),
-        Rule(
-            premise=frozenset({(0, 1), (1, 0)}),
-            consequence=frozenset(),
-            implication=AlgebraicProduct,
-        ),
-        Rule(
-            premise=frozenset({(0, 1), (1, 1)}),
-            consequence=frozenset(),
-            implication=AlgebraicProduct,
-        ),
-        Rule(
-            premise=frozenset({(0, 1), (1, 2)}),
-            consequence=frozenset(),
-            implication=AlgebraicProduct,
         ),
     ]
 

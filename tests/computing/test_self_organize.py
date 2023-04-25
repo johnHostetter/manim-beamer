@@ -18,7 +18,12 @@ from soft.computing.wrappers import (
     fetch_fuzzy_set_centers,
     fuzzy_temporal_association_rule_mining_wrapper,
 )
-from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
+from soft.computing.blueprints import (
+    clip_ecm_wm,
+    make_edges_for_clip_ecm_wm,
+    clip_ftarm,
+    clip_frequent_discernible,
+)
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 
@@ -291,19 +296,7 @@ class TestSelfOrganize(unittest.TestCase):
             [], name="consequent terms"
         )  # no consequent terms; zero-order TSK
 
-        edges = [
-            ("input", apply_evolving_clustering_method, 0),
-            ("config", apply_evolving_clustering_method, 1),
-            ("input", apply_categorical_learning_induced_partitioning, 0),
-            ("config", apply_categorical_learning_induced_partitioning, 1),
-            (apply_evolving_clustering_method, fetch_fuzzy_set_centers, 0),
-            (fetch_fuzzy_set_centers, WM, 0),
-            (apply_categorical_learning_induced_partitioning, WM, 1),
-            (apply_categorical_learning_induced_partitioning, expert_design, 0),
-            ("consequent terms", expert_design, 1),
-            (WM, expert_design, 2),
-            ("config", expert_design, 3),
-        ]
+        edges = make_edges_for_clip_ecm_wm()
         self_organize.link_functions(edges)
         knowledge_base = self_organize.start(functions)
 
