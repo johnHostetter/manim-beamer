@@ -5,7 +5,7 @@ import unittest
 
 import torch
 
-from examples.fuzzy.offline.supervised.demo_tsk import toy_tsk
+from examples.fuzzy.supervised.demo_tsk import toy_tsk
 from utils.reproducibility import set_rng, default_configuration
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule
