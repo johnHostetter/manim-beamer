@@ -53,13 +53,20 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
         population = ga_instance.initial_population
     else:
         population = offspring_mutation
-    indices_that_contain_no_chosen_fuzzy_sets = np.where((population < 0).all(axis=1))[0]
+    indices_that_contain_no_chosen_fuzzy_sets = np.where((population < 0).all(axis=1))[
+        0
+    ]
     for row_index_to_change in indices_that_contain_no_chosen_fuzzy_sets:
         col_index_to_change = np.random.choice(population.shape[1])
-        valid_gene_choice_indices = np.array(ga_instance.gene_space[col_index_to_change]) >= 0
+        valid_gene_choice_indices = (
+            np.array(ga_instance.gene_space[col_index_to_change]) >= 0
+        )
         valid_gene_choices = np.array(ga_instance.gene_space[col_index_to_change])[
-            valid_gene_choice_indices]
-        population[row_index_to_change, col_index_to_change] = np.random.choice(valid_gene_choices)
+            valid_gene_choice_indices
+        ]
+        population[row_index_to_change, col_index_to_change] = np.random.choice(
+            valid_gene_choices
+        )
     if offspring_mutation is None:  # the initial population needs to be updated
         ga_instance.initial_population = ga_instance.population = population
 
@@ -77,6 +84,7 @@ def fitness_function_factory(input_data, antecedents, config):
     Returns:
         fitness_function
     """
+
     def fitness_function(self, solution, solution_idx):
         """
         The fitness function for the genetic algorithm search.
@@ -92,14 +100,19 @@ def fitness_function_factory(input_data, antecedents, config):
         print(f"{self}: {solution_idx}")
         candidate = (  # term indices < 0 are reserved for "removed" fuzzy sets
             (variable_index, int(term_index))
-            for variable_index, term_index in enumerate(solution) if term_index >= 0
+            for variable_index, term_index in enumerate(solution)
+            if term_index >= 0
         )
-        rule = Rule(premise=candidate, consequence=frozenset(), implication=AlgebraicProduct)
+        rule = Rule(
+            premise=candidate, consequence=frozenset(), implication=AlgebraicProduct
+        )
         knowledge_base = expert_design(
-            antecedents, consequents=[], rules=[rule], config=config)
+            antecedents, consequents=[], rules=[rule], config=config
+        )
         candidate = Summary(knowledge_base, quantifier=Q, truth=None)
         query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
         return candidate.degree_of_validity(input_data, alpha=0.3, query=query).item()
+
     return fitness_function
 
 
@@ -112,16 +125,21 @@ def scenario_1():
     """
     configuration = default_configuration()
     terms = [
-        Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
+        Gaussian(1, centers=[0.8], widths=[0.25]),
+        Gaussian(1, centers=[0.4], widths=[0.25]),
     ]
-    rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
-                implication=AlgebraicProduct)
+    rule = Rule(
+        premise=frozenset({(0, 0), (1, 0)}),
+        consequence=frozenset(),
+        implication=AlgebraicProduct,
+    )
     knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
-        terms, consequents=[], rules=[rule], config=configuration)
+        terms, consequents=[], rules=[rule], config=configuration
+    )
     summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
-    input_data = torch.tensor([[1., 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
+    input_data = torch.tensor([[1.0, 0.5], [0.6, 0.4], [0.1, 0.3], [0.9, 0.7]])
     return input_data, query, summary
 
 
@@ -134,12 +152,17 @@ def scenario_2():
     """
     configuration = default_configuration()
     terms = [
-        Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
+        Gaussian(1, centers=[0.8], widths=[0.25]),
+        Gaussian(1, centers=[0.4], widths=[0.25]),
     ]  # terms for the linguistic summary
-    rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
-                implication=AlgebraicProduct)
+    rule = Rule(
+        premise=frozenset({(0, 0), (1, 0)}),
+        consequence=frozenset(),
+        implication=AlgebraicProduct,
+    )
     knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
-        terms, consequents=[], rules=[rule], config=configuration)
+        terms, consequents=[], rules=[rule], config=configuration
+    )
     summary = Summary(knowledge_base, Q, None)
     # we want the second attribute to satisfy this
     query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
@@ -152,6 +175,7 @@ class TestSummary(unittest.TestCase):
     """
     Test the Summary class, which implements the linguistic summarization of data approach.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = default_configuration()
@@ -185,8 +209,9 @@ class TestSummary(unittest.TestCase):
         # compare to ground truth value
         assert torch.isclose(element, torch.tensor(0.7572454810142517))
         truth_of_proposition = Q(element)
-        assert torch.isclose(truth_of_proposition,
-                             torch.tensor(0.9145))  # compare to ground truth value
+        assert torch.isclose(
+            truth_of_proposition, torch.tensor(0.9145)
+        )  # compare to ground truth value
 
     def test_linguistic_quantified_proposition_with_importance(self):
         """
@@ -206,17 +231,29 @@ class TestSummary(unittest.TestCase):
         property_mu = property_mf(elements)
         importance_mu = importance_mf(elements)
         t_norm_results = property_mu * importance_mu
-        assert torch.isclose(t_norm_results.flatten(), torch.tensor([
-            0.7316157, 0.77880085, 0.3678795, 0.09901349,
-            0.5989963, 0.26497352, 0.8187308, 0.00193045
-        ])).all()
+        assert torch.isclose(
+            t_norm_results.flatten(),
+            torch.tensor(
+                [
+                    0.7316157,
+                    0.77880085,
+                    0.3678795,
+                    0.09901349,
+                    0.5989963,
+                    0.26497352,
+                    0.8187308,
+                    0.00193045,
+                ]
+            ),
+        ).all()
         assert torch.isclose(importance_mu.sum(), torch.tensor(4.4135942459106445))
         element = t_norm_results.sum() / importance_mu.sum()
         # compare to ground truth value
         assert torch.isclose(element, torch.tensor(0.8296958208084106))
         truth_of_proposition = Q(element)
-        assert torch.isclose(truth_of_proposition,
-                             torch.tensor(1.0))  # compare to ground truth value
+        assert torch.isclose(
+            truth_of_proposition, torch.tensor(1.0)
+        )  # compare to ground truth value
 
     def test_owa_with_importance(self):
         """
@@ -229,18 +266,21 @@ class TestSummary(unittest.TestCase):
         assert importance.sum() == 1.0
         in_features = len(importance)
         element = torch.tensor([0, 0.7, 1.0, 0.2])
-        sorted_x = torch.sort(element,
-                              descending=True)  # namedtuple with 'values' and 'indices' properties
+        sorted_x = torch.sort(
+            element, descending=True
+        )  # namedtuple with 'values' and 'indices' properties
         assert torch.isclose(
-            sorted_x.values, torch.tensor([1.0000, 0.7000, 0.2000, 0.0000])).all()
+            sorted_x.values, torch.tensor([1.0000, 0.7000, 0.2000, 0.0000])
+        ).all()
         sorted_importance = importance[sorted_x.indices]
-        assert torch.isclose(sorted_importance,
-                             torch.tensor([0.1000, 0.3000, 0.4000, 0.2000])).all()
+        assert torch.isclose(
+            sorted_importance, torch.tensor([0.1000, 0.3000, 0.4000, 0.2000])
+        ).all()
 
         denominator = sorted_importance.sum()
         weights = []
         for j in range(in_features):
-            left_side = Q(sorted_importance[:j + 1].sum() / denominator)
+            left_side = Q(sorted_importance[: j + 1].sum() / denominator)
             right_side = Q(sorted_importance[:j].sum() / denominator)
             weights.append((left_side - right_side).item())
         weights = torch.tensor(weights)
@@ -257,18 +297,24 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
-                 Gaussian(1, centers=[0.4], widths=[0.25])]
+        terms = [
+            Gaussian(1, centers=[0.8], widths=[0.25]),
+            Gaussian(1, centers=[0.4], widths=[0.25]),
+        ]
         rule = Rule(
-            premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
-            implication=AlgebraicProduct)
+            premise=frozenset({(0, 0), (1, 0)}),
+            consequence=frozenset(),
+            implication=AlgebraicProduct,
+        )
         knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
-            terms, consequents=[], rules=[rule], config=self.config)
+            terms, consequents=[], rules=[rule], config=self.config
+        )
         summary = Summary(knowledge_base, Q, None)
 
-        element = torch.tensor([[1., 0.5]])
+        element = torch.tensor([[1.0, 0.5]])
         assert torch.isclose(
-            summary.summarizer_membership(element), torch.tensor(0.5272924900054932))
+            summary.summarizer_membership(element), torch.tensor(0.5272924900054932)
+        )
 
     def test_summarizer_membership_query(self):
         """
@@ -278,25 +324,34 @@ class TestSummary(unittest.TestCase):
         Returns:
             None
         """
-        terms = [Gaussian(1, centers=[0.8], widths=[0.25]),
-                 Gaussian(1, centers=[0.4], widths=[0.25])]
+        terms = [
+            Gaussian(1, centers=[0.8], widths=[0.25]),
+            Gaussian(1, centers=[0.4], widths=[0.25]),
+        ]
         rule = Rule(
-            premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
-            implication=AlgebraicProduct)
+            premise=frozenset({(0, 0), (1, 0)}),
+            consequence=frozenset(),
+            implication=AlgebraicProduct,
+        )
         knowledge_base = expert_design(  # the 'rule' encodes the linguistic summary
-            terms, consequents=[], rules=[rule], config=self.config)
+            terms, consequents=[], rules=[rule], config=self.config
+        )
         summary = Summary(knowledge_base, Q, None)
 
-        element = torch.tensor([[1., 0.5]])
+        element = torch.tensor([[1.0, 0.5]])
         # we want to constrain that the second attribute has to satisfy the following
         query = Query(Gaussian(1, centers=0.3, widths=0.3), 1)
-        assert torch.isclose(summary.summarizer_membership(element, query),
-                             torch.tensor(0.5272924900054932))  # it should
+        assert torch.isclose(
+            summary.summarizer_membership(element, query),
+            torch.tensor(0.5272924900054932),
+        )  # it should
         # we want the second attribute to satisfy this
         query = Query(Gaussian(1, centers=0.25, widths=0.3), 1)
         # the given element does not match as well with the (fuzzy) query
-        assert torch.isclose(summary.summarizer_membership(element, query),
-                             torch.tensor(0.4993517994880676))
+        assert torch.isclose(
+            summary.summarizer_membership(element, query),
+            torch.tensor(0.4993517994880676),
+        )
 
     def test_degree_of_truth(self):
         """
@@ -306,8 +361,10 @@ class TestSummary(unittest.TestCase):
             None
         """
         input_data, query, summary = scenario_1()
-        assert torch.isclose(summary.degree_of_truth(input_data, query=query),
-                             torch.tensor(0.3612580895423889))
+        assert torch.isclose(
+            summary.degree_of_truth(input_data, query=query),
+            torch.tensor(0.3612580895423889),
+        )
 
     def test_degree_of_imprecision(self):
         """
@@ -317,8 +374,9 @@ class TestSummary(unittest.TestCase):
             None
         """
         input_data, _, summary = scenario_1()
-        assert torch.isclose(summary.degree_of_imprecision(input_data, alpha=0.3),
-                             torch.tensor(1 / 4))
+        assert torch.isclose(
+            summary.degree_of_imprecision(input_data, alpha=0.3), torch.tensor(1 / 4)
+        )
 
     def test_degree_of_covering(self):
         """
@@ -328,8 +386,10 @@ class TestSummary(unittest.TestCase):
             None
         """
         input_data, query, summary = scenario_1()
-        assert torch.isclose(summary.degree_of_covering(input_data, alpha=0.3, query=query),
-                             torch.tensor(2 / 3))
+        assert torch.isclose(
+            summary.degree_of_covering(input_data, alpha=0.3, query=query),
+            torch.tensor(2 / 3),
+        )
 
     def test_degree_of_appropriateness(self):
         """
@@ -341,7 +401,8 @@ class TestSummary(unittest.TestCase):
         input_data, query, summary = scenario_1()
         assert torch.isclose(
             summary.degree_of_appropriateness(input_data, alpha=0.3, query=query),
-            torch.tensor(0.10416668653488159))
+            torch.tensor(0.10416668653488159),
+        )
 
     def test_length(self):
         """
@@ -351,13 +412,18 @@ class TestSummary(unittest.TestCase):
             None
         """
         terms = [
-            Gaussian(1, centers=[0.8], widths=[0.25]), Gaussian(1, centers=[0.4], widths=[0.25])
+            Gaussian(1, centers=[0.8], widths=[0.25]),
+            Gaussian(1, centers=[0.4], widths=[0.25]),
         ]
         # the 'rule' encodes the linguistic summary
-        rule = Rule(premise=frozenset({(0, 0), (1, 0)}), consequence=frozenset(),
-                    implication=AlgebraicProduct)
+        rule = Rule(
+            premise=frozenset({(0, 0), (1, 0)}),
+            consequence=frozenset(),
+            implication=AlgebraicProduct,
+        )
         knowledge_base = expert_design(
-            terms, consequents=[], rules=[rule], config=self.config)
+            terms, consequents=[], rules=[rule], config=self.config
+        )
         summary = Summary(knowledge_base, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
@@ -369,8 +435,10 @@ class TestSummary(unittest.TestCase):
             None
         """
         input_data, query, summary = scenario_1()
-        assert torch.isclose(summary.degree_of_validity(input_data, alpha=0.3, query=query),
-                             torch.tensor(0.3764182925224304))
+        assert torch.isclose(
+            summary.degree_of_validity(input_data, alpha=0.3, query=query),
+            torch.tensor(0.3764182925224304),
+        )
 
     def test_prevent_no_fuzzy_sets(self):
         """
@@ -386,45 +454,54 @@ class TestSummary(unittest.TestCase):
             for max_terms in summary.knowledge_base.intra_dimensions(is_input=True)
         ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
-        ga_instance = pygad.GA(num_generations=10,
-                               num_parents_mating=2,
-                               fitness_func=fitness_function_factory(
-                                   input_data=dataset, antecedents=linguistic_terms,
-                                   config=self.config),
-                               sol_per_pop=10,
-                               num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
-                               mutation_num_genes=1,
-                               gene_space=gene_space,
-                               on_start=check_initial_population,
-                               on_mutation=prevent_no_fuzzy_sets)
+        ga_instance = pygad.GA(
+            num_generations=10,
+            num_parents_mating=2,
+            fitness_func=fitness_function_factory(
+                input_data=dataset, antecedents=linguistic_terms, config=self.config
+            ),
+            sol_per_pop=10,
+            num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
+            mutation_num_genes=1,
+            gene_space=gene_space,
+            on_start=check_initial_population,
+            on_mutation=prevent_no_fuzzy_sets,
+        )
         # the bottom row is an invalid combination (i.e., all negatives)
-        ga_instance.population = ga_instance.initial_population = np.array([
-            [1., -1.],
-            [0., 0.],
-            [-1., 0.],
-            [1., -1.],
-            [0., 1.],
-            [0., 1.],
-            [1., 0.],
-            [1., -1.],
-            [-1., 1.],
-            [-1., -1.]])
+        ga_instance.population = ga_instance.initial_population = np.array(
+            [
+                [1.0, -1.0],
+                [0.0, 0.0],
+                [-1.0, 0.0],
+                [1.0, -1.0],
+                [0.0, 1.0],
+                [0.0, 1.0],
+                [1.0, 0.0],
+                [1.0, -1.0],
+                [-1.0, 1.0],
+                [-1.0, -1.0],
+            ]
+        )
         # assert (ga_instance.population == expected_population).all()
         # assert (ga_instance.initial_population == expected_population).all()
 
         prevent_no_fuzzy_sets(ga_instance)
 
         # the bottom row has been corrected
-        expected_population = np.array([[1., -1.],
-                                        [0., 0.],
-                                        [-1., 0.],
-                                        [1., -1.],
-                                        [0., 1.],
-                                        [0., 1.],
-                                        [1., 0.],
-                                        [1., -1.],
-                                        [-1., 1.],
-                                        [1., -1.]])
+        expected_population = np.array(
+            [
+                [1.0, -1.0],
+                [0.0, 0.0],
+                [-1.0, 0.0],
+                [1.0, -1.0],
+                [0.0, 1.0],
+                [0.0, 1.0],
+                [1.0, 0.0],
+                [1.0, -1.0],
+                [-1.0, 1.0],
+                [1.0, -1.0],
+            ]
+        )
         assert (ga_instance.population == expected_population).all()
         assert (ga_instance.initial_population == expected_population).all()
 
@@ -442,17 +519,19 @@ class TestSummary(unittest.TestCase):
             for max_terms in summary.knowledge_base.intra_dimensions(is_input=True)
         ]
         assert gene_space == [[-1, 0, 1], [-1, 0, 1]]
-        ga_instance = pygad.GA(num_generations=10,
-                               num_parents_mating=2,
-                               fitness_func=fitness_function_factory(
-                                   input_data=dataset, antecedents=linguistic_terms,
-                                   config=self.config),
-                               sol_per_pop=10,
-                               num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
-                               mutation_num_genes=1,
-                               gene_space=gene_space,
-                               on_start=check_initial_population,
-                               on_mutation=prevent_no_fuzzy_sets)
+        ga_instance = pygad.GA(
+            num_generations=10,
+            num_parents_mating=2,
+            fitness_func=fitness_function_factory(
+                input_data=dataset, antecedents=linguistic_terms, config=self.config
+            ),
+            sol_per_pop=10,
+            num_genes=summary.knowledge_base.variable_dimensions(is_input=True),
+            mutation_num_genes=1,
+            gene_space=gene_space,
+            on_start=check_initial_population,
+            on_mutation=prevent_no_fuzzy_sets,
+        )
 
         ga_instance.run()
         print("Initial population:")

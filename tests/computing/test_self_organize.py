@@ -14,17 +14,24 @@ from utils.reproducibility import set_rng, default_configuration
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
-from soft.computing.wrappers import fetch_fuzzy_set_centers, \
-    fuzzy_temporal_association_rule_mining_wrapper
+from soft.computing.wrappers import (
+    fetch_fuzzy_set_centers,
+    fuzzy_temporal_association_rule_mining_wrapper,
+)
 from soft.computing.blueprints import clip_ecm_wm, clip_ftarm, clip_frequent_discernible
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
+
 # the following algorithms are eligible for self-organizing neuro-fuzzy networks
 from soft.fuzzy.online.unsupervised.cluster.ecm import apply_evolving_clustering_method
-from soft.fuzzy.online.unsupervised.granulation.clip import \
-    apply_categorical_learning_induced_partitioning
+from soft.fuzzy.online.unsupervised.granulation.clip import (
+    apply_categorical_learning_induced_partitioning,
+)
 from soft.fuzzy.offline.unsupervised.cluster.empirical import find_empirical_fuzzy_sets
-from soft.fuzzy.logic.rules.creation import wang_mendel_method as WM, frequent_discernible
+from soft.fuzzy.logic.rules.creation import (
+    wang_mendel_method as WM,
+    frequent_discernible,
+)
 
 
 def get_keyword_arguments(self_organize, testing_function):
@@ -43,7 +50,8 @@ def get_keyword_arguments(self_organize, testing_function):
     predecessors_indices = self_organize.graph.predecessors(target_vertex)
     predecessors_vertices = self_organize.graph.vs[predecessors_indices]
     return self_organize.get_keyword_arguments(
-        testing_function, predecessors_vertices, target_vertex)
+        testing_function, predecessors_vertices, target_vertex
+    )
 
 
 class TestSelfOrganize(unittest.TestCase):
@@ -59,7 +67,7 @@ class TestSelfOrganize(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         directory = pathlib.Path(__file__).parent.resolve()
-        file_path = os.path.join(directory, 'small_data.pt')
+        file_path = os.path.join(directory, "small_data.pt")
         self.data = torch.load(file_path)
         self.config = default_configuration()
         with self.config.unfreeze():
@@ -106,7 +114,7 @@ class TestSelfOrganize(unittest.TestCase):
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
             find_empirical_fuzzy_sets,
-            WM
+            WM,
         ]
         self_organize.add_functions(functions)
         edges = []
@@ -127,7 +135,7 @@ class TestSelfOrganize(unittest.TestCase):
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
             find_empirical_fuzzy_sets,
-            WM
+            WM,
         ]
         self_organize.add_functions(functions)
         # CLIP produces antecedents & WM expects 2nd arg. to be antecedents
@@ -150,7 +158,7 @@ class TestSelfOrganize(unittest.TestCase):
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
             find_empirical_fuzzy_sets,
-            WM
+            WM,
         ]
         self_organize.add_functions(functions)
         edges = [
@@ -181,7 +189,7 @@ class TestSelfOrganize(unittest.TestCase):
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
             find_empirical_fuzzy_sets,
-            WM
+            WM,
         ]
         self_organize.add_functions(functions)
         edges = [
@@ -189,14 +197,14 @@ class TestSelfOrganize(unittest.TestCase):
             (apply_categorical_learning_induced_partitioning, WM, 1),
         ]
         self_organize.link_functions(edges)
-        self_organize.add_data(self.data, name='input')
+        self_organize.add_data(self.data, name="input")
         num_of_vertices, num_of_edges = len(functions) + 1, len(edges)
         assert len(self_organize.graph.vs) == num_of_vertices  # (incl. data vertex)
         assert len(self_organize.graph.es) == num_of_edges
 
         more_edges = [
-            ('input', apply_evolving_clustering_method, 0),
-            ('input', apply_categorical_learning_induced_partitioning, 0),
+            ("input", apply_evolving_clustering_method, 0),
+            ("input", apply_categorical_learning_induced_partitioning, 0),
         ]
         self_organize.link_functions(more_edges)
         num_of_edges = len(edges) + len(more_edges)
@@ -215,7 +223,7 @@ class TestSelfOrganize(unittest.TestCase):
             apply_categorical_learning_induced_partitioning,
             apply_evolving_clustering_method,
             find_empirical_fuzzy_sets,
-            WM
+            WM,
         ]
         self_organize.add_functions(functions)
         edges = [
@@ -223,29 +231,37 @@ class TestSelfOrganize(unittest.TestCase):
             (apply_categorical_learning_induced_partitioning, WM, 1),
         ]
         self_organize.link_functions(edges)
-        self_organize.add_data(self.data, name='input')
-        self_organize.add_data({}, name='config')
+        self_organize.add_data(self.data, name="input")
+        self_organize.add_data({}, name="config")
         num_of_vertices, num_of_edges = len(functions) + 2, len(edges)
-        assert len(self_organize.graph.vs) == num_of_vertices  # (incl. data & config vertices)
+        assert (
+            len(self_organize.graph.vs) == num_of_vertices
+        )  # (incl. data & config vertices)
         assert len(self_organize.graph.es) == num_of_edges
 
         edges = [
-            ('input', apply_evolving_clustering_method, 0),
-            ('config', apply_evolving_clustering_method, 1),
-            ('input', apply_categorical_learning_induced_partitioning, 0),
-            ('config', apply_categorical_learning_induced_partitioning, 1),
+            ("input", apply_evolving_clustering_method, 0),
+            ("config", apply_evolving_clustering_method, 1),
+            ("input", apply_categorical_learning_induced_partitioning, 0),
+            ("config", apply_categorical_learning_induced_partitioning, 1),
         ]
         self_organize.link_functions(edges)
-        assert len(self_organize.graph.es) == num_of_edges + len(edges)  # edges added to existing
+        assert len(self_organize.graph.es) == num_of_edges + len(
+            edges
+        )  # edges added to existing
 
         # find the vertex for this function & its predecessors
         target_vertex = self_organize.graph.vs.find(function_eq=WM)
         predecessors_indices = self_organize.graph.predecessors(target_vertex)
         predecessors_vertices = self_organize.graph.vs[predecessors_indices]
 
-        expected_kwargs = {'antecedents': None, 'input_data': None}
-        assert self_organize.get_keyword_arguments(
-            WM, predecessors_vertices, target_vertex) == expected_kwargs
+        expected_kwargs = {"antecedents": None, "input_data": None}
+        assert (
+            self_organize.get_keyword_arguments(
+                WM, predecessors_vertices, target_vertex
+            )
+            == expected_kwargs
+        )
 
     def test_start(self):
         """
@@ -264,26 +280,29 @@ class TestSelfOrganize(unittest.TestCase):
             WM,
             stack_granules,
             fetch_fuzzy_set_centers,
-            expert_design
+            expert_design,
         ]
         self_organize.add_functions(functions)
-        self_organize.add_data(self.data, name='input')
-        self_organize.add_data(self.config, name='config')  # 'name' is a reference used in 'edges'
-        self_organize.add_data([], name='consequent terms')  # no consequent terms; zero-order TSK
+        self_organize.add_data(self.data, name="input")
+        self_organize.add_data(
+            self.config, name="config"
+        )  # 'name' is a reference used in 'edges'
+        self_organize.add_data(
+            [], name="consequent terms"
+        )  # no consequent terms; zero-order TSK
 
         edges = [
-            ('input', apply_evolving_clustering_method, 0),
-            ('config', apply_evolving_clustering_method, 1),
-            ('input', apply_categorical_learning_induced_partitioning, 0),
-            ('config', apply_categorical_learning_induced_partitioning, 1),
+            ("input", apply_evolving_clustering_method, 0),
+            ("config", apply_evolving_clustering_method, 1),
+            ("input", apply_categorical_learning_induced_partitioning, 0),
+            ("config", apply_categorical_learning_induced_partitioning, 1),
             (apply_evolving_clustering_method, fetch_fuzzy_set_centers, 0),
             (fetch_fuzzy_set_centers, WM, 0),
             (apply_categorical_learning_induced_partitioning, WM, 1),
             (apply_categorical_learning_induced_partitioning, expert_design, 0),
-            ('consequent terms', expert_design, 1),
+            ("consequent terms", expert_design, 1),
             (WM, expert_design, 2),
-            ('config', expert_design, 3)
-
+            ("config", expert_design, 3),
         ]
         self_organize.link_functions(edges)
         knowledge_base = self_organize.start(functions)
@@ -291,59 +310,75 @@ class TestSelfOrganize(unittest.TestCase):
         # --- test info flowed properly from input data to CLIP ---
         testing_function = apply_categorical_learning_induced_partitioning
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'input_data': self.data, 'config': {}}
-        assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
+        expected_kwargs = {"input_data": self.data, "config": {}}
+        assert torch.isclose(
+            actual_kwargs["input_data"], expected_kwargs["input_data"]
+        ).all()
 
         # --- test info flowed properly from input data to ECM ---
         testing_function = apply_evolving_clustering_method
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'input_data': self.data, 'config': {}}
-        assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
+        expected_kwargs = {"input_data": self.data, "config": {}}
+        assert torch.isclose(
+            actual_kwargs["input_data"], expected_kwargs["input_data"]
+        ).all()
 
         # --- test info flowed properly from ECM to fetch_fuzzy_set_centers ---
         testing_function = fetch_fuzzy_set_centers
         ecm_output = self_organize.graph.vs.find(
-            function_eq=apply_evolving_clustering_method)['output']
+            function_eq=apply_evolving_clustering_method
+        )["output"]
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'fuzzy_sets': ecm_output}
+        expected_kwargs = {"fuzzy_sets": ecm_output}
         assert torch.isclose(
-            actual_kwargs['fuzzy_sets'].centers, expected_kwargs['fuzzy_sets'].centers).all()
+            actual_kwargs["fuzzy_sets"].centers, expected_kwargs["fuzzy_sets"].centers
+        ).all()
         assert torch.isclose(
-            actual_kwargs['fuzzy_sets'].widths, expected_kwargs['fuzzy_sets'].widths).all()
+            actual_kwargs["fuzzy_sets"].widths, expected_kwargs["fuzzy_sets"].widths
+        ).all()
 
         # --- test info flowed properly from CLIP and fetch_fuzzy_set_centers to Wang-Mendel ---
         testing_function = WM
         antecedents = self_organize.graph.vs.find(
-            function_eq=apply_categorical_learning_induced_partitioning)['output']
-        input_data = self_organize.graph.vs.find(
-            function_eq=fetch_fuzzy_set_centers)['output']
+            function_eq=apply_categorical_learning_induced_partitioning
+        )["output"]
+        input_data = self_organize.graph.vs.find(function_eq=fetch_fuzzy_set_centers)[
+            "output"
+        ]
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'antecedents': antecedents, 'input_data': input_data}
-        assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
-        assert torch.isclose(actual_kwargs['input_data'], expected_kwargs['input_data']).all()
+        expected_kwargs = {"antecedents": antecedents, "input_data": input_data}
+        assert actual_kwargs["antecedents"] == expected_kwargs["antecedents"]
+        assert torch.isclose(
+            actual_kwargs["input_data"], expected_kwargs["input_data"]
+        ).all()
 
         # --- test info flowed properly from CLIP and Wang-Mendel to expert_design ---
         testing_function = expert_design
         antecedents = self_organize.graph.vs.find(
-            function_eq=apply_categorical_learning_induced_partitioning)['output']
-        rules = self_organize.graph.vs.find(function_eq=WM)['output']
+            function_eq=apply_categorical_learning_induced_partitioning
+        )["output"]
+        rules = self_organize.graph.vs.find(function_eq=WM)["output"]
         actual_kwargs = get_keyword_arguments(self_organize, testing_function)
-        expected_kwargs = {'antecedents': antecedents, 'rules': rules}
-        assert actual_kwargs['antecedents'] == expected_kwargs['antecedents']
-        assert actual_kwargs['rules'] == expected_kwargs['rules']
+        expected_kwargs = {"antecedents": antecedents, "rules": rules}
+        assert actual_kwargs["antecedents"] == expected_kwargs["antecedents"]
+        assert actual_kwargs["rules"] == expected_kwargs["rules"]
 
         # check that the fuzzy logic rules are added
-        assert len(knowledge_base.graph.vs.select(
-            layer_eq='Rule')) == number_of_rules
-        assert len(knowledge_base.graph.vs.select(
-            type_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
+        assert (
+            len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct))
+            == number_of_rules
+        )
 
         # checking that this query returns the same as the above; they are equivalent
-        knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
-        assert len(knowledge_base.graph.vs.select(
-            layer_eq='Rule')) == number_of_rules
-        assert len(knowledge_base.graph.vs.select(
-            type_eq=AlgebraicProduct)) == number_of_rules
+        knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)[
+            "output"
+        ]
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
+        assert (
+            len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct))
+            == number_of_rules
+        )
 
         return knowledge_base
 
@@ -359,17 +394,43 @@ class TestSelfOrganize(unittest.TestCase):
         number_of_rules = 10
         self_organize = clip_ecm_wm(self.data, self.config)
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(  # select from the 'Rule' layer
-            layer_eq='Rule')) == number_of_rules
-        assert len(knowledge_base.graph.vs.select(  # select from the 'type' of implication
-            type_eq=AlgebraicProduct)) == number_of_rules
+        assert (
+            len(
+                knowledge_base.graph.vs.select(  # select from the 'Rule' layer
+                    layer_eq="Rule"
+                )
+            )
+            == number_of_rules
+        )
+        assert (
+            len(
+                knowledge_base.graph.vs.select(  # select from the 'type' of implication
+                    type_eq=AlgebraicProduct
+                )
+            )
+            == number_of_rules
+        )
 
         # checking that this query returns the same as the above; they are equivalent
-        knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)['output']
-        assert len(knowledge_base.graph.vs.select(  # select from the 'Rule' layer
-            layer_eq='Rule')) == number_of_rules
-        assert len(knowledge_base.graph.vs.select(  # select from the 'type' of implication
-            type_eq=AlgebraicProduct)) == number_of_rules
+        knowledge_base = self_organize.graph.vs.find(function_eq=expert_design)[
+            "output"
+        ]
+        assert (
+            len(
+                knowledge_base.graph.vs.select(  # select from the 'Rule' layer
+                    layer_eq="Rule"
+                )
+            )
+            == number_of_rules
+        )
+        assert (
+            len(
+                knowledge_base.graph.vs.select(  # select from the 'type' of implication
+                    type_eq=AlgebraicProduct
+                )
+            )
+            == number_of_rules
+        )
 
         return knowledge_base
 
@@ -385,13 +446,14 @@ class TestSelfOrganize(unittest.TestCase):
         number_of_rules = 17
         self_organize = clip_ftarm(self.data, config=self.config)
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
         # checking that this query returns the same as the above; they are equivalent
         knowledge_base = self_organize.graph.vs.find(
-            function_eq=fuzzy_temporal_association_rule_mining_wrapper)['output']
-        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
+            function_eq=fuzzy_temporal_association_rule_mining_wrapper
+        )["output"]
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
         assert len(knowledge_base.graph.vs.select(type_eq=Minimum)) == number_of_rules
 
         return knowledge_base
@@ -406,22 +468,32 @@ class TestSelfOrganize(unittest.TestCase):
         set_rng(0)
         number_of_rules = 8
         directory = pathlib.Path(__file__).parent.resolve()
-        train_file_path = os.path.join(directory, 'big_train_data.pt')
-        val_file_path = os.path.join(directory, 'big_val_data.pt')
+        train_file_path = os.path.join(directory, "big_train_data.pt")
+        val_file_path = os.path.join(directory, "big_val_data.pt")
         big_train_data = torch.load(train_file_path)
         big_val_data = torch.load(val_file_path)
         with self.config.unfreeze():
             self.config.training.data.batch = self.config.validation.data.batch = 128
 
-        self_organize = clip_frequent_discernible(big_train_data, big_val_data, self.config)
+        self_organize = clip_frequent_discernible(
+            big_train_data, big_val_data, self.config
+        )
         knowledge_base = self_organize.start()
-        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
-        assert len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)) == number_of_rules
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
+        assert (
+            len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct))
+            == number_of_rules
+        )
 
         # checking that this query returns the same as the above; they are equivalent
-        knowledge_base = self_organize.graph.vs.find(function_eq=frequent_discernible)['output']
-        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == number_of_rules
-        assert len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct)) == number_of_rules
+        knowledge_base = self_organize.graph.vs.find(function_eq=frequent_discernible)[
+            "output"
+        ]
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
+        assert (
+            len(knowledge_base.graph.vs.select(type_eq=AlgebraicProduct))
+            == number_of_rules
+        )
 
         return knowledge_base
 
@@ -447,31 +519,52 @@ class TestSelfOrganize(unittest.TestCase):
 
             assert knowledge_base.config == loaded_knowledge_base.config
             assert knowledge_base._Core__index == loaded_knowledge_base._Core__index
-            assert knowledge_base.attribute_table == loaded_knowledge_base.attribute_table
-            assert (np.array([
-                granule_vertex.index for granule_vertex in loaded_knowledge_base.granules]) == ([
-                granule_vertex.index for granule_vertex in loaded_knowledge_base.granules])
-                    ).all()
+            assert (
+                knowledge_base.attribute_table == loaded_knowledge_base.attribute_table
+            )
+            assert (
+                np.array(
+                    [
+                        granule_vertex.index
+                        for granule_vertex in loaded_knowledge_base.granules
+                    ]
+                )
+                == (
+                    [
+                        granule_vertex.index
+                        for granule_vertex in loaded_knowledge_base.granules
+                    ]
+                )
+            ).all()
 
             for vertex, loaded_vertex in zip(
-                    knowledge_base.graph.vs, loaded_knowledge_base.graph.vs):
-                if isinstance(vertex['type'], Gaussian) and \
-                        str(loaded_vertex['type'].__class__) == str(vertex['type'].__class__):
+                knowledge_base.graph.vs, loaded_knowledge_base.graph.vs
+            ):
+                if isinstance(vertex["type"], Gaussian) and str(
+                    loaded_vertex["type"].__class__
+                ) == str(vertex["type"].__class__):
                     # loaded vertex's class is different
-                    assert (torch.isclose(
-                        vertex['type'].centers, loaded_vertex['type'].centers
-                    ).all() and torch.isclose(
-                        vertex['type'].widths, loaded_vertex['type'].widths
-                    ).all()).item()
+                    assert (
+                        torch.isclose(
+                            vertex["type"].centers, loaded_vertex["type"].centers
+                        ).all()
+                        and torch.isclose(
+                            vertex["type"].widths, loaded_vertex["type"].widths
+                        ).all()
+                    ).item()
                 else:
                     if not vertex.attributes() == loaded_vertex.attributes():
                         # Python classes are 'different' after reload
                         for attribute in vertex.attributes().keys():
-                            assert str(vertex[attribute]) == str(loaded_vertex[attribute])
+                            assert str(vertex[attribute]) == str(
+                                loaded_vertex[attribute]
+                            )
                     else:
                         assert vertex.attributes() == loaded_vertex.attributes()
 
-            for edge, loaded_edge in zip(knowledge_base.graph.es, loaded_knowledge_base.graph.es):
+            for edge, loaded_edge in zip(
+                knowledge_base.graph.es, loaded_knowledge_base.graph.es
+            ):
                 assert edge.attributes() == loaded_edge.attributes()
 
         shutil.rmtree(file_path)  # clean up; delete the model files

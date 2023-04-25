@@ -10,6 +10,7 @@ class TestKnowledgeBase(unittest.TestCase):
     """
     Test the KnowledgeBase class such as checking data attributes are correctly added.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -27,17 +28,23 @@ class TestKnowledgeBase(unittest.TestCase):
         # group up data points that share the same value for the respective attribute
         attribute_groupings = {
             # for example, 'x1', 'x2', 'x10' have the same value for attribute 'a'
-            'a': ({'x1', 'x2', 'x10'}, {'x4', 'x6', 'x8'}, {'x3'}, {'x5', 'x7'}, {'x9'}),
+            "a": (
+                {"x1", "x2", "x10"},
+                {"x4", "x6", "x8"},
+                {"x3"},
+                {"x5", "x7"},
+                {"x9"},
+            ),
             # also, 'x2', 'x4' have the same value for attribute 'b'
-            'b': ({'x1', 'x3', 'x7'}, {'x2', 'x4'}, {'x5', 'x6', 'x8'}),
+            "b": ({"x1", "x3", "x7"}, {"x2", "x4"}, {"x5", "x6", "x8"}),
             # and so on
-            'c': ({'x1', 'x5'}, {'x2', 'x6'}, {'x3', 'x4', 'x7', 'x8'}),
-            'd': ({'x2', 'x7', 'x8'}, {'x1', 'x3', 'x4', 'x5', 'x6'})
+            "c": ({"x1", "x5"}, {"x2", "x6"}, {"x3", "x4", "x7", "x8"}),
+            "d": ({"x2", "x7", "x8"}, {"x1", "x3", "x4", "x5", "x6"}),
         }
-        knowledge_base.add_parent_relation('a', attribute_groupings['a'])
-        knowledge_base.add_parent_relation('b', attribute_groupings['b'])
-        knowledge_base.add_parent_relation('c', attribute_groupings['c'])
-        knowledge_base.add_parent_relation('d', attribute_groupings['d'])
+        knowledge_base.add_parent_relation("a", attribute_groupings["a"])
+        knowledge_base.add_parent_relation("b", attribute_groupings["b"])
+        knowledge_base.add_parent_relation("c", attribute_groupings["c"])
+        knowledge_base.add_parent_relation("d", attribute_groupings["d"])
 
         # TODO: Fix this; attributes are no longer stored
         # assert knowledge_base.attributes('x1') == {'a': 0, 'b': 0, 'c': 0, 'd': 1}

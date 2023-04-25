@@ -14,6 +14,7 @@ class TestFuzzyLogicRule(unittest.TestCase):
     """
     Test the operations and functions of a fuzzy logic rule.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = default_configuration()
@@ -30,7 +31,9 @@ class TestFuzzyLogicRule(unittest.TestCase):
         antecedents = {frozenset({(0, 1), (1, 1), (2, 0)})}
         # the 4th variable and second term is the recommended output
         consequents = {frozenset({(3, 1)})}
-        rule = Rule(premise=antecedents, consequence=consequents, implication=AlgebraicProduct)
+        rule = Rule(
+            premise=antecedents, consequence=consequents, implication=AlgebraicProduct
+        )
         assert rule.premise == antecedents
         assert rule.consequence == consequents
         assert rule.implication == AlgebraicProduct
@@ -43,6 +46,8 @@ class TestFuzzyLogicRule(unittest.TestCase):
             None
         """
         antecedents, consequents, rules = toy_mamdani()
-        knowledge_base = expert_design(antecedents, consequents, rules, config=self.config)
-        assert len(knowledge_base.graph.vs.select(layer_eq='Rule')) == len(rules)
+        knowledge_base = expert_design(
+            antecedents, consequents, rules, config=self.config
+        )
+        assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == len(rules)
         assert knowledge_base.get_fuzzy_logic_rules() == rules

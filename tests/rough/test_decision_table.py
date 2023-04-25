@@ -12,10 +12,11 @@ class TestDecisionTable(unittest.TestCase):
     """
     Test rule consistency or decision table decomposition.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe, self.knowledge_base = make_example()
-        self.set_c, self.set_d = {'a', 'b', 'c'}, {'d', 'e'}
+        self.set_c, self.set_d = {"a", "b", "c"}, {"d", "e"}
 
     def test_rule_consistency(self):
         """
@@ -29,7 +30,8 @@ class TestDecisionTable(unittest.TestCase):
 
         equivalence_classes = self.knowledge_base.IND(self.set_c)
         inconsistent_rules = [
-            indiscernible_rules for indiscernible_rules in equivalence_classes
+            indiscernible_rules
+            for indiscernible_rules in equivalence_classes
             if len(indiscernible_rules) > 1
         ]
 
@@ -44,8 +46,10 @@ class TestDecisionTable(unittest.TestCase):
         Returns:
             None
         """
-        consistent_rules, inconsistent_rules = self.knowledge_base.decompose_decision_table(
-            self.set_c, self.set_d)
+        (
+            consistent_rules,
+            inconsistent_rules,
+        ) = self.knowledge_base.decompose_decision_table(self.set_c, self.set_d)
         assert consistent_rules == frozenset({3, 4, 6, 7})
         assert inconsistent_rules == frozenset({1, 2, 5, 8})
 
@@ -55,17 +59,18 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
     Test the simplification of the decision table, such as whether an attribute is dispensable,
     and check that condition classes are correctly calculated.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 8))
         self.knowledge_base = KnowledgeBase()
         self.knowledge_base.set_granules(self.universe)
-        self.knowledge_base.add_parent_relation('a', ({3}, {1, 2, 4, 5}, {6, 7}))
-        self.knowledge_base.add_parent_relation('b', ({1, 2, 3}, {4, 5, 6}, {7}))
-        self.knowledge_base.add_parent_relation('c', ({1, 2, 3, 4, 5, 6}, {7}))
-        self.knowledge_base.add_parent_relation('d', ({2, 3}, {1, 4}, {5, 6, 7}))
-        self.knowledge_base.add_parent_relation('e', ({3, 4}, {1, 2}, {5, 6, 7}))
-        self.set_c, self.set_d = {'a', 'b', 'c', 'd'}, {'e'}
+        self.knowledge_base.add_parent_relation("a", ({3}, {1, 2, 4, 5}, {6, 7}))
+        self.knowledge_base.add_parent_relation("b", ({1, 2, 3}, {4, 5, 6}, {7}))
+        self.knowledge_base.add_parent_relation("c", ({1, 2, 3, 4, 5, 6}, {7}))
+        self.knowledge_base.add_parent_relation("d", ({2, 3}, {1, 4}, {5, 6, 7}))
+        self.knowledge_base.add_parent_relation("e", ({3, 4}, {1, 2}, {5, 6, 7}))
+        self.set_c, self.set_d = {"a", "b", "c", "d"}, {"e"}
 
     def test_c_is_dispensable(self):
         """
@@ -74,13 +79,14 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.dispensable(self.set_c, 'c', self.knowledge_base.IND)
+        assert self.knowledge_base.dispensable(self.set_c, "c", self.knowledge_base.IND)
 
         # pick the first relative reduct
-        subset_of_set_c, = self.knowledge_base.Q_RED(self.set_c, self.set_d)
-        assert subset_of_set_c == frozenset({'b', 'a', 'd'})
+        (subset_of_set_c,) = self.knowledge_base.Q_RED(self.set_c, self.set_d)
+        assert subset_of_set_c == frozenset({"b", "a", "d"})
         assert self.knowledge_base.remove_redundant_attributes(
-            self.set_c, self.set_d) == frozenset({'b', 'a', 'd'})
+            self.set_c, self.set_d
+        ) == frozenset({"b", "a", "d"})
 
     def test_condition_classes(self):
         """
@@ -92,9 +98,10 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         partition_in_each_attribute = self.knowledge_base[1]
 
         # pick the first relative reduct
-        subset_of_set_c, = self.knowledge_base.Q_RED(self.set_c, self.set_d)
+        (subset_of_set_c,) = self.knowledge_base.Q_RED(self.set_c, self.set_d)
         family_of_sets = {
-            key: value for key, value in partition_in_each_attribute.items()
+            key: value
+            for key, value in partition_in_each_attribute.items()
             if key in subset_of_set_c
         }
         assert frozenset.intersection(*family_of_sets.values()) == frozenset({1})
@@ -106,13 +113,23 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         Returns:
             None
         """
-        core_attributes, reduct_attributes = self.knowledge_base.simplify_decision_table(
-            self.set_c, self.set_d)
-        assert core_attributes == {1: {'b'}, 2: {'a'}, 3: {'a'}, 4: {'b', 'd'}, 5: {'d'}}
+        (
+            core_attributes,
+            reduct_attributes,
+        ) = self.knowledge_base.simplify_decision_table(self.set_c, self.set_d)
+        assert core_attributes == {
+            1: {"b"},
+            2: {"a"},
+            3: {"a"},
+            4: {"b", "d"},
+            5: {"d"},
+        }
         assert reduct_attributes == {
-            1: {frozenset({'b', 'd'}), frozenset({'b', 'a'})},
-            2: {frozenset({'d', 'a'}), frozenset({'b', 'a'})},
-            3: {frozenset({'a'})}, 4: {frozenset({'b', 'd'})}, 5: {frozenset({'d'})},
-            6: {frozenset({'a'}), frozenset({'d'})},
-            7: {frozenset({'a'}), frozenset({'d'}), frozenset({'b'})}
+            1: {frozenset({"b", "d"}), frozenset({"b", "a"})},
+            2: {frozenset({"d", "a"}), frozenset({"b", "a"})},
+            3: {frozenset({"a"})},
+            4: {frozenset({"b", "d"})},
+            5: {frozenset({"d"})},
+            6: {frozenset({"a"}), frozenset({"d"})},
+            7: {frozenset({"a"}), frozenset({"d"}), frozenset({"b"})},
         }
