@@ -27,6 +27,7 @@ class TestAlgebraicProduct(unittest.TestCase):
     """
     Test the algebraic product operation.
     """
+
     def test_single_input(self):
         """
         The t-norm of a single input (w/o importance) should be == input.
@@ -36,8 +37,9 @@ class TestAlgebraicProduct(unittest.TestCase):
         tnorm = AlgebraicProduct(n_inputs)
         importance_before_calculation = tnorm.importance
         mu_pytorch = tnorm(element)
-        mu_numpy = algebraic_product(element.detach().numpy(),
-                                     importance_before_calculation.detach().numpy())
+        mu_numpy = algebraic_product(
+            element.detach().numpy(), importance_before_calculation.detach().numpy()
+        )
 
         # make sure the parameters are still identical afterward
         assert torch.isclose(tnorm.importance, importance_before_calculation).all()
@@ -56,8 +58,9 @@ class TestAlgebraicProduct(unittest.TestCase):
         tnorm = AlgebraicProduct(n_inputs)
         importance_before_calculation = tnorm.importance
         mu_pytorch = tnorm(elements)
-        mu_numpy = algebraic_product(elements.detach().numpy(),
-                                     importance_before_calculation.detach().numpy())
+        mu_numpy = algebraic_product(
+            elements.detach().numpy(), importance_before_calculation.detach().numpy()
+        )
 
         # make sure the parameters are still identical afterward
         assert torch.isclose(tnorm.importance, importance_before_calculation).all()
@@ -74,11 +77,12 @@ class TestAlgebraicProduct(unittest.TestCase):
         """
         elements = torch.rand(5)
         n_inputs = len(elements)
-        importance_before_calculation = torch.tensor([0., 0.25, 0.5, 0.75, 1.0])
+        importance_before_calculation = torch.tensor([0.0, 0.25, 0.5, 0.75, 1.0])
         tnorm = AlgebraicProduct(n_inputs, importance=importance_before_calculation)
         mu_pytorch = tnorm(elements)
-        mu_numpy = algebraic_product(elements.detach().numpy(),
-                                     importance_before_calculation.detach().numpy())
+        mu_numpy = algebraic_product(
+            elements.detach().numpy(), importance_before_calculation.detach().numpy()
+        )
 
         # make sure the parameters are still identical afterward
         assert torch.isclose(tnorm.importance, importance_before_calculation).all()

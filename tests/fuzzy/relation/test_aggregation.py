@@ -12,6 +12,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
     """
     Unit tests that check the ordered weighted averaging operator is working as intended.
     """
+
     def test_in_features_not_equal_to_weight_vector(self):
         """
         Test that when trying to create a OrderedWeightedAveraging object with a weights vector
@@ -111,7 +112,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         Returns:
             None
         """
-        weights = torch.tensor([1.0, 0., 0., 0.])
+        weights = torch.tensor([1.0, 0.0, 0.0, 0.0])
         assert weights.sum() == 1.0
         in_features = len(weights)
         owa = OWA(in_features, weights)
@@ -131,7 +132,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         Returns:
             None
         """
-        weights = torch.tensor([0., 0., 0., 1.])
+        weights = torch.tensor([0.0, 0.0, 0.0, 1.0])
         assert weights.sum() == 1.0
         in_features = len(weights)
         owa = OWA(in_features, weights)
@@ -174,7 +175,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
             None
         """
         # considered to be more volatile and uses less input
-        weights = torch.tensor([0., 0., 1., 0., 0.])
+        weights = torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0])
         assert weights.sum() == 1.0
         in_features = len(weights)
         owa1 = OWA(in_features, weights)
@@ -199,12 +200,12 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
             None
         """
         # considered to be more volatile and uses less input
-        weights = torch.tensor([0., 0., 1., 0., 0.])
+        weights = torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0])
         assert weights.sum() == 1.0
         in_features = len(weights)
         owa = OWA(in_features, weights)
         assert torch.isclose(owa.weights, weights).all()
-        assert owa.dispersion() == 0.
+        assert owa.dispersion() == 0.0
 
     def test_dispersion_2(self):
         """
