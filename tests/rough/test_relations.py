@@ -186,7 +186,7 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         set_x_2 = frozenset({"x2", "x3", "x7"})
         assert self.knowledge_base.lower("R", set_x_1) == frozenset(self.set_e_1)
         assert self.knowledge_base.lower("R", set_x_2) == frozenset(self.set_e_1)
-        assert self.knowledge_base.bottom_R_equal("R", set_x_1, set_x_2)
+        assert self.knowledge_base.bottom_r_equal("R", set_x_1, set_x_2)
 
     def test_top_rough_equal(self):
         """
@@ -203,7 +203,7 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         assert self.knowledge_base.upper("R", set_y_2) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_4)
-        assert self.knowledge_base.top_R_equal("R", set_y_1, set_y_2)
+        assert self.knowledge_base.top_r_equal("R", set_y_1, set_y_2)
 
     def test_rough_equal(self):
         """
@@ -222,7 +222,7 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         assert self.knowledge_base.upper("R", set_z_2) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_3)
-        assert self.knowledge_base.R_equal("R", set_z_1, set_z_2)
+        assert self.knowledge_base.r_equal("R", set_z_1, set_z_2)
 
 
 class TestRoughInclusionOfSets(unittest.TestCase):
@@ -256,7 +256,7 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         assert self.knowledge_base.lower("R", set_x_2) == frozenset(self.set_e_1).union(
             self.set_e_3
         )
-        assert self.knowledge_base.bottom_R_included("R", set_x_1, set_x_2)
+        assert self.knowledge_base.bottom_r_included("R", set_x_1, set_x_2)
 
     def test_top_rough_included(self):
         """
@@ -273,7 +273,7 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         assert self.knowledge_base.upper("R", set_y_2) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_4)
-        assert self.knowledge_base.top_R_included("R", set_y_1, set_y_2)
+        assert self.knowledge_base.top_r_included("R", set_y_1, set_y_2)
 
     def test_rough_included(self):
         """
@@ -284,4 +284,4 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         """
         set_z_1 = frozenset({"x2", "x3"})
         set_z_2 = frozenset({"x1", "x2", "x3", "x7"})
-        assert self.knowledge_base.R_included("R", set_z_1, set_z_2)
+        assert self.knowledge_base.r_included("R", set_z_1, set_z_2)

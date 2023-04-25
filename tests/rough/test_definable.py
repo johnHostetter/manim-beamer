@@ -38,9 +38,9 @@ class TestDefinable(unittest.TestCase):
         set_y_1 = frozenset({"x3", "x4", "x5", "x8"})
         set_z_1 = frozenset({"x2", "x3", "x5", "x6", "x9"})
 
-        assert self.knowledge_base.R_definable("R", set_x_1)
-        assert self.knowledge_base.R_definable("R", set_y_1)
-        assert self.knowledge_base.R_definable("R", set_z_1)
+        assert self.knowledge_base.r_definable("R", set_x_1)
+        assert self.knowledge_base.r_definable("R", set_y_1)
+        assert self.knowledge_base.r_definable("R", set_z_1)
 
     def test_roughly_definable(self):
         """
@@ -54,9 +54,9 @@ class TestDefinable(unittest.TestCase):
         set_y_2 = frozenset({"x1", "x7", "x8", "x10"})
         set_z_2 = frozenset({"x2", "x3", "x4", "x8"})
 
-        assert self.knowledge_base.roughly_R_definable("R", set_x_2)
-        assert self.knowledge_base.roughly_R_definable("R", set_y_2)
-        assert self.knowledge_base.roughly_R_definable("R", set_z_2)
+        assert self.knowledge_base.roughly_r_definable("R", set_x_2)
+        assert self.knowledge_base.roughly_r_definable("R", set_y_2)
+        assert self.knowledge_base.roughly_r_definable("R", set_z_2)
 
         # the approximations
 
@@ -107,9 +107,9 @@ class TestDefinable(unittest.TestCase):
         set_y_3 = frozenset({"x1", "x2", "x3", "x6", "x8", "x9", "x10"})
         set_z_3 = frozenset({"x0", "x2", "x3", "x4", "x8", "x10"})
 
-        assert self.knowledge_base.externally_R_undefinable("R", set_x_3)
-        assert self.knowledge_base.externally_R_undefinable("R", set_y_3)
-        assert self.knowledge_base.externally_R_undefinable("R", set_z_3)
+        assert self.knowledge_base.externally_r_undefinable("R", set_x_3)
+        assert self.knowledge_base.externally_r_undefinable("R", set_y_3)
+        assert self.knowledge_base.externally_r_undefinable("R", set_z_3)
 
         # the approximations
 
@@ -152,9 +152,9 @@ class TestDefinable(unittest.TestCase):
         set_y_4 = frozenset({"x1", "x2", "x4", "x7"})
         set_z_4 = frozenset({"x2", "x3", "x4"})
 
-        assert self.knowledge_base.internally_R_undefinable("R", set_x_4)
-        assert self.knowledge_base.internally_R_undefinable("R", set_y_4)
-        assert self.knowledge_base.internally_R_undefinable("R", set_z_4)
+        assert self.knowledge_base.internally_r_undefinable("R", set_x_4)
+        assert self.knowledge_base.internally_r_undefinable("R", set_y_4)
+        assert self.knowledge_base.internally_r_undefinable("R", set_z_4)
 
         # the approximations
 
@@ -180,6 +180,6 @@ class TestDefinable(unittest.TestCase):
         set_y_5 = frozenset({"x1", "x5", "x6", "x8", "x10"})
         set_z_5 = frozenset({"x0", "x2", "x4", "x5", "x7"})
 
-        assert self.knowledge_base.totally_R_undefinable("R", set_x_5)
-        assert self.knowledge_base.totally_R_undefinable("R", set_y_5)
-        assert self.knowledge_base.totally_R_undefinable("R", set_z_5)
+        assert self.knowledge_base.totally_r_undefinable("R", set_x_5)
+        assert self.knowledge_base.totally_r_undefinable("R", set_y_5)
+        assert self.knowledge_base.totally_r_undefinable("R", set_z_5)
