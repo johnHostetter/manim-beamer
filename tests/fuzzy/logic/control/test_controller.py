@@ -12,7 +12,7 @@ from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.logic.controller import ZeroOrderTSK, Mamdani
 from utils.reproducibility import set_rng, default_configuration
-from examples.fuzzy.offline.supervised.demo_mamdani import toy_mamdani
+from examples.fuzzy.supervised.demo_mamdani import toy_mamdani
 
 set_rng(0)
 
