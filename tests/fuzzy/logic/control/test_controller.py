@@ -11,7 +11,7 @@ from soft.computing.design import expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.logic.controller import ZeroOrderTSK, Mamdani
-from utils.reproducibility import set_rng, default_configuration
+from utils.reproducibility import set_rng, load_configuration
 from examples.fuzzy.supervised.demo_mamdani import toy_mamdani
 
 set_rng(0)
@@ -24,7 +24,7 @@ class TestTSK(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_gradient_1(self):
         """
@@ -173,7 +173,7 @@ class TestMamdani(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
         self.antecedents, self.consequents, self.rules = toy_mamdani()
         self.knowledge_base = expert_design(
             self.antecedents, self.consequents, rules=self.rules, config=self.config

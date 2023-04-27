@@ -5,7 +5,11 @@ inference:
   type: TSK
   order: 0
 
+reproducibility:
+  seed: 0  # this seed is used to initialize the RNG for everything
+
 training:
+  total_time_steps: 1000  # e.g., the total time steps to train a policy on environment
   learning_rate: 1e-4
   optimizer: adam
   epochs: 10
@@ -16,6 +20,11 @@ training:
 validation:
   data:
     batch: 32
+
+evaluation:
+  online:
+    reinforcement:
+      num_episodes: 100  # num of episodes to evaluate model on online environment
 
 clustering:
   distance_threshold: 0.7  # e.g., ECM

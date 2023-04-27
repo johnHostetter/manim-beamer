@@ -9,7 +9,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng, default_configuration
+from utils.reproducibility import set_rng, load_configuration
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.online.unsupervised.granulation.clip import (
     find_indices_to_closest_neighbors,
@@ -28,7 +28,7 @@ class TestCLIP(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_regulator(self):
         """
