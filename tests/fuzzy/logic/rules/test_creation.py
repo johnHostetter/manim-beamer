@@ -3,7 +3,7 @@ Test the various mechanisms in which a fuzzy logic rule can be created.
 """
 import unittest
 
-from utils.reproducibility import default_configuration
+from utils.reproducibility import load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
@@ -17,7 +17,7 @@ class TestFuzzyLogicRule(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_constructor(self):
         """

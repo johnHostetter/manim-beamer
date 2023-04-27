@@ -7,7 +7,7 @@ import torch
 import pygad
 import numpy as np
 
-from utils.reproducibility import set_rng, default_configuration
+from utils.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.logic.rules.creation import Rule
@@ -123,7 +123,7 @@ def scenario_1():
     Returns:
         torch.tensor, Query, Summary
     """
-    configuration = default_configuration()
+    configuration = load_configuration()
     terms = [
         Gaussian(1, centers=[0.8], widths=[0.25]),
         Gaussian(1, centers=[0.4], widths=[0.25]),
@@ -150,7 +150,7 @@ def scenario_2():
     Returns:
         torch.tensor, Query, Summary, list (of Gaussian elements)
     """
-    configuration = default_configuration()
+    configuration = load_configuration()
     terms = [
         Gaussian(1, centers=[0.8], widths=[0.25]),
         Gaussian(1, centers=[0.4], widths=[0.25]),
@@ -178,7 +178,7 @@ class TestSummary(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_most_quantifier(self):
         """

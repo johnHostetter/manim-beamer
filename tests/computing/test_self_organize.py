@@ -10,7 +10,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng, default_configuration
+from utils.reproducibility import set_rng, load_configuration
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design
@@ -74,7 +74,7 @@ class TestSelfOrganize(unittest.TestCase):
         directory = pathlib.Path(__file__).parent.resolve()
         file_path = os.path.join(directory, "small_data.pt")
         self.data = torch.load(file_path)
-        self.config = default_configuration()
+        self.config = load_configuration()
         with self.config.unfreeze():
             self.config.clustering.distance_threshold = 1e-3
 

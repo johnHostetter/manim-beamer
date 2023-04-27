@@ -9,7 +9,7 @@ import torch
 import numpy as np
 import pandas as pd
 
-from utils.reproducibility import set_rng, default_configuration
+from utils.reproducibility import set_rng, load_configuration
 from examples.fuzzy.temporal.association.ftarm.demo import make_example
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
@@ -58,7 +58,7 @@ class TestFTARM(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_fuzzy_representation(self):
         """

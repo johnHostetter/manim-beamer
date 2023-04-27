@@ -6,7 +6,7 @@ import unittest
 import torch
 
 from examples.fuzzy.supervised.demo_tsk import toy_tsk
-from utils.reproducibility import set_rng, default_configuration
+from utils.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule
 from soft.fuzzy.sets.continuous import Gaussian
@@ -72,7 +72,7 @@ class TestFuzzyInference(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_product_inference_output(self):
         """

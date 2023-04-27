@@ -8,7 +8,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import default_configuration
+from utils.reproducibility import load_configuration
 from soft.fuzzy.online.unsupervised.cluster.ecm import (
     apply_evolving_clustering_method as ECM,
     general_euclidean_distance,
@@ -24,7 +24,7 @@ class TestECM(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = default_configuration()
+        self.config = load_configuration()
 
     def test_general_euclidean_distance(self):
         """
