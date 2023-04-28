@@ -1,4 +1,5 @@
 output:
+  scorer: True
   verbose: True
 
 inference:
@@ -9,6 +10,9 @@ reproducibility:
   seed: 0  # this seed is used to initialize the RNG for everything
 
 training:
+  reinforcement:
+    gamma: 0.99
+    conservative_alpha: 0.2  # i.e., the alpha value used by Conservative Q-learning
   total_time_steps: 1000  # e.g., the total time steps to train a policy on environment
   learning_rate: 1e-4
   optimizer: adam

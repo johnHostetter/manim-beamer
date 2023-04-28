@@ -5,6 +5,7 @@ metrics to be easily applied.
 """
 from collections import deque
 
+import gym
 import torch
 import numpy as np
 
@@ -128,7 +129,10 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
             print(f"Evaluating online for {n_trials} episodes.")
         scores_window = deque(maxlen=100)  # last 100 scores
         for trial_idx in range(n_trials):
-            observation, _ = env.reset()  # environment, info
+            if gym.__version__ <= '0.21.0':
+                observation = env.reset()  # observation only
+            else:
+                observation, _ = env.reset()  # environment, info
             episode_reward = 0.0
             while True:
                 if np.random.random() < epsilon:
@@ -137,9 +141,13 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
                     action = torch.argmax(
                         algo.predict(torch.tensor(np.array([observation])))
                     ).item()
-                observation, reward, terminated, truncated, _ = env.step(
-                    action
-                )  # last is 'info'
+                if gym.__version__ <= "0.21.0":
+                    observation, reward, terminated, _ = env.step(action)
+                    truncated = False
+                else:
+                    observation, reward, terminated, truncated, _ = env.step(
+                        action
+                    )  # last is 'info'
                 episode_reward += reward
 
                 if render:

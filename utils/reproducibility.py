@@ -40,7 +40,10 @@ def env_seed(env, seed: int):
         None
     """
     set_rng(seed)
-    env.reset(seed=seed)
+    try:
+        env.reset(seed=seed)
+    except TypeError:  # older version of gym (e.g., 0.21)
+        env.seed(seed)
     env.action_space.seed(seed)
 
 
