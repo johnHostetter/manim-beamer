@@ -1,4 +1,7 @@
+device: cpu
+
 output:
+  name: log
   scorer: True
   verbose: True
 
