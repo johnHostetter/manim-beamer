@@ -19,7 +19,7 @@ training:
   total_time_steps: 1000  # e.g., the total time steps to train a policy on environment
   learning_rate: 1e-4
   optimizer: adam
-  epochs: 10
+  epochs: 1
   loss: mse
   data:
     batch: 32
