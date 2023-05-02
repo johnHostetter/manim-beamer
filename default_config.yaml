@@ -5,6 +5,10 @@ output:
   scorer: True
   verbose: True
 
+fuzzy:
+  t_norm:
+    yager: euler
+
 inference:
   type: TSK
   order: 0
