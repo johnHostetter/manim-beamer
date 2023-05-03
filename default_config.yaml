@@ -7,7 +7,7 @@ output:
 
 fuzzy:
   t_norm:
-    yager: euler
+    yager: golden
 
 inference:
   type: TSK
