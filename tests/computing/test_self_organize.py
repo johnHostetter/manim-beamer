@@ -468,9 +468,7 @@ class TestSelfOrganize(unittest.TestCase):
         with self.config.unfreeze():
             self.config.training.data.batch = self.config.validation.data.batch = 128
 
-        _ = clip_frequent_discernible(
-            big_train_data, big_val_data, self.config
-        )
+        _ = clip_frequent_discernible(big_train_data, big_val_data, self.config)
         # knowledge_base = self_organize.start()  # the result is non-deterministic
         # assert len(knowledge_base.graph.vs.select(layer_eq="Rule")) == number_of_rules
         # assert (

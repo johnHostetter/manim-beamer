@@ -129,7 +129,7 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
             print(f"Evaluating online for {n_trials} episodes.")
         scores_window = deque(maxlen=100)  # last 100 scores
         for trial_idx in range(n_trials):
-            if gym.__version__ <= '0.21.0':
+            if gym.__version__ <= "0.21.0":
                 observation = env.reset()  # observation only
             else:
                 observation, _ = env.reset()  # environment, info
