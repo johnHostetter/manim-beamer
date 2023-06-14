@@ -35,7 +35,6 @@ from soft.fuzzy.online.unsupervised.granulation.clip import (
 from soft.fuzzy.offline.unsupervised.cluster.empirical import find_empirical_fuzzy_sets
 from soft.fuzzy.logic.rules.creation import (
     wang_mendel_method as WM,
-    frequent_discernible,
 )
 
 
