@@ -110,9 +110,9 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # only one reduct in the set set_c
-        assert self.knowledge_base.find_reducts(set_c, self.knowledge_base.indiscernibility) == frozenset(
-            {frozenset({"a", "b"})}
-        )
+        assert self.knowledge_base.find_reducts(
+            set_c, self.knowledge_base.indiscernibility
+        ) == frozenset({frozenset({"a", "b"})})
 
     def test_core(self):
         """
@@ -124,9 +124,9 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # only one core in the set set_c
-        assert self.knowledge_base.find_core(set_c, self.knowledge_base.indiscernibility) == frozenset(
-            {"a", "b"}
-        )
+        assert self.knowledge_base.find_core(
+            set_c, self.knowledge_base.indiscernibility
+        ) == frozenset({"a", "b"})
 
     def test_dependency(self):
         """

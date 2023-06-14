@@ -35,9 +35,9 @@ class TestEquivalentKnowledge(unittest.TestCase):
             (self.knowledge_2 / ["R1", "R2", "R3"]).values()
         )
 
-        assert self.knowledge_1.indiscernibility(["R1", "R2", "R3"]) == self.knowledge_2.indiscernibility(
+        assert self.knowledge_1.indiscernibility(
             ["R1", "R2", "R3"]
-        )
+        ) == self.knowledge_2.indiscernibility(["R1", "R2", "R3"])
 
     def test_nonequivalent_knowledge(self):
         """
@@ -67,17 +67,17 @@ class TestEquivalentKnowledge(unittest.TestCase):
         with self.assertRaises(
             ValueError
         ):  # exception is thrown since relations are not subset
-            _ = self.knowledge_1.indiscernibility(["R1", "R2", "R3"]) != self.knowledge_2.indiscernibility(
+            _ = self.knowledge_1.indiscernibility(
                 ["R1", "R2", "R3"]
-            )
+            ) != self.knowledge_2.indiscernibility(["R1", "R2", "R3"])
 
         assert frozenset((self.knowledge_1 / ["R1", "R2", "R3"]).values()) != frozenset(
             (self.knowledge_2 / ["R1", "R2"]).values()
         )
 
-        assert self.knowledge_1.indiscernibility(["R1", "R2", "R3"]) != self.knowledge_2.indiscernibility(
-            ["R1", "R2"]
-        )
+        assert self.knowledge_1.indiscernibility(
+            ["R1", "R2", "R3"]
+        ) != self.knowledge_2.indiscernibility(["R1", "R2"])
 
 
 class TestReductionOfKnowledge(unittest.TestCase):
@@ -170,9 +170,9 @@ class TestReductionOfKnowledge(unittest.TestCase):
             {"P", "Q", "R"}, "Q", func=self.knowledge_base.indiscernibility
         )
         # what is expected to be returned from IND(P, R)
-        assert self.knowledge_base.indiscernibility({"P", "R"}) == self.knowledge_base.indiscernibility(
-            {"P", "Q", "R"}
-        )
+        assert self.knowledge_base.indiscernibility(
+            {"P", "R"}
+        ) == self.knowledge_base.indiscernibility({"P", "Q", "R"})
 
     def test_dispensable_r_in_relations(self):
         """
@@ -188,9 +188,9 @@ class TestReductionOfKnowledge(unittest.TestCase):
             {"P", "Q", "R"}, "R", func=self.knowledge_base.indiscernibility
         )
         # what is expected to be returned from IND(P, R)
-        assert self.knowledge_base.indiscernibility({"P", "Q"}) == self.knowledge_base.indiscernibility(
-            {"P", "Q", "R"}
-        )
+        assert self.knowledge_base.indiscernibility(
+            {"P", "Q"}
+        ) == self.knowledge_base.indiscernibility({"P", "Q", "R"})
 
     def test_reducts(self):
         """

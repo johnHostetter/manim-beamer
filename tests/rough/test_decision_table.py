@@ -79,7 +79,8 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.dispensable(self.set_c, "c", self.knowledge_base.indiscernibility)
+        assert self.knowledge_base.dispensable(
+            self.set_c, "c", self.knowledge_base.indiscernibility)
 
         # pick the first relative reduct
         (subset_of_set_c,) = self.knowledge_base.find_restricted_reducts(self.set_c, self.set_d)
