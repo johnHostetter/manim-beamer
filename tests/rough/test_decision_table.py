@@ -28,7 +28,7 @@ class TestDecisionTable(unittest.TestCase):
         # a decision table is consistent iff set_c ==> set_d
         assert not self.knowledge_base.depends_on(self.set_c, self.set_d)
 
-        equivalence_classes = self.knowledge_base.IND(self.set_c)
+        equivalence_classes = self.knowledge_base.indiscernibility(self.set_c)
         inconsistent_rules = [
             indiscernible_rules
             for indiscernible_rules in equivalence_classes
@@ -79,10 +79,10 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.dispensable(self.set_c, "c", self.knowledge_base.IND)
+        assert self.knowledge_base.dispensable(self.set_c, "c", self.knowledge_base.indiscernibility)
 
         # pick the first relative reduct
-        (subset_of_set_c,) = self.knowledge_base.Q_RED(self.set_c, self.set_d)
+        (subset_of_set_c,) = self.knowledge_base.find_restricted_reducts(self.set_c, self.set_d)
         assert subset_of_set_c == frozenset({"b", "a", "d"})
         assert self.knowledge_base.remove_redundant_attributes(
             self.set_c, self.set_d
@@ -98,7 +98,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         partition_in_each_attribute = self.knowledge_base[1]
 
         # pick the first relative reduct
-        (subset_of_set_c,) = self.knowledge_base.Q_RED(self.set_c, self.set_d)
+        (subset_of_set_c,) = self.knowledge_base.find_restricted_reducts(self.set_c, self.set_d)
         family_of_sets = {
             key: value
             for key, value in partition_in_each_attribute.items()

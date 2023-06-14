@@ -146,7 +146,7 @@ class TestIndiscernibilityRelation(unittest.TestCase):
         knowledge_base = KnowledgeBase()
         example_knowledge_base(knowledge_base, self.universe)
 
-        assert knowledge_base.IND(["R1", "R2"]) == {
+        assert knowledge_base.indiscernibility(["R1", "R2"]) == {
             frozenset({"x2"}),
             frozenset({"x5"}),
             frozenset({"x6"}),

@@ -42,17 +42,17 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.IND("a") == {
+        assert self.knowledge_base.indiscernibility("a") == {
             frozenset({8, 2}),
             frozenset({3, 6, 7}),
             frozenset({1, 4, 5}),
         }
-        assert self.knowledge_base.IND("b") == {
+        assert self.knowledge_base.indiscernibility("b") == {
             frozenset({8, 2, 4, 7}),
             frozenset({1, 3, 5}),
             frozenset({6}),
         }
-        assert self.knowledge_base.IND({"c", "d"}) == {
+        assert self.knowledge_base.indiscernibility({"c", "d"}) == {
             frozenset({3, 6}),
             frozenset({8}),
             frozenset({1}),
@@ -60,7 +60,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({2, 7}),
             frozenset({4}),
         }
-        assert self.knowledge_base.IND({"a", "b", "c"}) == {
+        assert self.knowledge_base.indiscernibility({"a", "b", "c"}) == {
             frozenset({8, 2}),
             frozenset({7}),
             frozenset({3}),
@@ -93,12 +93,12 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # the set of attributes set_c are dependent
-        assert self.knowledge_base.dependent(set_c, self.knowledge_base.IND)
+        assert self.knowledge_base.dependent(set_c, self.knowledge_base.indiscernibility)
         # attributes 'a' and 'b' are indispensable
-        assert self.knowledge_base.indispensable(set_c, "a", self.knowledge_base.IND)
-        assert self.knowledge_base.indispensable(set_c, "b", self.knowledge_base.IND)
+        assert self.knowledge_base.indispensable(set_c, "a", self.knowledge_base.indiscernibility)
+        assert self.knowledge_base.indispensable(set_c, "b", self.knowledge_base.indiscernibility)
         # attribute 'c' is dispensable
-        assert self.knowledge_base.dispensable(set_c, "c", self.knowledge_base.IND)
+        assert self.knowledge_base.dispensable(set_c, "c", self.knowledge_base.indiscernibility)
 
     def test_reduct(self):
         """
@@ -110,7 +110,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # only one reduct in the set set_c
-        assert self.knowledge_base.RED(set_c, self.knowledge_base.IND) == frozenset(
+        assert self.knowledge_base.find_reducts(set_c, self.knowledge_base.indiscernibility) == frozenset(
             {frozenset({"a", "b"})}
         )
 
@@ -124,7 +124,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # only one core in the set set_c
-        assert self.knowledge_base.CORE(set_c, self.knowledge_base.IND) == frozenset(
+        assert self.knowledge_base.find_core(set_c, self.knowledge_base.indiscernibility) == frozenset(
             {"a", "b"}
         )
 
@@ -138,7 +138,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         # since {'a', 'b'} are the reduct & core of set set_c,
         # then we have the dependency: {'a', 'b'} ==> {'c'}
         assert self.knowledge_base.depends_on({"a", "b"}, {"c"})
-        assert self.knowledge_base.IND({"a", "b"}) == {
+        assert self.knowledge_base.indiscernibility({"a", "b"}) == {
             frozenset({1, 5}),
             frozenset({2, 8}),
             frozenset({3}),
@@ -146,7 +146,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({6}),
             frozenset({7}),
         }
-        assert self.knowledge_base.IND({"c"}) == {
+        assert self.knowledge_base.indiscernibility({"c"}) == {
             frozenset({1, 5}),
             frozenset({2, 7, 8}),
             frozenset({3, 4, 6}),
@@ -170,7 +170,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             {7},
         )
 
-        assert self.knowledge_base.IND(set_d) == {
+        assert self.knowledge_base.indiscernibility(set_d) == {
             frozenset(set_x_1),
             frozenset(set_x_2),
             frozenset(set_x_3),
@@ -178,7 +178,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset(set_x_5),
         }
 
-        assert self.knowledge_base.IND(set_c) == {
+        assert self.knowledge_base.indiscernibility(set_c) == {
             frozenset(set_y_1),
             frozenset(set_y_2),
             frozenset(set_y_3),
@@ -197,7 +197,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
 
         # only these elements can be classified into
         # blocks of the partition U / IND(set_d) using set_c
-        assert self.knowledge_base.POS(set_c, set_d) == frozenset(set_y_3).union(
+        assert self.knowledge_base.positive_region(set_c, set_d) == frozenset(set_y_3).union(
             set_y_4, set_y_5, set_y_6
         )
 
@@ -205,14 +205,14 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
 
         assert self.knowledge_base.independent_of(set_c, set_d)
         assert self.knowledge_base.indispensable(
-            set_c, "a", self.knowledge_base.POS, set_d
+            set_c, "a", self.knowledge_base.positive_region, set_d
         )
         assert not self.knowledge_base.dispensable(
-            set_c, "a", self.knowledge_base.POS, set_d
+            set_c, "a", self.knowledge_base.positive_region, set_d
         )
 
-        assert self.knowledge_base.Q_CORE(set_c, set_d) == frozenset({"a"})
-        assert self.knowledge_base.Q_RED(set_c, set_d) == frozenset(
+        assert self.knowledge_base.find_restricted_core(set_c, set_d) == frozenset({"a"})
+        assert self.knowledge_base.find_restricted_reducts(set_c, set_d) == frozenset(
             {frozenset({"a", "b"}), frozenset({"a", "c"})}
         )
 
@@ -232,21 +232,21 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         """
         set_c, set_d = {"a", "b", "c"}, {"d", "e"}
 
-        assert self.knowledge_base.IND({"b", "c"}) == {
+        assert self.knowledge_base.indiscernibility({"b", "c"}) == {
             frozenset({1, 5}),
             frozenset({2, 7, 8}),
             frozenset({3}),
             frozenset({4}),
             frozenset({6}),
         }
-        assert self.knowledge_base.IND({"a", "c"}) == {
+        assert self.knowledge_base.indiscernibility({"a", "c"}) == {
             frozenset({1, 5}),
             frozenset({2, 8}),
             frozenset({3, 6}),
             frozenset({4}),
             frozenset({7}),
         }
-        assert self.knowledge_base.IND({"a", "b"}) == {
+        assert self.knowledge_base.indiscernibility({"a", "b"}) == {
             frozenset({1, 5}),
             frozenset({2, 8}),
             frozenset({3}),
@@ -254,7 +254,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({6}),
             frozenset({7}),
         }
-        assert self.knowledge_base.IND({"d", "e"}) == {
+        assert self.knowledge_base.indiscernibility({"d", "e"}) == {
             frozenset({1}),
             frozenset({2, 7}),
             frozenset({3, 6}),
@@ -262,9 +262,9 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({5, 8}),
         }
 
-        assert self.knowledge_base.POS(set_c - {"a"}, set_d) == frozenset({3, 4, 6})
-        assert self.knowledge_base.POS(set_c - {"b"}, set_d) == frozenset({3, 4, 6, 7})
-        assert self.knowledge_base.POS(set_c - {"c"}, set_d) == frozenset({3, 4, 6, 7})
+        assert self.knowledge_base.positive_region(set_c - {"a"}, set_d) == frozenset({3, 4, 6})
+        assert self.knowledge_base.positive_region(set_c - {"b"}, set_d) == frozenset({3, 4, 6, 7})
+        assert self.knowledge_base.positive_region(set_c - {"c"}, set_d) == frozenset({3, 4, 6, 7})
 
         # attribute significance is the difference in the partial dependency
         # upon the removal of attributes (pg. 58)
@@ -296,7 +296,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             set_c, set_d, "c"
         )  # attribute 'c' is set_d-dispensable
 
-        assert self.knowledge_base.Q_CORE(set_c, set_d) == frozenset({"a"})
-        assert self.knowledge_base.Q_RED(set_c, set_d) == frozenset(
+        assert self.knowledge_base.find_restricted_core(set_c, set_d) == frozenset({"a"})
+        assert self.knowledge_base.find_restricted_reducts(set_c, set_d) == frozenset(
             {frozenset({"a", "b"}), frozenset({"a", "c"})}
         )

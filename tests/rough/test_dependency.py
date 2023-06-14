@@ -35,8 +35,8 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         # partial dependency should equal 1 if depends_on is True
         assert knowledge_base.partial_depends_on("P", "Q") == 1.0
         # the following are all equivalent to the statement above
-        assert knowledge_base.IND({"P", "Q"}) == knowledge_base.IND({"P"})
-        assert knowledge_base.POS({"P"}, {"Q"}) == self.universe
+        assert knowledge_base.indiscernibility({"P", "Q"}) == knowledge_base.indiscernibility({"P"})
+        assert knowledge_base.positive_region({"P"}, {"Q"}) == self.universe
         for set_x in knowledge_base / "Q":  # aka 'lower' of IND(P)set_x
             assert knowledge_base.lower({"P"}, set_x)
 
@@ -71,6 +71,6 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         assert knowledge_base.lower("P", set_x_4) == set_y_4
         assert knowledge_base.lower("P", set_x_5) == frozenset()
         # only these elements can be classified into blocks of the partition using knowledge P
-        assert knowledge_base.POS("P", "Q") == set_y_3.union(set_y_4, set_y_5, set_y_6)
+        assert knowledge_base.positive_region("P", "Q") == set_y_3.union(set_y_4, set_y_5, set_y_6)
         # hence the degree of dependency between Q and P is 0.5
         assert knowledge_base.partial_depends_on("P", "Q") == 0.5
