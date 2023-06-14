@@ -124,9 +124,7 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
     """
 
     def scorer(algo, *args):
-        if text:
-            print(f"args: {args}")
-            print(f"Evaluating online for {n_trials} episodes.")
+        print(f"Evaluating online for {n_trials} episodes with: {args}.")
         scores_window = deque(maxlen=100)  # last 100 scores
         for trial_idx in range(n_trials):
             if gym.__version__ <= "0.21.0":
@@ -167,8 +165,6 @@ def evaluate_on_environment(env, n_trials=100, epsilon=0.0, text=True, render=Fa
                     )
 
             scores_window.append(episode_reward)
-        if text:
-            print()
         return SummaryStatistics(scores_window)
 
     return scorer
