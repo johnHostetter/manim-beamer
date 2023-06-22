@@ -78,8 +78,12 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         """
         set_c, set_x = {"a", "b", "c"}, set(range(1, 6))
 
-        assert self.knowledge_base.lower_approximation(set_c, set_x) == frozenset({1, 3, 4, 5})
-        assert self.knowledge_base.upper_approximation(set_c, set_x) == frozenset({1, 2, 3, 4, 5, 8})
+        assert self.knowledge_base.lower_approximation(set_c, set_x) == frozenset(
+            {1, 3, 4, 5}
+        )
+        assert self.knowledge_base.upper_approximation(set_c, set_x) == frozenset(
+            {1, 2, 3, 4, 5, 8}
+        )
         # unable to decide if 2 or 8 belong to the set set_x or not, using attributes set_c
         assert self.knowledge_base.boundary_region(set_c, set_x) == frozenset({2, 8})
 
@@ -93,12 +97,20 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # the set of attributes set_c are dependent
-        assert self.knowledge_base.dependent(set_c, self.knowledge_base.indiscernibility)
+        assert self.knowledge_base.dependent(
+            set_c, self.knowledge_base.indiscernibility
+        )
         # attributes 'a' and 'b' are indispensable
-        assert self.knowledge_base.indispensable(set_c, "a", self.knowledge_base.indiscernibility)
-        assert self.knowledge_base.indispensable(set_c, "b", self.knowledge_base.indiscernibility)
+        assert self.knowledge_base.indispensable(
+            set_c, "a", self.knowledge_base.indiscernibility
+        )
+        assert self.knowledge_base.indispensable(
+            set_c, "b", self.knowledge_base.indiscernibility
+        )
         # attribute 'c' is dispensable
-        assert self.knowledge_base.dispensable(set_c, "c", self.knowledge_base.indiscernibility)
+        assert self.knowledge_base.dispensable(
+            set_c, "c", self.knowledge_base.indiscernibility
+        )
 
     def test_reduct(self):
         """
@@ -188,18 +200,22 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         }
 
         assert self.knowledge_base.lower_approximation(set_c, set_x_1) == frozenset()
-        assert self.knowledge_base.lower_approximation(set_c, set_x_2) == frozenset(set_y_6)
+        assert self.knowledge_base.lower_approximation(set_c, set_x_2) == frozenset(
+            set_y_6
+        )
         assert self.knowledge_base.lower_approximation(set_c, set_x_3) == frozenset(
             set_y_3.union(set_y_5)
         )
-        assert self.knowledge_base.lower_approximation(set_c, set_x_4) == frozenset(set_y_4)
+        assert self.knowledge_base.lower_approximation(set_c, set_x_4) == frozenset(
+            set_y_4
+        )
         assert self.knowledge_base.lower_approximation(set_c, set_x_5) == frozenset()
 
         # only these elements can be classified into
         # blocks of the partition U / IND(set_d) using set_c
-        assert self.knowledge_base.find_restricted_positive_region(set_c, set_d) == frozenset(set_y_3).union(
-            set_y_4, set_y_5, set_y_6
-        )
+        assert self.knowledge_base.find_restricted_positive_region(
+            set_c, set_d
+        ) == frozenset(set_y_3).union(set_y_4, set_y_5, set_y_6)
 
         assert self.knowledge_base.partial_depends_on(set_c, set_d) == 0.5
 
@@ -211,7 +227,9 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             set_c, "a", self.knowledge_base.find_restricted_positive_region, set_d
         )
 
-        assert self.knowledge_base.find_restricted_core(set_c, set_d) == frozenset({"a"})
+        assert self.knowledge_base.find_restricted_core(set_c, set_d) == frozenset(
+            {"a"}
+        )
         assert self.knowledge_base.find_restricted_reducts(set_c, set_d) == frozenset(
             {frozenset({"a", "b"}), frozenset({"a", "c"})}
         )
@@ -262,9 +280,15 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({5, 8}),
         }
 
-        assert self.knowledge_base.find_restricted_positive_region(set_c - {"a"}, set_d) == frozenset({3, 4, 6})
-        assert self.knowledge_base.find_restricted_positive_region(set_c - {"b"}, set_d) == frozenset({3, 4, 6, 7})
-        assert self.knowledge_base.find_restricted_positive_region(set_c - {"c"}, set_d) == frozenset({3, 4, 6, 7})
+        assert self.knowledge_base.find_restricted_positive_region(
+            set_c - {"a"}, set_d
+        ) == frozenset({3, 4, 6})
+        assert self.knowledge_base.find_restricted_positive_region(
+            set_c - {"b"}, set_d
+        ) == frozenset({3, 4, 6, 7})
+        assert self.knowledge_base.find_restricted_positive_region(
+            set_c - {"c"}, set_d
+        ) == frozenset({3, 4, 6, 7})
 
         # attribute significance is the difference in the partial dependency
         # upon the removal of attributes (pg. 58)
@@ -296,7 +320,9 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             set_c, set_d, "c"
         )  # attribute 'c' is set_d-dispensable
 
-        assert self.knowledge_base.find_restricted_core(set_c, set_d) == frozenset({"a"})
+        assert self.knowledge_base.find_restricted_core(set_c, set_d) == frozenset(
+            {"a"}
+        )
         assert self.knowledge_base.find_restricted_reducts(set_c, set_d) == frozenset(
             {frozenset({"a", "b"}), frozenset({"a", "c"})}
         )
