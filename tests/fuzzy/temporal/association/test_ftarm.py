@@ -213,7 +213,7 @@ class TestFTARM(unittest.TestCase):
         # step 8.1:
 
         minimum_inference_engine = make_candidates_inference_engine(
-            ftarm, candidates=c2_indices
+            ftarm.knowledge_base, candidates=c2_indices
         )
 
         expected_links = torch.tensor(

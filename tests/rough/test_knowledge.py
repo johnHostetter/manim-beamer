@@ -617,7 +617,7 @@ class TestReductionOfCategories(unittest.TestCase):
 
     def test_indispensable(self):
         """
-        Test whether 'T' is indispensable.
+        Test whether 'T' is indispensable. Page 40 of the book.
 
         Returns:
             None
@@ -633,10 +633,10 @@ class TestReductionOfCategories(unittest.TestCase):
         set_f = {"X", "Y", "Z"}
 
         assert self.knowledge_base.family_intersection(set_f) == frozenset({"x1", "x3"})
-        assert not self.knowledge_base.Y_dispensable(
+        assert not self.knowledge_base.y_dispensable(
             set_f, "T", "X"
         )  # X is T-indispensable
-        assert self.knowledge_base.Y_dispensable(set_f, "T", "Y")  # Y is T-dispensable
-        assert self.knowledge_base.Y_dispensable(set_f, "T", "Z")  # Z is T-dispensable
+        assert self.knowledge_base.y_dispensable(set_f, "T", "Y")  # Y is T-dispensable
+        assert self.knowledge_base.y_dispensable(set_f, "T", "Z")  # Z is T-dispensable
 
         assert not self.knowledge_base.Y_independent(set_f, "Y")

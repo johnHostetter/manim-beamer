@@ -5,7 +5,7 @@ import unittest
 
 import torch
 
-from examples.fuzzy.supervised.demo_tsk import toy_tsk
+from examples.fuzzy.supervised.demo_flcs import toy_tsk
 from utils.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule
@@ -32,7 +32,7 @@ def make_test_scenario(configuration):
         ]
     )
 
-    _, rules = toy_tsk()
+    _, _, rules = toy_tsk()
     antecedents = [
         Gaussian(
             3,

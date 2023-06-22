@@ -60,32 +60,32 @@ class TestDefinable(unittest.TestCase):
 
         # the approximations
 
-        assert self.knowledge_base.lower("R", set_x_2) == frozenset(self.set_e_3).union(
+        assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset(self.set_e_3).union(
             self.set_e_4
         )
-        assert self.knowledge_base.upper("R", set_x_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_x_2) == frozenset(self.set_e_1).union(
             self.set_e_3
         ).union(self.set_e_4).union(self.set_e_5)
 
-        assert self.knowledge_base.lower("R", set_y_2) == frozenset(self.set_e_5)
-        assert self.knowledge_base.upper("R", set_y_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.lower_approximation("R", set_y_2) == frozenset(self.set_e_5)
+        assert self.knowledge_base.upper_approximation("R", set_y_2) == frozenset(self.set_e_1).union(
             self.set_e_4
         ).union(self.set_e_5)
 
-        assert self.knowledge_base.lower("R", set_z_2) == frozenset(self.set_e_4)
-        assert self.knowledge_base.upper("R", set_z_2) == frozenset(self.set_e_2).union(
+        assert self.knowledge_base.lower_approximation("R", set_z_2) == frozenset(self.set_e_4)
+        assert self.knowledge_base.upper_approximation("R", set_z_2) == frozenset(self.set_e_2).union(
             self.set_e_3
         ).union(self.set_e_4)
 
         # the boundaries
 
-        assert self.knowledge_base.boundary("R", set_x_2) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_x_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_5)
-        assert self.knowledge_base.boundary("R", set_y_2) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_y_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_4)
-        assert self.knowledge_base.boundary("R", set_z_2) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_z_2) == frozenset(
             self.set_e_2
         ).union(self.set_e_3)
 
@@ -113,24 +113,24 @@ class TestDefinable(unittest.TestCase):
 
         # the approximations
 
-        assert self.knowledge_base.lower("R", set_x_3) == frozenset(self.set_e_1)
-        assert self.knowledge_base.upper("R", set_x_3) == frozenset(self.universe)
+        assert self.knowledge_base.lower_approximation("R", set_x_3) == frozenset(self.set_e_1)
+        assert self.knowledge_base.upper_approximation("R", set_x_3) == frozenset(self.universe)
 
-        assert self.knowledge_base.lower("R", set_y_3) == frozenset(self.set_e_2)
-        assert self.knowledge_base.upper("R", set_y_3) == frozenset(self.universe)
+        assert self.knowledge_base.lower_approximation("R", set_y_3) == frozenset(self.set_e_2)
+        assert self.knowledge_base.upper_approximation("R", set_y_3) == frozenset(self.universe)
 
-        assert self.knowledge_base.lower("R", set_z_3) == frozenset(self.set_e_4)
-        assert self.knowledge_base.upper("R", set_z_3) == frozenset(self.universe)
+        assert self.knowledge_base.lower_approximation("R", set_z_3) == frozenset(self.set_e_4)
+        assert self.knowledge_base.upper_approximation("R", set_z_3) == frozenset(self.universe)
 
         # the boundaries
 
-        assert self.knowledge_base.boundary("R", set_x_3) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_x_3) == frozenset(
             self.set_e_2
         ).union(self.set_e_3).union(self.set_e_4).union(self.set_e_5)
-        assert self.knowledge_base.boundary("R", set_y_3) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_y_3) == frozenset(
             self.set_e_1
         ).union(self.set_e_3).union(self.set_e_4).union(self.set_e_5)
-        assert self.knowledge_base.boundary("R", set_z_3) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_z_3) == frozenset(
             self.set_e_1
         ).union(self.set_e_2).union(self.set_e_3).union(self.set_e_5)
 
@@ -158,13 +158,13 @@ class TestDefinable(unittest.TestCase):
 
         # the approximations
 
-        assert self.knowledge_base.upper("R", set_x_4) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_x_4) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_3)
-        assert self.knowledge_base.upper("R", set_y_4) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_4) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_4).union(self.set_e_5)
-        assert self.knowledge_base.upper("R", set_z_4) == frozenset(self.set_e_2).union(
+        assert self.knowledge_base.upper_approximation("R", set_z_4) == frozenset(self.set_e_2).union(
             self.set_e_3
         ).union(self.set_e_4)
 

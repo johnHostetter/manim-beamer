@@ -458,7 +458,7 @@ class TestSelfOrganize(unittest.TestCase):
             KnowledgeBase
         """
         set_rng(0)
-        number_of_rules = 187
+        # number_of_rules = 187
         directory = pathlib.Path(__file__).parent.resolve()
         train_file_path = os.path.join(directory, "big_train_data.pt")
         val_file_path = os.path.join(directory, "big_val_data.pt")

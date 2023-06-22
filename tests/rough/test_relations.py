@@ -6,12 +6,13 @@ import unittest
 from soft.computing.knowledge import KnowledgeBase
 
 
-def example_knowledge_base(knowledge_base, universe):
+def example_knowledge_base(knowledge_base: KnowledgeBase, universe: frozenset) -> None:
     """
-    Apply granules and relations in-place to an example KnowledgeBase object.
+    Apply granules and relations in-place to an example KnowledgeBase object. Page 4 of the book.
 
     Args:
-        universe: Universe of discourse.
+        knowledge_base: The KnowledgeBase object to apply granules and relations to.
+        universe: The universe of discourse.
 
     Returns:
         None
@@ -33,11 +34,11 @@ class TestEquivalenceRelation(unittest.TestCase):
     Test the equivalence relation.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.universe = frozenset([f"x{i}" for i in range(1, 9)])
 
-    def test_get_category(self):
+    def test_get_category(self) -> None:
         """
         Test that categories are correctly stored by equivalence relation(s).
 
@@ -45,16 +46,7 @@ class TestEquivalenceRelation(unittest.TestCase):
             None
         """
         knowledge_base = KnowledgeBase()
-        knowledge_base.set_granules(self.universe)
-        knowledge_base.add_parent_relation(
-            "R1", ({"x1", "x3", "x7"}, {"x2", "x4"}, {"x5", "x6", "x8"})
-        )
-        knowledge_base.add_parent_relation(
-            "R2", ({"x1", "x5"}, {"x2", "x6"}, {"x3", "x4", "x7", "x8"})
-        )
-        knowledge_base.add_parent_relation(
-            "R3", ({"x2", "x7", "x8"}, {"x1", "x3", "x4", "x5", "x6"})
-        )
+        example_knowledge_base(knowledge_base, self.universe)
 
         assert knowledge_base / "R1" == frozenset(
             {
@@ -115,15 +107,15 @@ class TestEquivalenceRelation(unittest.TestCase):
         assert knowledge_base["x2"]["R1"] == frozenset(("x2", "x4"))
         assert knowledge_base["x1"]["R2"] == frozenset(("x1", "x5"))
         assert (
-            knowledge_base["x2"]["R1"].intersection(knowledge_base["x1"]["R2"])
-            == frozenset()
+                knowledge_base["x2"]["R1"].intersection(knowledge_base["x1"]["R2"])
+                == frozenset()
         )
 
         assert knowledge_base["x1"]["R1"] == frozenset(("x1", "x3", "x7"))
         assert knowledge_base["x2"]["R2"] == frozenset(("x2", "x6"))
         assert (
-            knowledge_base["x1"]["R1"].intersection(knowledge_base["x2"]["R2"])
-            == frozenset()
+                knowledge_base["x1"]["R1"].intersection(knowledge_base["x2"]["R2"])
+                == frozenset()
         )
 
 
@@ -132,13 +124,13 @@ class TestIndiscernibilityRelation(unittest.TestCase):
     Test the indiscernibility relation.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.universe = frozenset([f"x{i}" for i in range(1, 10)])
 
-    def test_indiscernibility(self):
+    def test_indiscernibility(self) -> None:
         """
-        Test the indiscernibility relation calculates as expected.
+        Test the indiscernibility relation calculates as expected on page 5 of the book.
 
         Returns:
             None
@@ -184,8 +176,8 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         """
         set_x_1 = frozenset({"x1", "x2", "x3"})
         set_x_2 = frozenset({"x2", "x3", "x7"})
-        assert self.knowledge_base.lower("R", set_x_1) == frozenset(self.set_e_1)
-        assert self.knowledge_base.lower("R", set_x_2) == frozenset(self.set_e_1)
+        assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset(self.set_e_1)
+        assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset(self.set_e_1)
         assert self.knowledge_base.bottom_r_equal("R", set_x_1, set_x_2)
 
     def test_top_rough_equal(self):
@@ -197,10 +189,12 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         """
         set_y_1 = frozenset({"x1", "x2", "x7"})
         set_y_2 = frozenset({"x2", "x3", "x4", "x8"})
-        assert self.knowledge_base.upper("R", set_y_1) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_1) == frozenset(
+            self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_4)
-        assert self.knowledge_base.upper("R", set_y_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_2) == frozenset(
+            self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_4)
         assert self.knowledge_base.top_r_equal("R", set_y_1, set_y_2)
@@ -214,12 +208,14 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         """
         set_z_1 = frozenset({"x1", "x2", "x6"})
         set_z_2 = frozenset({"x3", "x4", "x6"})
-        assert self.knowledge_base.lower("R", set_z_1) == frozenset(self.set_e_3)
-        assert self.knowledge_base.lower("R", set_z_2) == frozenset(self.set_e_3)
-        assert self.knowledge_base.upper("R", set_z_1) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.lower_approximation("R", set_z_1) == frozenset(self.set_e_3)
+        assert self.knowledge_base.lower_approximation("R", set_z_2) == frozenset(self.set_e_3)
+        assert self.knowledge_base.upper_approximation("R", set_z_1) == frozenset(
+            self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_3)
-        assert self.knowledge_base.upper("R", set_z_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_z_2) == frozenset(
+            self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_3)
         assert self.knowledge_base.r_equal("R", set_z_1, set_z_2)
@@ -252,8 +248,9 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         """
         set_x_1 = frozenset({"x2", "x4", "x6", "x7"})
         set_x_2 = frozenset({"x2", "x3", "x4", "x6"})
-        assert self.knowledge_base.lower("R", set_x_1) == frozenset(self.set_e_3)
-        assert self.knowledge_base.lower("R", set_x_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset(self.set_e_3)
+        assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset(
+            self.set_e_1).union(
             self.set_e_3
         )
         assert self.knowledge_base.bottom_r_included("R", set_x_1, set_x_2)
@@ -267,10 +264,12 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         """
         set_y_1 = frozenset({"x2", "x3", "x7"})
         set_y_2 = frozenset({"x1", "x2", "x7"})
-        assert self.knowledge_base.upper("R", set_y_1) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_1) == frozenset(
+            self.set_e_1).union(
             self.set_e_4
         )
-        assert self.knowledge_base.upper("R", set_y_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_2) == frozenset(
+            self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_4)
         assert self.knowledge_base.top_r_included("R", set_y_1, set_y_2)

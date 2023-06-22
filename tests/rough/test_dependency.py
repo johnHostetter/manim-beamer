@@ -38,7 +38,7 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         assert knowledge_base.indiscernibility({"P", "Q"}) == knowledge_base.indiscernibility({"P"})
         assert knowledge_base.positive_region({"P"}, {"Q"}) == self.universe
         for set_x in knowledge_base / "Q":  # aka 'lower' of IND(P)set_x
-            assert knowledge_base.lower({"P"}, set_x)
+            assert knowledge_base.lower_approximation({"P"}, set_x)
 
     def test_partial_depends_on(self):
         """
@@ -65,11 +65,11 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
             "P", (set_y_1, set_y_2, set_y_3, set_y_4, set_y_5, set_y_6)
         )
 
-        assert knowledge_base.lower("P", set_x_1) == frozenset()
-        assert knowledge_base.lower("P", set_x_2) == set_y_6
-        assert knowledge_base.lower("P", set_x_3) == set_y_3.union(set_y_5)
-        assert knowledge_base.lower("P", set_x_4) == set_y_4
-        assert knowledge_base.lower("P", set_x_5) == frozenset()
+        assert knowledge_base.lower_approximation("P", set_x_1) == frozenset()
+        assert knowledge_base.lower_approximation("P", set_x_2) == set_y_6
+        assert knowledge_base.lower_approximation("P", set_x_3) == set_y_3.union(set_y_5)
+        assert knowledge_base.lower_approximation("P", set_x_4) == set_y_4
+        assert knowledge_base.lower_approximation("P", set_x_5) == frozenset()
         # only these elements can be classified into blocks of the partition using knowledge P
         assert knowledge_base.positive_region("P", "Q") == set_y_3.union(set_y_4, set_y_5, set_y_6)
         # hence the degree of dependency between Q and P is 0.5

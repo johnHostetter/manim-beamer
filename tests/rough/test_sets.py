@@ -8,7 +8,8 @@ from soft.computing.knowledge import KnowledgeBase
 
 class TestRoughSets(unittest.TestCase):
     """
-    Test the properties of rough sets.
+    Test the properties of rough sets, equivalence classes, and the like, using the example on
+    page 13 of "Rough Sets: Theoretical Aspects of Reasoning About Data".
     """
 
     def __init__(self, *args, **kwargs):
@@ -50,15 +51,15 @@ class TestRoughSets(unittest.TestCase):
         set_x_1 = frozenset({"x1", "x4", "x7"})
         set_x_2 = frozenset({"x2", "x8"})
 
-        assert self.knowledge_base.lower("R", set_x_1) == frozenset()
-        assert self.knowledge_base.lower("R", set_x_2) == frozenset()
-        assert self.knowledge_base.lower("R", set_x_1.union(set_x_2)) == frozenset(
+        assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset()
+        assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset()
+        assert self.knowledge_base.lower_approximation("R", set_x_1.union(set_x_2)) == frozenset(
             self.set_e_1
         )
         assert (
-            self.knowledge_base.lower("R", set_x_1)
-            .union(self.knowledge_base.lower("R", set_x_2))
-            .issubset(self.knowledge_base.lower("R", set_x_1.union(set_x_2)))
+            self.knowledge_base.lower_approximation("R", set_x_1)
+            .union(self.knowledge_base.lower_approximation("R", set_x_2))
+            .issubset(self.knowledge_base.lower_approximation("R", set_x_1.union(set_x_2)))
         )
 
     def test_upper_approximation(self):
@@ -71,19 +72,19 @@ class TestRoughSets(unittest.TestCase):
         set_y_1 = frozenset({"x1", "x3", "x5"})
         set_y_2 = frozenset({"x2", "x3", "x4", "x6"})
 
-        assert self.knowledge_base.upper(
+        assert self.knowledge_base.upper_approximation(
             "R", set_y_1.intersection(set_y_2)
         ) == frozenset(self.set_e_3)
-        assert self.knowledge_base.upper("R", set_y_1) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_1) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_3)
-        assert self.knowledge_base.upper("R", set_y_2) == frozenset(self.set_e_1).union(
+        assert self.knowledge_base.upper_approximation("R", set_y_2) == frozenset(self.set_e_1).union(
             self.set_e_2
         ).union(self.set_e_3).union(self.set_e_4)
-        assert self.knowledge_base.upper("R", set_y_2) == self.universe
-        assert self.knowledge_base.upper("R", set_y_1.intersection(set_y_2)).issubset(
-            self.knowledge_base.upper("R", set_y_1).intersection(
-                self.knowledge_base.upper("R", set_y_2)
+        assert self.knowledge_base.upper_approximation("R", set_y_2) == self.universe
+        assert self.knowledge_base.upper_approximation("R", set_y_1.intersection(set_y_2)).issubset(
+            self.knowledge_base.upper_approximation("R", set_y_1).intersection(
+                self.knowledge_base.upper_approximation("R", set_y_2)
             )
         )
 
@@ -98,11 +99,11 @@ class TestRoughSets(unittest.TestCase):
         set_x_2 = frozenset({"x3", "x5"})
         set_x_3 = frozenset({"x3", "x6", "x8"})
 
-        assert self.knowledge_base.boundary("R", set_x_1) == frozenset(
+        assert self.knowledge_base.boundary_region("R", set_x_1) == frozenset(
             self.set_e_1
         ).union(self.set_e_2)
-        assert self.knowledge_base.boundary("R", set_x_2) == frozenset(self.set_e_2)
-        assert self.knowledge_base.boundary("R", set_x_3) == frozenset(self.set_e_1)
+        assert self.knowledge_base.boundary_region("R", set_x_2) == frozenset(self.set_e_2)
+        assert self.knowledge_base.boundary_region("R", set_x_3) == frozenset(self.set_e_1)
 
     def test_negative(self):
         """
@@ -115,11 +116,11 @@ class TestRoughSets(unittest.TestCase):
         set_x_2 = frozenset({"x3", "x5"})
         set_x_3 = frozenset({"x3", "x6", "x8"})
 
-        assert self.knowledge_base.negative("R", set_x_1) == frozenset({"x3", "x6"})
-        assert self.knowledge_base.negative("R", set_x_2) == frozenset(
+        assert self.knowledge_base.negative_region("R", set_x_1) == frozenset({"x3", "x6"})
+        assert self.knowledge_base.negative_region("R", set_x_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_4)
-        assert self.knowledge_base.negative("R", set_x_3) == frozenset(self.set_e_2)
+        assert self.knowledge_base.negative_region("R", set_x_3) == frozenset(self.set_e_2)
 
     def test_accuracy(self):
         """
@@ -181,14 +182,14 @@ class TestApproximationOfClassifications(unittest.TestCase):
         set_y_2 = frozenset({"x3", "x5", "x8"})
         set_y_3 = frozenset({"x6", "x7"})
 
-        assert self.knowledge_base.lower("R", set_y_1) == frozenset(self.set_x_2)
+        assert self.knowledge_base.lower_approximation("R", set_y_1) == frozenset(self.set_x_2)
         assert (
-            self.knowledge_base.upper("R", set_y_2)
+            self.knowledge_base.upper_approximation("R", set_y_2)
             == frozenset(self.set_x_1).union(self.set_x_3)
             != self.universe
         )
         assert (
-            self.knowledge_base.upper("R", set_y_3)
+            self.knowledge_base.upper_approximation("R", set_y_3)
             == frozenset(self.set_x_3)
             != self.universe
         )
@@ -205,9 +206,9 @@ class TestApproximationOfClassifications(unittest.TestCase):
         set_z_3 = frozenset({"x5", "x7", "x8"})
 
         assert (
-            self.knowledge_base.upper("R", set_z_1)
+            self.knowledge_base.upper_approximation("R", set_z_1)
             == frozenset(self.set_x_1).union(self.set_x_2).union(self.set_x_3)
             == self.universe
         )
-        assert self.knowledge_base.lower("R", set_z_2) == frozenset()
-        assert self.knowledge_base.lower("R", set_z_3) == frozenset()
+        assert self.knowledge_base.lower_approximation("R", set_z_2) == frozenset()
+        assert self.knowledge_base.lower_approximation("R", set_z_3) == frozenset()

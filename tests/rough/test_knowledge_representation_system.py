@@ -78,10 +78,10 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         """
         set_c, set_x = {"a", "b", "c"}, set(range(1, 6))
 
-        assert self.knowledge_base.lower(set_c, set_x) == frozenset({1, 3, 4, 5})
-        assert self.knowledge_base.upper(set_c, set_x) == frozenset({1, 2, 3, 4, 5, 8})
+        assert self.knowledge_base.lower_approximation(set_c, set_x) == frozenset({1, 3, 4, 5})
+        assert self.knowledge_base.upper_approximation(set_c, set_x) == frozenset({1, 2, 3, 4, 5, 8})
         # unable to decide if 2 or 8 belong to the set set_x or not, using attributes set_c
-        assert self.knowledge_base.boundary(set_c, set_x) == frozenset({2, 8})
+        assert self.knowledge_base.boundary_region(set_c, set_x) == frozenset({2, 8})
 
     def test_dispensability(self):
         """
@@ -187,13 +187,13 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset(set_y_6),
         }
 
-        assert self.knowledge_base.lower(set_c, set_x_1) == frozenset()
-        assert self.knowledge_base.lower(set_c, set_x_2) == frozenset(set_y_6)
-        assert self.knowledge_base.lower(set_c, set_x_3) == frozenset(
+        assert self.knowledge_base.lower_approximation(set_c, set_x_1) == frozenset()
+        assert self.knowledge_base.lower_approximation(set_c, set_x_2) == frozenset(set_y_6)
+        assert self.knowledge_base.lower_approximation(set_c, set_x_3) == frozenset(
             set_y_3.union(set_y_5)
         )
-        assert self.knowledge_base.lower(set_c, set_x_4) == frozenset(set_y_4)
-        assert self.knowledge_base.lower(set_c, set_x_5) == frozenset()
+        assert self.knowledge_base.lower_approximation(set_c, set_x_4) == frozenset(set_y_4)
+        assert self.knowledge_base.lower_approximation(set_c, set_x_5) == frozenset()
 
         # only these elements can be classified into
         # blocks of the partition U / IND(set_d) using set_c
@@ -286,13 +286,13 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             == 0.0
         )
 
-        assert not self.knowledge_base.Q_dispensable(
+        assert not self.knowledge_base.q_dispensable(
             set_c, set_d, "a"
         )  # attribute 'a' is set_d-indispensable
-        assert self.knowledge_base.Q_dispensable(
+        assert self.knowledge_base.q_dispensable(
             set_c, set_d, "b"
         )  # attribute 'b' is set_d-dispensable
-        assert self.knowledge_base.Q_dispensable(
+        assert self.knowledge_base.q_dispensable(
             set_c, set_d, "c"
         )  # attribute 'c' is set_d-dispensable
 
