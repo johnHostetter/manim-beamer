@@ -64,4 +64,14 @@ def load_configuration(
         YACS.yacs.Config
     """
     file_path = pathlib.Path(__file__).parent.parent / file_name
+    config = Config(str(file_path))
+    with config.unfreeze():
+        if config.fuzzy.t_norm.yager == "euler":
+            w_parameter = np.e
+        elif config.fuzzy.t_norm.yager == "golden":
+            w_parameter = (1 + 5**0.5) / 2
+        else:
+            w_parameter = float(config.fuzzy.t_norm.yager)
+        config.fuzzy.t_norm.yager = w_parameter
+
     return Config(str(file_path))

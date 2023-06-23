@@ -191,7 +191,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             None
         """
         assert self.knowledge_base.find_reducts(
-            {"P", "Q", "R"}, func=self.knowledge_base.indiscernibility
+            {"P", "Q", "R"}
         ) == frozenset({frozenset({"P", "Q"}), frozenset({"P", "R"})})
 
     def test_core(self):
@@ -384,8 +384,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             None
         """
         relations = {"P", "Q", "R"}
-        assert self.knowledge_base.find_relative_reducts(
-            relations, {"S"}
+        assert self.knowledge_base.find_reducts(
+            relations, relative_to={"S"}
         ) == frozenset({frozenset({"P", "R"})})
 
 
@@ -552,7 +552,7 @@ class TestReductionOfCategories(unittest.TestCase):
             },
         )
         assert self.knowledge_base.find_reducts(
-            {"X", "Y", "Z"}, func=self.knowledge_base.family_intersection
+            {"X", "Y", "Z"}, mode=self.knowledge_base.family_intersection
         ) == frozenset({frozenset({"X", "Z"}), frozenset({"Y", "X"})})
         assert self.knowledge_base.find_core(
             {"X", "Y", "Z"}, mode=self.knowledge_base.family_intersection
