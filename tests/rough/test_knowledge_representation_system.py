@@ -97,14 +97,14 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # the set of attributes set_c are dependent
-        assert self.knowledge_base.dependent(
+        assert not self.knowledge_base.independent(
             set_c, self.knowledge_base.indiscernibility
         )
         # attributes 'a' and 'b' are indispensable
-        assert self.knowledge_base.indispensable(
+        assert not self.knowledge_base.dispensable(
             set_c, "a", self.knowledge_base.indiscernibility
         )
-        assert self.knowledge_base.indispensable(
+        assert not self.knowledge_base.dispensable(
             set_c, "b", self.knowledge_base.indiscernibility
         )
         # attribute 'c' is dispensable
@@ -220,9 +220,6 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         assert self.knowledge_base.partial_depends_on(set_c, set_d) == 0.5
 
         assert self.knowledge_base.independent_of(set_c, set_d)
-        assert self.knowledge_base.indispensable(
-            set_c, "a", self.knowledge_base.find_restricted_positive_region, set_d
-        )
         assert not self.knowledge_base.dispensable(
             set_c, "a", self.knowledge_base.find_restricted_positive_region, set_d
         )

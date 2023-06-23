@@ -141,9 +141,6 @@ class TestReductionOfKnowledge(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.indispensable(
-            {"P", "Q", "R"}, "P", func=self.knowledge_base.indiscernibility
-        )
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"}, "P", func=self.knowledge_base.indiscernibility
         )
@@ -166,9 +163,6 @@ class TestReductionOfKnowledge(unittest.TestCase):
         assert self.knowledge_base.dispensable(
             {"P", "Q", "R"}, "Q", func=self.knowledge_base.indiscernibility
         )
-        assert not self.knowledge_base.indispensable(
-            {"P", "Q", "R"}, "Q", func=self.knowledge_base.indiscernibility
-        )
         # what is expected to be returned from IND(P, R)
         assert self.knowledge_base.indiscernibility(
             {"P", "R"}
@@ -182,9 +176,6 @@ class TestReductionOfKnowledge(unittest.TestCase):
             None
         """
         assert self.knowledge_base.dispensable(
-            {"P", "Q", "R"}, "R", func=self.knowledge_base.indiscernibility
-        )
-        assert not self.knowledge_base.indispensable(
             {"P", "Q", "R"}, "R", func=self.knowledge_base.indiscernibility
         )
         # what is expected to be returned from IND(P, R)
@@ -299,12 +290,6 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             {"P", "Q", "R"} - {"P"}, {"S"}
         ) != self.knowledge_base.find_restricted_positive_region({"P", "Q", "R"}, {"S"})
         # hence, P is S-indispensible in {'P', 'Q', 'R'}
-        assert self.knowledge_base.indispensable(
-            {"P", "Q", "R"},
-            {"P"},
-            self.knowledge_base.find_restricted_positive_region,
-            {"S"},
-        )
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"P"},
@@ -344,12 +329,6 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             self.knowledge_base.find_restricted_positive_region,
             {"S"},
         )
-        assert not self.knowledge_base.indispensable(
-            {"P", "Q", "R"},
-            {"Q"},
-            self.knowledge_base.find_restricted_positive_region,
-            {"S"},
-        )
 
     def test_relation_r_is_indispensable(self):
         """
@@ -379,12 +358,6 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             {"P", "Q", "R"} - {"R"}, {"S"}
         ) != self.knowledge_base.find_restricted_positive_region({"P", "Q", "R"}, {"S"})
         # hence, R is S-indispensible in {'P', 'Q', 'R'}
-        assert self.knowledge_base.indispensable(
-            {"P", "Q", "R"},
-            {"R"},
-            self.knowledge_base.find_restricted_positive_region,
-            {"S"},
-        )
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"R"},
@@ -553,9 +526,6 @@ class TestReductionOfCategories(unittest.TestCase):
                 frozenset({"x1", "x3", "x4", "x5", "x6"}),
                 frozenset({"x1", "x3", "x4", "x6", "x7"}),
             },
-        )
-        assert self.knowledge_base.dependent(
-            {"X", "Y", "Z"}, func=self.knowledge_base.family_intersection
         )
         assert not self.knowledge_base.independent(
             {"X", "Y", "Z"}, func=self.knowledge_base.family_intersection
