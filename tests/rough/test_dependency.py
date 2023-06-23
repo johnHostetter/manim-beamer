@@ -39,7 +39,7 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
             {"P", "Q"}
         ) == knowledge_base.indiscernibility({"P"})
         assert (
-            knowledge_base.find_restricted_positive_region({"P"}, {"Q"})
+            knowledge_base.find_relative_positive_region({"P"}, {"Q"})
             == self.universe
         )
         for set_x in knowledge_base / "Q":  # aka 'lower' of IND(P)set_x
@@ -78,7 +78,7 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         assert knowledge_base.lower_approximation("P", set_x_4) == set_y_4
         assert knowledge_base.lower_approximation("P", set_x_5) == frozenset()
         # only these elements can be classified into blocks of the partition using knowledge P
-        assert knowledge_base.find_restricted_positive_region(
+        assert knowledge_base.find_relative_positive_region(
             "P", "Q"
         ) == set_y_3.union(set_y_4, set_y_5, set_y_6)
         # hence the degree of dependency between Q and P is 0.5

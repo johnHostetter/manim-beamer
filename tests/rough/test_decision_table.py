@@ -84,7 +84,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         )
 
         # pick the first relative reduct
-        (subset_of_set_c,) = self.knowledge_base.find_restricted_reducts(
+        (subset_of_set_c,) = self.knowledge_base.find_relative_reducts(
             self.set_c, self.set_d
         )
         assert subset_of_set_c == frozenset({"b", "a", "d"})
@@ -102,7 +102,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         partition_in_each_attribute = self.knowledge_base[1]
 
         # pick the first relative reduct
-        (subset_of_set_c,) = self.knowledge_base.find_restricted_reducts(
+        (subset_of_set_c,) = self.knowledge_base.find_relative_reducts(
             self.set_c, self.set_d
         )
         family_of_sets = {

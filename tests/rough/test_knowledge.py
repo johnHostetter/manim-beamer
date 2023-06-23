@@ -201,9 +201,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.find_core(
-            {"P", "Q", "R"}, func=self.knowledge_base.indiscernibility
-        ) == frozenset({"P"})
+        assert self.knowledge_base.find_core({"P", "Q", "R"}) == frozenset({"P"})
 
 
 class TestRelativeReductAndRelativeCore(unittest.TestCase):
@@ -260,7 +258,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             }
         )
 
-        assert self.knowledge_base.find_restricted_positive_region(
+        assert self.knowledge_base.find_relative_positive_region(
             {"P", "Q", "R"}, {"S"}
         ) == frozenset({"x1", "x3", "x4", "x5", "x6", "x7"})
 
@@ -283,17 +281,17 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             }
         )
 
-        assert self.knowledge_base.find_restricted_positive_region(
+        assert self.knowledge_base.find_relative_positive_region(
             {"P", "Q", "R"} - {"P"}, {"S"}
         ) == frozenset({"x1", "x3", "x4", "x5", "x6"})
-        assert self.knowledge_base.find_restricted_positive_region(
+        assert self.knowledge_base.find_relative_positive_region(
             {"P", "Q", "R"} - {"P"}, {"S"}
-        ) != self.knowledge_base.find_restricted_positive_region({"P", "Q", "R"}, {"S"})
+        ) != self.knowledge_base.find_relative_positive_region({"P", "Q", "R"}, {"S"})
         # hence, P is S-indispensible in {'P', 'Q', 'R'}
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"P"},
-            self.knowledge_base.find_restricted_positive_region,
+            self.knowledge_base.find_relative_positive_region,
             {"S"},
         )
 
@@ -316,17 +314,17 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             }
         )
 
-        assert self.knowledge_base.find_restricted_positive_region(
+        assert self.knowledge_base.find_relative_positive_region(
             {"P", "Q", "R"} - {"Q"}, {"S"}
         ) == frozenset({"x1", "x3", "x4", "x5", "x6", "x7"})
-        assert self.knowledge_base.find_restricted_positive_region(
+        assert self.knowledge_base.find_relative_positive_region(
             {"P", "Q", "R"} - {"Q"}, {"S"}
-        ) == self.knowledge_base.find_restricted_positive_region({"P", "Q", "R"}, {"S"})
+        ) == self.knowledge_base.find_relative_positive_region({"P", "Q", "R"}, {"S"})
         # hence, Q is S-dispensible in {'P', 'Q', 'R'}
         assert self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"Q"},
-            self.knowledge_base.find_restricted_positive_region,
+            self.knowledge_base.find_relative_positive_region,
             {"S"},
         )
 
@@ -349,19 +347,19 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         )
 
         assert (
-            self.knowledge_base.find_restricted_positive_region(
+            self.knowledge_base.find_relative_positive_region(
                 {"P", "Q", "R"} - {"R"}, {"S"}
             )
             == frozenset()
         )
-        assert self.knowledge_base.find_restricted_positive_region(
+        assert self.knowledge_base.find_relative_positive_region(
             {"P", "Q", "R"} - {"R"}, {"S"}
-        ) != self.knowledge_base.find_restricted_positive_region({"P", "Q", "R"}, {"S"})
+        ) != self.knowledge_base.find_relative_positive_region({"P", "Q", "R"}, {"S"})
         # hence, R is S-indispensible in {'P', 'Q', 'R'}
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"R"},
-            self.knowledge_base.find_restricted_positive_region,
+            self.knowledge_base.find_relative_positive_region,
             {"S"},
         )
 
@@ -374,7 +372,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         """
         relations = {"P", "Q", "R"}
         # assert self.gg.Q_CORE(relations, self.gg.POS, {'S'}) == frozenset({'P', 'R'})
-        assert self.knowledge_base.find_restricted_core(relations, {"S"}) == frozenset(
+        assert self.knowledge_base.find_core(relations, relative_to={"S"}) == frozenset(
             {"P", "R"}
         )
 
@@ -386,7 +384,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             None
         """
         relations = {"P", "Q", "R"}
-        assert self.knowledge_base.find_restricted_reducts(
+        assert self.knowledge_base.find_relative_reducts(
             relations, {"S"}
         ) == frozenset({frozenset({"P", "R"})})
 
@@ -557,7 +555,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z"}, func=self.knowledge_base.family_intersection
         ) == frozenset({frozenset({"X", "Z"}), frozenset({"Y", "X"})})
         assert self.knowledge_base.find_core(
-            {"X", "Y", "Z"}, func=self.knowledge_base.family_intersection
+            {"X", "Y", "Z"}, mode=self.knowledge_base.family_intersection
         ) == frozenset({"X"})
 
     def test_family_union_dispensable(self):
