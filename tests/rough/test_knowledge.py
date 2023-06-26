@@ -638,4 +638,4 @@ class TestReductionOfCategories(unittest.TestCase):
         assert self.knowledge_base.y_dispensable(set_f, "T", "Y")  # Y is T-dispensable
         assert self.knowledge_base.y_dispensable(set_f, "T", "Z")  # Z is T-dispensable
 
-        assert not self.knowledge_base.Y_independent(set_f, "Y")
+        assert not self.knowledge_base.y_independent(set_f, "Y")
