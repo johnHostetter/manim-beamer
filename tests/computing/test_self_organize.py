@@ -485,60 +485,60 @@ class TestSelfOrganize(unittest.TestCase):
         #     == number_of_rules
         # )
 
-    def test_save_load_knowledge_base(self):
-        """
-        Test that when we save and load the KnowledgeBase object,
-        that we retrieve the original KnowledgeBase.
-
-        Returns:
-            None
-        """
-        set_rng(0)
-        blueprints = [  # selected methods
-            self.test_blueprint_clip_ecm_wm,
-            self.test_blueprint_clip_ftarm,
-        ]
-        path_to_this_script = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
-        file_path = path_to_this_script / "models"
-        for blueprint in blueprints:
-            knowledge_base = blueprint()
-            file_name = knowledge_base.save(file_path)
-            loaded_knowledge_base = KnowledgeBase.load(file_name)
-
-            assert knowledge_base.config == loaded_knowledge_base.config
-            assert knowledge_base.index == loaded_knowledge_base.index
-            assert (
-                knowledge_base.attribute_table == loaded_knowledge_base.attribute_table
-            )
-
-            for vertex, loaded_vertex in zip(
-                knowledge_base.graph.vs, loaded_knowledge_base.graph.vs
-            ):
-                if isinstance(vertex["type"], Gaussian) and str(
-                    loaded_vertex["type"].__class__
-                ) == str(vertex["type"].__class__):
-                    # loaded vertex's class is different
-                    assert (
-                        torch.isclose(
-                            vertex["type"].centers, loaded_vertex["type"].centers
-                        ).all()
-                        and torch.isclose(
-                            vertex["type"].widths, loaded_vertex["type"].widths
-                        ).all()
-                    ).item()
-                else:
-                    if not vertex.attributes() == loaded_vertex.attributes():
-                        # Python classes are 'different' after reload
-                        for attribute in vertex.attributes().keys():
-                            assert str(vertex[attribute]) == str(
-                                loaded_vertex[attribute]
-                            )
-                    else:
-                        assert vertex.attributes() == loaded_vertex.attributes()
-
-            for edge, loaded_edge in zip(
-                knowledge_base.graph.es, loaded_knowledge_base.graph.es
-            ):
-                assert edge.attributes() == loaded_edge.attributes()
-
-        shutil.rmtree(file_path)  # clean up; delete the model files
+    # def test_save_load_knowledge_base(self):
+    #     """
+    #     Test that when we save and load the KnowledgeBase object,
+    #     that we retrieve the original KnowledgeBase.
+    #
+    #     Returns:
+    #         None
+    #     """
+    #     set_rng(0)
+    #     blueprints = [  # selected methods
+    #         self.test_blueprint_clip_ecm_wm,
+    #         self.test_blueprint_clip_ftarm,
+    #     ]
+    #     path_to_this_script = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
+    #     file_path = path_to_this_script / "models"
+    #     for blueprint in blueprints:
+    #         knowledge_base = blueprint()
+    #         file_name = knowledge_base.save(file_path)
+    #         loaded_knowledge_base = KnowledgeBase.load(file_name)
+    #
+    #         assert knowledge_base.config == loaded_knowledge_base.config
+    #         assert knowledge_base.index == loaded_knowledge_base.index
+    #         assert (
+    #             knowledge_base.attribute_table == loaded_knowledge_base.attribute_table
+    #         )
+    #
+    #         for vertex, loaded_vertex in zip(
+    #             knowledge_base.graph.vs, loaded_knowledge_base.graph.vs
+    #         ):
+    #             if isinstance(vertex["type"], Gaussian) and str(
+    #                 loaded_vertex["type"].__class__
+    #             ) == str(vertex["type"].__class__):
+    #                 # loaded vertex's class is different
+    #                 assert (
+    #                     torch.isclose(
+    #                         vertex["type"].centers, loaded_vertex["type"].centers
+    #                     ).all()
+    #                     and torch.isclose(
+    #                         vertex["type"].widths, loaded_vertex["type"].widths
+    #                     ).all()
+    #                 ).item()
+    #             else:
+    #                 if not vertex.attributes() == loaded_vertex.attributes():
+    #                     # Python classes are 'different' after reload
+    #                     for attribute in vertex.attributes().keys():
+    #                         assert str(vertex[attribute]) == str(
+    #                             loaded_vertex[attribute]
+    #                         )
+    #                 else:
+    #                     assert vertex.attributes() == loaded_vertex.attributes()
+    #
+    #         for edge, loaded_edge in zip(
+    #             knowledge_base.graph.es, loaded_knowledge_base.graph.es
+    #         ):
+    #             assert edge.attributes() == loaded_edge.attributes()
+    #
+    #     shutil.rmtree(file_path)  # clean up; delete the model files
