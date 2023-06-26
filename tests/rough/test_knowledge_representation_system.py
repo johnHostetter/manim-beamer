@@ -98,18 +98,18 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
 
         # the set of attributes set_c are dependent
         assert not self.knowledge_base.independent(
-            set_c, self.knowledge_base.indiscernibility
+            set_c, mode=self.knowledge_base.indiscernibility
         )
         # attributes 'a' and 'b' are indispensable
         assert not self.knowledge_base.dispensable(
-            set_c, "a", self.knowledge_base.indiscernibility
+            set_c, "a", mode=self.knowledge_base.indiscernibility
         )
         assert not self.knowledge_base.dispensable(
-            set_c, "b", self.knowledge_base.indiscernibility
+            set_c, "b", mode=self.knowledge_base.indiscernibility
         )
         # attribute 'c' is dispensable
         assert self.knowledge_base.dispensable(
-            set_c, "c", self.knowledge_base.indiscernibility
+            set_c, "c", mode=self.knowledge_base.indiscernibility
         )
 
     def test_reduct(self):
@@ -122,7 +122,9 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         set_c = {"a", "b", "c"}
 
         # only one reduct in the set set_c
-        assert self.knowledge_base.find_reducts(set_c) == frozenset({frozenset({"a", "b"})})
+        assert self.knowledge_base.find_reducts(set_c) == frozenset(
+            {frozenset({"a", "b"})}
+        )
 
     def test_core(self):
         """
@@ -217,12 +219,13 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
 
         assert self.knowledge_base.independent_of(set_c, set_d)
         assert not self.knowledge_base.dispensable(
-            set_c, "a", self.knowledge_base.find_relative_positive_region, set_d
+            set_c,
+            "a",
+            relative_to=set_d,
+            mode=self.knowledge_base.find_relative_positive_region,
         )
 
-        assert self.knowledge_base.find_core(set_c, set_d) == frozenset(
-            {"a"}
-        )
+        assert self.knowledge_base.find_core(set_c, set_d) == frozenset({"a"})
         assert self.knowledge_base.find_reducts(set_c, relative_to=set_d) == frozenset(
             {frozenset({"a", "b"}), frozenset({"a", "c"})}
         )
@@ -303,14 +306,14 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             == 0.0
         )
 
-        assert not self.knowledge_base.q_dispensable(
-            set_c, set_d, "a"
+        assert not self.knowledge_base.dispensable(
+            set_c, "a", relative_to=set_d
         )  # attribute 'a' is set_d-indispensable
-        assert self.knowledge_base.q_dispensable(
-            set_c, set_d, "b"
+        assert self.knowledge_base.dispensable(
+            set_c, "b", relative_to=set_d
         )  # attribute 'b' is set_d-dispensable
-        assert self.knowledge_base.q_dispensable(
-            set_c, set_d, "c"
+        assert self.knowledge_base.dispensable(
+            set_c, "c", relative_to=set_d
         )  # attribute 'c' is set_d-dispensable
 
         assert self.knowledge_base.find_core(set_c, relative_to=set_d) == frozenset(

@@ -142,7 +142,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             None
         """
         assert not self.knowledge_base.dispensable(
-            {"P", "Q", "R"}, "P", func=self.knowledge_base.indiscernibility
+            {"P", "Q", "R"}, "P", mode=self.knowledge_base.indiscernibility
         )
         # what is expected to be returned from IND(Q, R)
         assert self.knowledge_base.indiscernibility({"Q", "R"}) == {
@@ -161,7 +161,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             None
         """
         assert self.knowledge_base.dispensable(
-            {"P", "Q", "R"}, "Q", func=self.knowledge_base.indiscernibility
+            {"P", "Q", "R"}, "Q", mode=self.knowledge_base.indiscernibility
         )
         # what is expected to be returned from IND(P, R)
         assert self.knowledge_base.indiscernibility(
@@ -176,7 +176,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             None
         """
         assert self.knowledge_base.dispensable(
-            {"P", "Q", "R"}, "R", func=self.knowledge_base.indiscernibility
+            {"P", "Q", "R"}, "R", mode=self.knowledge_base.indiscernibility
         )
         # what is expected to be returned from IND(P, R)
         assert self.knowledge_base.indiscernibility(
@@ -190,9 +190,9 @@ class TestReductionOfKnowledge(unittest.TestCase):
         Returns:
             None
         """
-        assert self.knowledge_base.find_reducts(
-            {"P", "Q", "R"}
-        ) == frozenset({frozenset({"P", "Q"}), frozenset({"P", "R"})})
+        assert self.knowledge_base.find_reducts({"P", "Q", "R"}) == frozenset(
+            {frozenset({"P", "Q"}), frozenset({"P", "R"})}
+        )
 
     def test_core(self):
         """
@@ -291,8 +291,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"P"},
-            self.knowledge_base.find_relative_positive_region,
-            {"S"},
+            relative_to={"S"},
+            mode=self.knowledge_base.find_relative_positive_region,
         )
 
     def test_relation_is_dispensable(self):
@@ -324,8 +324,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         assert self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"Q"},
-            self.knowledge_base.find_relative_positive_region,
-            {"S"},
+            relative_to={"S"},
+            mode=self.knowledge_base.find_relative_positive_region,
         )
 
     def test_relation_r_is_indispensable(self):
@@ -359,8 +359,8 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
         assert not self.knowledge_base.dispensable(
             {"P", "Q", "R"},
             {"R"},
-            self.knowledge_base.find_relative_positive_region,
-            {"S"},
+            relative_to={"S"},
+            mode=self.knowledge_base.find_relative_positive_region,
         )
 
     def test_core(self):
@@ -491,16 +491,16 @@ class TestReductionOfCategories(unittest.TestCase):
 
         # yields {'x1', 'x3', 'x4', 'x6'}
         assert not self.knowledge_base.dispensable(
-            {"X", "Y", "Z"}, "X", func=self.knowledge_base.family_intersection
+            {"X", "Y", "Z"}, "X", mode=self.knowledge_base.family_intersection
         )
         # yields {'x1', 'x3'}
         assert self.knowledge_base.dispensable(
-            {"X", "Y", "Z"}, "Y", func=self.knowledge_base.family_intersection
+            {"X", "Y", "Z"}, "Y", mode=self.knowledge_base.family_intersection
         )
 
         # yields {'x1', 'x3'}
         assert self.knowledge_base.dispensable(
-            {"X", "Y", "Z"}, "Z", func=self.knowledge_base.family_intersection
+            {"X", "Y", "Z"}, "Z", mode=self.knowledge_base.family_intersection
         )
 
     def test_dependent(self):
@@ -526,7 +526,7 @@ class TestReductionOfCategories(unittest.TestCase):
             },
         )
         assert not self.knowledge_base.independent(
-            {"X", "Y", "Z"}, func=self.knowledge_base.family_intersection
+            {"X", "Y", "Z"}, mode=self.knowledge_base.family_intersection
         )
 
     def test_reducts_and_core(self):
@@ -584,7 +584,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z", "T"} - {"X"}
         ) == frozenset({"x1", "x2", "x3", "x4", "x5", "x6", "x7"})
         assert not self.knowledge_base.dispensable(
-            {"X", "Y", "Z", "T"}, "X", func=self.knowledge_base.family_union
+            {"X", "Y", "Z", "T"}, "X", mode=self.knowledge_base.family_union
         )
 
         # Y is dispensable
@@ -593,7 +593,7 @@ class TestReductionOfCategories(unittest.TestCase):
             == self.universe
         )
         assert self.knowledge_base.dispensable(
-            {"X", "Y", "Z", "T"}, "Y", func=self.knowledge_base.family_union
+            {"X", "Y", "Z", "T"}, "Y", mode=self.knowledge_base.family_union
         )
 
         # Z is dispensable
@@ -602,7 +602,7 @@ class TestReductionOfCategories(unittest.TestCase):
             == self.universe
         )
         assert self.knowledge_base.dispensable(
-            {"X", "Y", "Z", "T"}, "Z", func=self.knowledge_base.family_union
+            {"X", "Y", "Z", "T"}, "Z", mode=self.knowledge_base.family_union
         )
 
         # T is dispensable
@@ -611,12 +611,12 @@ class TestReductionOfCategories(unittest.TestCase):
             == self.universe
         )
         assert self.knowledge_base.dispensable(
-            {"X", "Y", "Z", "T"}, "T", func=self.knowledge_base.family_union
+            {"X", "Y", "Z", "T"}, "T", mode=self.knowledge_base.family_union
         )
 
     def test_indispensable(self):
         """
-        Test whether 'T' is indispensable. Page 40 of the book.
+        Test whether "T" is indispensable. Page 40 of the book.
 
         Returns:
             None

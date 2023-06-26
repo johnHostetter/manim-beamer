@@ -258,7 +258,9 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_3)
-        assert self.knowledge_base.roughly_included("R", set_x_1, set_x_2, mode="bottom")
+        assert self.knowledge_base.roughly_included(
+            "R", set_x_1, set_x_2, mode="bottom"
+        )
 
     def test_top_rough_included(self):
         """

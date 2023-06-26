@@ -54,9 +54,18 @@ class TestDefinable(unittest.TestCase):
         set_y_2 = frozenset({"x1", "x7", "x8", "x10"})
         set_z_2 = frozenset({"x2", "x3", "x4", "x8"})
 
-        assert type(self.knowledge_base.definable("R", set_x_2)).__name__ == "RoughlyDefinable"
-        assert type(self.knowledge_base.definable("R", set_y_2)).__name__ == "RoughlyDefinable"
-        assert type(self.knowledge_base.definable("R", set_z_2)).__name__ == "RoughlyDefinable"
+        assert (
+            type(self.knowledge_base.definable("R", set_x_2)).__name__
+            == "RoughlyDefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_y_2)).__name__
+            == "RoughlyDefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_z_2)).__name__
+            == "RoughlyDefinable"
+        )
 
         # the approximations
 
@@ -111,9 +120,18 @@ class TestDefinable(unittest.TestCase):
         set_y_3 = frozenset({"x1", "x2", "x3", "x6", "x8", "x9", "x10"})
         set_z_3 = frozenset({"x0", "x2", "x3", "x4", "x8", "x10"})
 
-        assert type(self.knowledge_base.definable("R", set_x_3)).__name__ == "ExternallyUndefinable"
-        assert type(self.knowledge_base.definable("R", set_y_3)).__name__ == "ExternallyUndefinable"
-        assert type(self.knowledge_base.definable("R", set_z_3)).__name__ == "ExternallyUndefinable"
+        assert (
+            type(self.knowledge_base.definable("R", set_x_3)).__name__
+            == "ExternallyUndefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_y_3)).__name__
+            == "ExternallyUndefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_z_3)).__name__
+            == "ExternallyUndefinable"
+        )
 
         # the approximations
 
@@ -168,9 +186,18 @@ class TestDefinable(unittest.TestCase):
         set_y_4 = frozenset({"x1", "x2", "x4", "x7"})
         set_z_4 = frozenset({"x2", "x3", "x4"})
 
-        assert type(self.knowledge_base.definable("R", set_x_4)).__name__ == "InternallyUndefinable"
-        assert type(self.knowledge_base.definable("R", set_y_4)).__name__ == "InternallyUndefinable"
-        assert type(self.knowledge_base.definable("R", set_z_4)).__name__ == "InternallyUndefinable"
+        assert (
+            type(self.knowledge_base.definable("R", set_x_4)).__name__
+            == "InternallyUndefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_y_4)).__name__
+            == "InternallyUndefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_z_4)).__name__
+            == "InternallyUndefinable"
+        )
 
         # the approximations
 
@@ -196,6 +223,15 @@ class TestDefinable(unittest.TestCase):
         set_y_5 = frozenset({"x1", "x5", "x6", "x8", "x10"})
         set_z_5 = frozenset({"x0", "x2", "x4", "x5", "x7"})
 
-        assert type(self.knowledge_base.definable("R", set_x_5)).__name__ == "TotallyUndefinable"
-        assert type(self.knowledge_base.definable("R", set_y_5)).__name__ == "TotallyUndefinable"
-        assert type(self.knowledge_base.definable("R", set_z_5)).__name__ == "TotallyUndefinable"
+        assert (
+            type(self.knowledge_base.definable("R", set_x_5)).__name__
+            == "TotallyUndefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_y_5)).__name__
+            == "TotallyUndefinable"
+        )
+        assert (
+            type(self.knowledge_base.definable("R", set_z_5)).__name__
+            == "TotallyUndefinable"
+        )

@@ -80,7 +80,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
             None
         """
         assert self.knowledge_base.dispensable(
-            self.set_c, "c", self.knowledge_base.indiscernibility
+            self.set_c, "c", mode=self.knowledge_base.indiscernibility
         )
 
         # pick the first relative reduct
