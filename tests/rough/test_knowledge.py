@@ -21,7 +21,7 @@ class TestEquivalentKnowledge(unittest.TestCase):
         self.knowledge_2 = KnowledgeBase()
         self.knowledge_2.set_granules(self.universe)
 
-    def test_equivalent_knowledge(self):
+    def test_equivalent_knowledge(self) -> None:
         """
         Test that equivalence between KnowledgeBase holds if they have the same relations.
 
@@ -39,7 +39,7 @@ class TestEquivalentKnowledge(unittest.TestCase):
             ["R1", "R2", "R3"]
         ) == self.knowledge_2.indiscernibility(["R1", "R2", "R3"])
 
-    def test_nonequivalent_knowledge(self):
+    def test_nonequivalent_knowledge(self) -> None:
         """
         Test that equivalence between KnowledgeBase does not hold if they do not
         have the same relations.
@@ -118,7 +118,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             },
         )
 
-    def test_equivalence_classes(self):
+    def test_equivalence_classes(self) -> None:
         """
         Test that equivalence classes of a family of relations is correctly calculated.
 
@@ -134,7 +134,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             frozenset({"x7"}),
         }
 
-    def test_indispensable_p_in_relations(self):
+    def test_indispensable_p_in_relations(self) -> None:
         """
         Test that relation 'P' is indispensable in the family of relations.
 
@@ -153,7 +153,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             frozenset({"x6"}),
         }
 
-    def test_dispensable_q_in_relations(self):
+    def test_dispensable_q_in_relations(self) -> None:
         """
         Test that relation 'Q' is dispensable in the family of relations.
 
@@ -168,7 +168,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             {"P", "R"}
         ) == self.knowledge_base.indiscernibility({"P", "Q", "R"})
 
-    def test_dispensable_r_in_relations(self):
+    def test_dispensable_r_in_relations(self) -> None:
         """
         Test that relation 'R' is dispensable in the family of relations.
 
@@ -183,7 +183,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             {"P", "Q"}
         ) == self.knowledge_base.indiscernibility({"P", "Q", "R"})
 
-    def test_reducts(self):
+    def test_reducts(self) -> None:
         """
         Test that the reduct is correctly calculated.
 
@@ -194,7 +194,7 @@ class TestReductionOfKnowledge(unittest.TestCase):
             {frozenset({"P", "Q"}), frozenset({"P", "R"})}
         )
 
-    def test_core(self):
+    def test_core(self) -> None:
         """
         Test that the core is correctly calculated.
 
@@ -240,7 +240,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             },
         )
 
-    def test_classification_with_all_relations(self):
+    def test_classification_with_all_relations(self) -> None:
         """
         Test that the elements of the universe are correctly classified
         when given a family of relations.
@@ -262,7 +262,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             {"P", "Q", "R"}, {"S"}
         ) == frozenset({"x1", "x3", "x4", "x5", "x6", "x7"})
 
-    def test_relation_p_is_indispensable(self):
+    def test_relation_p_is_indispensable(self) -> None:
         """
         Test that relation 'P' is S-indispensable.
 
@@ -295,7 +295,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             mode=self.knowledge_base.find_relative_positive_region,
         )
 
-    def test_relation_is_dispensable(self):
+    def test_relation_is_dispensable(self) -> None:
         """
         Test that relation 'Q' is S-dispensable.
 
@@ -328,7 +328,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             mode=self.knowledge_base.find_relative_positive_region,
         )
 
-    def test_relation_r_is_indispensable(self):
+    def test_relation_r_is_indispensable(self) -> None:
         """
         Test that relation 'R' is S-indispensable.
 
@@ -363,7 +363,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             mode=self.knowledge_base.find_relative_positive_region,
         )
 
-    def test_core(self):
+    def test_core(self) -> None:
         """
         Test the S-core.
 
@@ -376,7 +376,7 @@ class TestRelativeReductAndRelativeCore(unittest.TestCase):
             {"P", "R"}
         )
 
-    def test_reduct(self):
+    def test_reduct(self) -> None:
         """
         Test the S-reduct.
 
@@ -400,7 +400,7 @@ class TestReductionOfCategories(unittest.TestCase):
         self.knowledge_base = KnowledgeBase()
         self.knowledge_base.set_granules(self.universe)
 
-    def test_family_intersection(self):
+    def test_family_intersection(self) -> None:
         """
         Test that the family intersection works as intended.
 
@@ -435,7 +435,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z"} - {"Z"}
         ) == frozenset({"x1", "x3"})
 
-    def test_family_union(self):
+    def test_family_union(self) -> None:
         """
         Test that the family union works as intended.
 
@@ -474,7 +474,7 @@ class TestReductionOfCategories(unittest.TestCase):
             == self.universe
         )
 
-    def test_dispensable(self):
+    def test_dispensable(self) -> None:
         """
         Test that dispensable works correctly when the family intersection is involved.
 
@@ -503,7 +503,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z"}, "Z", mode=self.knowledge_base.family_intersection
         )
 
-    def test_dependent(self):
+    def test_dependent(self) -> None:
         """
         Test that dependency works correctly when the family intersection is involved.
 
@@ -529,7 +529,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z"}, mode=self.knowledge_base.family_intersection
         )
 
-    def test_reducts_and_core(self):
+    def test_reducts_and_core(self) -> None:
         """
         Additional tests for reducts and cores.
 
@@ -558,7 +558,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z"}, mode=self.knowledge_base.family_intersection
         ) == frozenset({"X"})
 
-    def test_family_union_dispensable(self):
+    def test_family_union_dispensable(self) -> None:
         """
         Test the dispensability of the family union of sets.
 
@@ -614,7 +614,7 @@ class TestReductionOfCategories(unittest.TestCase):
             {"X", "Y", "Z", "T"}, "T", mode=self.knowledge_base.family_union
         )
 
-    def test_indispensable(self):
+    def test_indispensable(self) -> None:
         """
         Test whether "T" is indispensable. Page 40 of the book.
 

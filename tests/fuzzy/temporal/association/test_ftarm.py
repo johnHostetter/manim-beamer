@@ -4,16 +4,19 @@ and its necessary helper functions.
 """
 
 import unittest
+from typing import Tuple
 
 import torch
 import numpy as np
 import pandas as pd
 
+from YACS.yacs import Config
 from utils.reproducibility import set_rng, load_configuration
 from examples.fuzzy.temporal.association.ftarm.demo import make_example
+from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import expert_design
-from soft.fuzzy.sets.continuous import Gaussian
 from soft.computing.organize import add_stacked_granule
+from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.temporal.association.ftarm import (
     make_candidates_inference_engine,
     TemporalInformationTable as TI,
@@ -24,7 +27,9 @@ from soft.fuzzy.temporal.association.ftarm import (
 set_rng(5)
 
 
-def big_data_example(seed, configuration):
+def big_data_example(
+    seed: int, configuration: Config
+) -> Tuple[pd.DataFrame, KnowledgeBase]:
     """
     Generate an example with a large amount of data for benchmarking computational performance.
 
@@ -60,7 +65,7 @@ class TestFTARM(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_fuzzy_representation(self):
+    def test_fuzzy_representation(self) -> None:
         """
         Test the fuzzy representation calculated by the KnowledgeBase.
 
@@ -84,7 +89,7 @@ class TestFTARM(unittest.TestCase):
         )
         assert (torch.isclose(mus.reshape(5, 10), expected_membership)).all()
 
-    def test_temporal_information_table(self):
+    def test_temporal_information_table(self) -> None:
         """
         Test the information being stored by the Temporal Information (TI) table is correct.
 
@@ -114,7 +119,7 @@ class TestFTARM(unittest.TestCase):
             ftarm.ti_table.starting_periods.values == np.array([[0, 0, 0, 1, 1]])
         ).all()
 
-    def test_step_2(self):
+    def test_step_2(self) -> None:
         """
         Test that the described 'step 2' of the Fuzzy Temporal Association Rule Mining algorithm
         is working as intended.
@@ -132,7 +137,7 @@ class TestFTARM(unittest.TestCase):
             actual_scalar_cardinality.flatten(), expected_scalar_cardinality
         ).all()
 
-    def test_step_3(self):
+    def test_step_3(self) -> None:
         """
         Test that the described 'step 3' of the Fuzzy Temporal Association Rule Mining algorithm
         is working as intended.
@@ -154,7 +159,7 @@ class TestFTARM(unittest.TestCase):
         )  # low E, high E
         assert torch.isclose(actual_fuzzy_temporal_supports, expected_output).all()
 
-    def test_step_4(self):
+    def test_step_4(self) -> None:
         """
         Test that the described 'step 4' of the Fuzzy Temporal Association Rule Mining algorithm
         is working as intended.
@@ -197,7 +202,7 @@ class TestFTARM(unittest.TestCase):
             ((3, 1), (4, 0)),
         ]
 
-    def test_candidate_fuzzy_representation_functions(self):
+    def test_candidate_fuzzy_representation_functions(self) -> None:
         """
         Test that the generated candidates found with the Fuzzy Temporal Association Rule
         Mining algorithm are consistent with the expected results - and that the intermediate
@@ -349,7 +354,7 @@ class TestFTARM(unittest.TestCase):
         )
         assert torch.isclose(actual_rules_applicability, expected_output).all()
 
-    def test_candidate_fuzzy_representation_ftarm(self):
+    def test_candidate_fuzzy_representation_ftarm(self) -> None:
         """
         Test that the fuzzy representation of the generated candidates is correctly calculated.
 
@@ -378,7 +383,7 @@ class TestFTARM(unittest.TestCase):
             ftarm.fuzzy_representation(c2_indices), expected_output
         ).all()
 
-    def test_candidate_scalar_cardinality(self):
+    def test_candidate_scalar_cardinality(self) -> None:
         """
         Test that the scalar cardinality of the generated candidates is correctly calculated.
 
@@ -398,7 +403,7 @@ class TestFTARM(unittest.TestCase):
             actual_scalar_cardinality, expected_scalar_cardinality
         ).all()
 
-    def test_candidate_fuzzy_temporal_supports(self):
+    def test_candidate_fuzzy_temporal_supports(self) -> None:
         """
         Test that the fuzzy temporal supports of the generated candidates is correctly calculated.
 
@@ -491,7 +496,7 @@ class TestFTARM(unittest.TestCase):
 
         assert (l2_indices == torch.tensor([0, 1, 3, 4, 5])).all()
 
-    def test_make_candidate_3_itemsets(self):
+    def test_make_candidate_3_itemsets(self) -> None:
         """
         Test that the algorithm produces the correct 3-itemsets,
         as outlined in the original paper.
@@ -515,7 +520,7 @@ class TestFTARM(unittest.TestCase):
             actual_fuzzy_temporal_supports, expected_fuzzy_temporal_supports
         ).all()
 
-    def test_make_candidate_4_itemsets(self):
+    def test_make_candidate_4_itemsets(self) -> None:
         """
         Test that the algorithm does not incorrectly find any 4-itemset candidates,
         as outlined in the original paper.
@@ -531,7 +536,7 @@ class TestFTARM(unittest.TestCase):
         expected_candidate_indices = None
         assert c4_indices == expected_candidate_indices
 
-    def test_execute(self):
+    def test_execute(self) -> None:
         """
         Test that the algorithm - when fully executed, finds the expected candidates,
         as outlined in the original paper.
@@ -557,7 +562,7 @@ class TestFTARM(unittest.TestCase):
             {(1, 0), (4, 0), (3, 1)},
         ]
 
-    def test_find_association_rules(self):
+    def test_find_association_rules(self) -> None:
         """
         Test that the algorithm - when fully executed, finds the expected association rules,
         as outlined in the original paper.
@@ -610,7 +615,7 @@ class TestFTARM(unittest.TestCase):
             assert actual_rule.consequents == expected_rule.consequents
             assert actual_rule.confidence == expected_rule.confidence
 
-    def test_execute_big_data_0(self):
+    def test_execute_big_data_0(self) -> None:
         """
         This unit test was introduced to identify that frequent itemsets
         were not being created that contained more than one linguistic variable assignment.
@@ -640,7 +645,7 @@ class TestFTARM(unittest.TestCase):
             {(3, 2), (0, 3), (1, 3)},
         ]
 
-    def test_execute_big_data_5(self):
+    def test_execute_big_data_5(self) -> None:
         """
         This unit test was introduced to identify that frequent itemsets were not being
         created that contained more than one linguistic variable assignment. Also, some
@@ -672,7 +677,7 @@ class TestFTARM(unittest.TestCase):
             {(0, 1), (3, 0), (2, 2)},
         ]
 
-    def test_closed_itemsets(self):
+    def test_closed_itemsets(self) -> None:
         """
         Test that the correct itemsets are being identified as closed itemsets.
 
@@ -695,7 +700,7 @@ class TestFTARM(unittest.TestCase):
             frozenset({1, 3}),
         }
 
-    def test_maximal_itemsets(self):
+    def test_maximal_itemsets(self) -> None:
         """
         Test that the correct itemsets are being identified as maximal itemsets.
 

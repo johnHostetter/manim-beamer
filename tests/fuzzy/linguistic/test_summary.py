@@ -2,11 +2,13 @@
 Test the linguistic summary code implementation.
 """
 import unittest
+from typing import Tuple, List
 
 import torch
 import pygad
 import numpy as np
 
+from YACS.yacs import Config
 from utils.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
@@ -16,12 +18,12 @@ from soft.fuzzy.relation.aggregation import OrderedWeightedAveraging as OWA
 from soft.fuzzy.linguistic.summary import Summary, Query, most_quantifier as Q
 
 
-def check_initial_population(ga_instance):
+def check_initial_population(ga_instance: pygad.GA) -> None:
     """
     Wrapper method to modify the initial population, so it does not violate constraints.
 
     Args:
-        ga_instance:
+        ga_instance: The genetic algorithm instance.
 
     Returns:
         None
@@ -29,7 +31,9 @@ def check_initial_population(ga_instance):
     prevent_no_fuzzy_sets(ga_instance)
 
 
-def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
+def prevent_no_fuzzy_sets(
+    ga_instance: pygad.GA, offspring_mutation: np.ndarray = None
+) -> None:
     """
     This function checks that the population does not contain
     an invalid selection of gene values. Specifically, a row,
@@ -42,8 +46,8 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
     no features (i.e., fuzzy sets) selected, which is not allowed.
 
     Args:
-        ga_instance:
-        offspring_mutation:
+        ga_instance: The genetic algorithm instance.
+        offspring_mutation: The offspring from the mutation operation.
 
     Returns:
 
@@ -71,33 +75,37 @@ def prevent_no_fuzzy_sets(ga_instance, offspring_mutation=None):
         ga_instance.initial_population = ga_instance.population = population
 
 
-def fitness_function_factory(input_data, antecedents, config):
+def fitness_function_factory(
+    input_data: torch.Tensor, antecedents: List[Gaussian], config: Config
+) -> callable:
     """
     Factory design pattern to initialize the fitness_function's environment with the necessary
     variables, as the fitness_function expects a certain signature that cannot be modified.
 
     Args:
-        input_data:
-        antecedents:
-        config: YACS.yacs.Config
+        input_data: The input data to be used for the fitness function.
+        antecedents: The antecedent fuzzy sets.
+        config: The configuration object.
 
     Returns:
         fitness_function
     """
 
-    def fitness_function(self, solution, solution_idx):
+    def fitness_function(
+        ga_instance: pygad.GA, solution: np.ndarray, solution_idx: int
+    ) -> float:
         """
         The fitness function for the genetic algorithm search.
 
         Args:
-            self:
-            solution:
-            solution_idx:
+            self: The genetic algorithm instance.
+            solution: The solution to evaluate.
+            solution_idx: The index of the solution.
 
         Returns:
-
+            The fitness of the solution.
         """
-        print(f"{self}: {solution_idx}")
+        print(f"{ga_instance}: {solution_idx}")
         candidate = (  # term indices < 0 are reserved for "removed" fuzzy sets
             (variable_index, int(term_index))
             for variable_index, term_index in enumerate(solution)
@@ -116,12 +124,12 @@ def fitness_function_factory(input_data, antecedents, config):
     return fitness_function
 
 
-def scenario_1():
+def scenario_1() -> Tuple[torch.Tensor, Query, Summary]:
     """
     Create a simple test scenario that has only a few terms and a couple data observations.
 
     Returns:
-        torch.tensor, Query, Summary
+        The input data, the query, and the summary.
     """
     configuration = load_configuration()
     terms = [
@@ -143,12 +151,12 @@ def scenario_1():
     return input_data, query, summary
 
 
-def scenario_2():
+def scenario_2() -> Tuple[torch.Tensor, Query, Summary, List[Gaussian]]:
     """
     Create a larger but simpler test scenario that has only a some terms and more data observations.
 
     Returns:
-        torch.tensor, Query, Summary, list (of Gaussian elements)
+        The input data, the query, the summary, and the list of antecedent fuzzy sets.
     """
     configuration = load_configuration()
     terms = [
@@ -180,7 +188,7 @@ class TestSummary(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_most_quantifier(self):
+    def test_most_quantifier(self) -> None:
         """
         Test that the 'most' quantifier fuzzy set behaves as intended.
 
@@ -192,7 +200,7 @@ class TestSummary(unittest.TestCase):
         assert np.isclose(Q(0.7), 0.8)
         assert Q(0.3) == 0.0
 
-    def test_linguistic_quantified_proposition(self):
+    def test_linguistic_quantified_proposition(self) -> None:
         """
         Test that a linguistically quantified proposition (e.g., 'most') is correctly calculated.
 
@@ -213,7 +221,7 @@ class TestSummary(unittest.TestCase):
             truth_of_proposition, torch.tensor(0.9145)
         )  # compare to ground truth value
 
-    def test_linguistic_quantified_proposition_with_importance(self):
+    def test_linguistic_quantified_proposition_with_importance(self) -> None:
         """
         Test that a linguistically quantified proposition (e.g., 'most') is correctly calculated
         when there is an additional factor of 'importance' that weighs the calculation.
@@ -255,7 +263,7 @@ class TestSummary(unittest.TestCase):
             truth_of_proposition, torch.tensor(1.0)
         )  # compare to ground truth value
 
-    def test_owa_with_importance(self):
+    def test_owa_with_importance(self) -> None:
         """
         Test that the ordered weighted averaging for a linguistic summary is correctly calculated.
 
@@ -289,7 +297,7 @@ class TestSummary(unittest.TestCase):
         assert torch.isclose(owa.weights, weights).all()
         assert torch.isclose(owa(element), torch.tensor(0.30))
 
-    def test_summarizer_membership(self):
+    def test_summarizer_membership(self) -> None:
         """
         The membership of the summarizer should be equal to the minimum membership found
         across the list of fuzzy sets seen in the summarizer argument.
@@ -316,7 +324,7 @@ class TestSummary(unittest.TestCase):
             summary.summarizer_membership(element), torch.tensor(0.5272924900054932)
         )
 
-    def test_summarizer_membership_query(self):
+    def test_summarizer_membership_query(self) -> None:
         """
         The membership of the summarizer should be equal to the minimum membership found
         across the list of fuzzy set seen in the summarizer argument.
@@ -353,7 +361,7 @@ class TestSummary(unittest.TestCase):
             torch.tensor(0.4993517994880676),
         )
 
-    def test_degree_of_truth(self):
+    def test_degree_of_truth(self) -> None:
         """
         Test that the degree of truth for a linguistic summary is correctly calculated.
 
@@ -366,7 +374,7 @@ class TestSummary(unittest.TestCase):
             torch.tensor(0.3612580895423889),
         )
 
-    def test_degree_of_imprecision(self):
+    def test_degree_of_imprecision(self) -> None:
         """
         Test that the degree of imprecision for a linguistic summary is correctly calculated.
 
@@ -378,7 +386,7 @@ class TestSummary(unittest.TestCase):
             summary.degree_of_imprecision(input_data, alpha=0.3), torch.tensor(1 / 4)
         )
 
-    def test_degree_of_covering(self):
+    def test_degree_of_covering(self) -> None:
         """
         Test that the degree of covering for a linguistic summary is correctly calculated.
 
@@ -391,7 +399,7 @@ class TestSummary(unittest.TestCase):
             torch.tensor(2 / 3),
         )
 
-    def test_degree_of_appropriateness(self):
+    def test_degree_of_appropriateness(self) -> None:
         """
         Test that the degree of appropriateness for a linguistic summary is correctly calculated.
 
@@ -404,7 +412,7 @@ class TestSummary(unittest.TestCase):
             torch.tensor(0.10416668653488159),
         )
 
-    def test_length(self):
+    def test_length(self) -> None:
         """
         Test that the length of a linguistic summary is correctly calculated.
 
@@ -427,7 +435,7 @@ class TestSummary(unittest.TestCase):
         summary = Summary(knowledge_base, Q, None)
         assert torch.isclose(summary.length(), torch.tensor(1 / 2))
 
-    def test_degree_of_validity(self):
+    def test_degree_of_validity(self) -> None:
         """
         Test that the degree of validity for a linguistic summary is correctly calculated.
 
@@ -440,7 +448,7 @@ class TestSummary(unittest.TestCase):
             torch.tensor(0.3764182925224304),
         )
 
-    def test_prevent_no_fuzzy_sets(self):
+    def test_prevent_no_fuzzy_sets(self) -> None:
         """
         Test that no candidate in the genetic algorithm's population has selected no fuzzy sets.
 
@@ -505,7 +513,7 @@ class TestSummary(unittest.TestCase):
         assert (ga_instance.population == expected_population).all()
         assert (ga_instance.initial_population == expected_population).all()
 
-    def test_genetic_algorithm_summary_search(self):
+    def test_genetic_algorithm_summary_search(self) -> None:
         """
         Test the genetic algorithm search for a linguistic summary.
 

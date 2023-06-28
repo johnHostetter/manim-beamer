@@ -38,7 +38,7 @@ from soft.fuzzy.logic.rules.creation import (
 )
 
 
-def get_keyword_arguments(self_organize, testing_function):
+def get_keyword_arguments(self_organize: SelfOrganize, testing_function: callable):
     """
     Finds the vertex for the given function and its predecessors, then returns the
     keyword arguments' values given to the function (testing_function).
@@ -77,7 +77,7 @@ class TestSelfOrganize(unittest.TestCase):
         with self.config.unfreeze():
             self.config.clustering.distance_threshold = 1e-3
 
-    def test_empty_self_organize_kb(self):
+    def test_empty_self_organize_kb(self) -> None:
         """
         Test that if we create a SelfOrganize object and do nothing,
         that nothing is stored inside already.
@@ -91,7 +91,7 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(self_organize.graph.vs) == num_of_vertices
         assert len(self_organize.graph.es) == num_of_edges
 
-    def test_add_component_thread(self):
+    def test_add_component_thread(self) -> None:
         """
         We can add a single ComponentThread object.
 
@@ -105,7 +105,7 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(self_organize.graph.vs) == num_of_vertices
         assert len(self_organize.graph.es) == num_of_edges
 
-    def test_add_component_threads(self):
+    def test_add_component_threads(self) -> None:
         """
         We can add an iterable collection of ComponentThread objects.
 
@@ -126,7 +126,7 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(self_organize.graph.vs) == num_of_vertices
         assert len(self_organize.graph.es) == num_of_edges
 
-    def test_add_edge(self):
+    def test_add_edge(self) -> None:
         """
         Test that adding an edge works as intended.
 
@@ -149,7 +149,7 @@ class TestSelfOrganize(unittest.TestCase):
         assert len(self_organize.graph.vs) == num_of_vertices
         assert len(self_organize.graph.es) == num_of_edges
 
-    def test_add_edges(self):
+    def test_add_edges(self) -> None:
         """
         Test that adding several edges works as intended.
 
@@ -179,7 +179,7 @@ class TestSelfOrganize(unittest.TestCase):
         ]
         self_organize.link_functions(edges)
 
-    def test_add_input_data(self):
+    def test_add_input_data(self) -> None:
         """
         Test adding a special vertex to store the input data. The special vertex's value is passed
         as an argument to functions that rely upon input data.
@@ -214,7 +214,7 @@ class TestSelfOrganize(unittest.TestCase):
         num_of_edges = len(edges) + len(more_edges)
         assert len(self_organize.graph.es) == num_of_edges
 
-    def test_get_kwargs(self):
+    def test_get_kwargs(self) -> None:
         """
         Test that the keyword arguments are as expected in SelfOrganize.
 
@@ -267,7 +267,7 @@ class TestSelfOrganize(unittest.TestCase):
             == expected_kwargs
         )
 
-    def test_start(self):
+    def test_start(self) -> None:
         """
         Test a verbose definition of a self-organizing process (i.e., no shortcut method call).
 
@@ -374,7 +374,7 @@ class TestSelfOrganize(unittest.TestCase):
 
         return knowledge_base
 
-    def test_blueprint_clip_ecm_wm(self):
+    def test_blueprint_clip_ecm_wm(self) -> None:
         """
         Test the self-organizing process with CLIP, followed by ECM, and then generate fuzzy logic
         rules with the Wang-Mendel method.
@@ -426,7 +426,7 @@ class TestSelfOrganize(unittest.TestCase):
 
         return knowledge_base
 
-    def test_blueprint_clip_ftarm(self):
+    def test_blueprint_clip_ftarm(self) -> None:
         """
         Test the self-organizing process with CLIP followed by the fuzzy temporal association
         rule mining method.
@@ -450,7 +450,7 @@ class TestSelfOrganize(unittest.TestCase):
 
         return knowledge_base
 
-    def test_blueprint_clip_frequent_discernible(self):
+    def test_blueprint_clip_frequent_discernible(self) -> None:
         """
         Test the self-organizing process with CLIP followed by the frequent discernible method.
 
@@ -485,7 +485,7 @@ class TestSelfOrganize(unittest.TestCase):
         #     == number_of_rules
         # )
 
-    # def test_save_load_knowledge_base(self):
+    # def test_save_load_knowledge_base(self) -> None:
     #     """
     #     Test that when we save and load the KnowledgeBase object,
     #     that we retrieve the original KnowledgeBase.

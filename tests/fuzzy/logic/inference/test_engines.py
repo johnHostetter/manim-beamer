@@ -2,9 +2,11 @@
 Tests the fuzzy logic inference engines.
 """
 import unittest
+from typing import Tuple, Dict
 
 import torch
 
+from YACS.yacs import Config
 from examples.fuzzy.supervised.demo_flcs import toy_tsk
 from utils.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
@@ -14,7 +16,15 @@ from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.inference.engines import TSKProductInference, TSKMinimumInference
 
 
-def make_test_scenario(configuration):
+def make_test_scenario(
+    configuration: Config,
+) -> Tuple[
+    int,
+    torch.nn.parameter.Parameter,
+    Dict[str, torch.Tensor],
+    Dict[str, torch.Tensor],
+    torch.Tensor,
+]:
     """
     Makes a test scenario, with sample data, antecedents, rules, etc.
 
@@ -74,7 +84,7 @@ class TestFuzzyInference(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_product_inference_output(self):
+    def test_product_inference_output(self) -> None:
         """
         Test the soft.fuzzy.logic.inference.engines.ProductInference class.
 
@@ -131,7 +141,7 @@ class TestFuzzyInference(unittest.TestCase):
         )
         assert torch.isclose(actual_output, expected_output).all()
 
-    def test_minimum_inference_output(self):
+    def test_minimum_inference_output(self) -> None:
         """
         Test the soft.fuzzy.logic.inference.engines.MinimumInference class.
 

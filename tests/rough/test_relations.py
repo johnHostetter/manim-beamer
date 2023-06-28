@@ -128,7 +128,7 @@ class TestIndiscernibilityRelation(unittest.TestCase):
     Test the indiscernibility relation.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.universe = frozenset([f"x{i}" for i in range(1, 10)])
 

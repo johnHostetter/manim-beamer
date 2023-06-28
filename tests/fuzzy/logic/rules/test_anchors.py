@@ -16,7 +16,7 @@ class TestAnchor(unittest.TestCase):
     processes and construction of FLCs, etc.
     """
 
-    def test_anchor(self):
+    def test_anchor(self) -> None:
         """
         Test the 'anchoring' procedure of the KnowledgeBase.
 

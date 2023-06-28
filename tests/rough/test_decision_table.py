@@ -18,7 +18,7 @@ class TestDecisionTable(unittest.TestCase):
         self.universe, self.knowledge_base = make_example()
         self.set_c, self.set_d = {"a", "b", "c"}, {"d", "e"}
 
-    def test_rule_consistency(self):
+    def test_rule_consistency(self) -> None:
         """
         Test the consistency of rules returns the expected results.
 
@@ -38,7 +38,7 @@ class TestDecisionTable(unittest.TestCase):
         # there should be 2 equivalent groups of rules, each containing 2 rules
         assert len(inconsistent_rules) == 2
 
-    def test_table_decompose(self):
+    def test_table_decompose(self) -> None:
         """
         Test the decision table decomposition into two separate sets: rules that are consistent
         and rules that are inconsistent.
@@ -72,7 +72,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         self.knowledge_base.add_parent_relation("e", ({3, 4}, {1, 2}, {5, 6, 7}))
         self.set_c, self.set_d = {"a", "b", "c", "d"}, {"e"}
 
-    def test_c_is_dispensable(self):
+    def test_c_is_dispensable(self) -> None:
         """
         Test whether attribute 'c' is dispensable.
 
@@ -92,7 +92,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
             self.set_c, self.set_d
         ) == frozenset({"b", "a", "d"})
 
-    def test_condition_classes(self):
+    def test_condition_classes(self) -> None:
         """
         Test that condition classes are correctly calculated or stored.
 
@@ -112,7 +112,7 @@ class TestSimplificationOfDecisionTable(unittest.TestCase):
         }
         assert frozenset.intersection(*family_of_sets.values()) == frozenset({1})
 
-    def test_simplify_decision_table(self):
+    def test_simplify_decision_table(self) -> None:
         """
         Test that decision tables are simplified as expected.
 

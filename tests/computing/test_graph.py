@@ -14,7 +14,7 @@ class TestKnowledgeBase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def test_attributes(self):
+    def test_attributes(self) -> None:
         """
         Test that attributes, and their corresponding references (i.e., relations in KnowledgeBase),
         are appropriately added to the Knowledgebase graph.
@@ -58,7 +58,7 @@ class TestKnowledgeBase(unittest.TestCase):
         # assert knowledge_base.attributes('x9') == {'a': 4}
         # assert knowledge_base.attributes('x10') == {'a': 0}
 
-    def test_empty_knowledge_base(self):
+    def test_empty_knowledge_base(self) -> None:
         """
         Test that if we create a KnowledgeBase with no arguments, that it is indeed empty.
 
