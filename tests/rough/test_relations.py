@@ -256,7 +256,12 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         set_z_1 = frozenset({"x1", "x2", "x6"})
         set_z_2 = frozenset({"x3", "x4", "x6"})
         self.assertRaises(
-            ValueError, self.knowledge_base.roughly_equal, "R", set_z_1, set_z_2, "invalid"
+            ValueError,
+            self.knowledge_base.roughly_equal,
+            "R",
+            set_z_1,
+            set_z_2,
+            "invalid",
         )
 
 
