@@ -4,6 +4,8 @@ given a family of relations.
 """
 import unittest
 
+from sympy.testing import pytest
+
 from soft.computing.knowledge import KnowledgeBase
 
 
@@ -26,7 +28,7 @@ class TestDefinable(unittest.TestCase):
             "R", (self.set_e_1, self.set_e_2, self.set_e_3, self.set_e_4, self.set_e_5)
         )
 
-    def test_definable(self):
+    def test_definable(self) -> None:
         """
         Test if the sets are defineable, with respect to the
         given family of relations 'R'.
@@ -42,7 +44,7 @@ class TestDefinable(unittest.TestCase):
         assert type(self.knowledge_base.definable("R", set_y_1)).__name__ == "Definable"
         assert type(self.knowledge_base.definable("R", set_z_1)).__name__ == "Definable"
 
-    def test_roughly_definable(self):
+    def test_roughly_definable(self) -> None:
         """
         Test if the sets are roughly definable, with respect to the
         given family of relations 'R'.
@@ -108,7 +110,7 @@ class TestDefinable(unittest.TestCase):
         assert self.knowledge_base.accuracy("R", set_y_2) == 1 / 3
         assert self.knowledge_base.accuracy("R", set_z_2) == 2 / 7
 
-    def test_externally_undefinable(self):
+    def test_externally_undefinable(self) -> None:
         """
         Test if the sets are externally undefineable, with respect to the
         given family of relations 'R'.
@@ -174,7 +176,7 @@ class TestDefinable(unittest.TestCase):
         assert self.knowledge_base.accuracy("R", set_y_3) == 3 / 11
         assert self.knowledge_base.accuracy("R", set_z_3) == 2 / 11
 
-    def test_internally_undefinable(self):
+    def test_internally_undefinable(self) -> None:
         """
         Test if the sets are internally undefineable, with respect to the
         given family of relations 'R'.
@@ -211,7 +213,7 @@ class TestDefinable(unittest.TestCase):
             self.set_e_2
         ).union(self.set_e_3).union(self.set_e_4)
 
-    def test_totally_undefinable(self):
+    def test_totally_undefinable(self) -> None:
         """
         Test if the sets are totally undefineable, with respect to the
         given family of relations 'R'.
@@ -235,3 +237,53 @@ class TestDefinable(unittest.TestCase):
             type(self.knowledge_base.definable("R", set_z_5)).__name__
             == "TotallyUndefinable"
         )
+
+    def test_invalid_argument_for_lower_approximation(self) -> None:
+        """
+        Test the argument 'categories' may not have a length of zero.
+
+        Returns:
+            None
+        """
+        with pytest.raises(ValueError):
+            self.knowledge_base.lower_approximation("R", frozenset({}))
+
+    def test_invalid_argument_for_upper_approximation(self) -> None:
+        """
+        Test the argument 'categories' may not have a length of zero.
+
+        Returns:
+            None
+        """
+        with pytest.raises(ValueError):
+            self.knowledge_base.upper_approximation("R", frozenset({}))
+
+    def test_invalid_argument_for_boundary_region(self) -> None:
+        """
+        Test the argument 'categories' may not have a length of zero.
+
+        Returns:
+            None
+        """
+        with pytest.raises(ValueError):
+            self.knowledge_base.boundary_region("R", frozenset({}))
+
+    def test_invalid_argument_for_accuracy(self) -> None:
+        """
+        Test the argument 'categories' may not have a length of zero.
+
+        Returns:
+            None
+        """
+        with pytest.raises(ValueError):
+            self.knowledge_base.accuracy("R", frozenset({}))
+
+    def test_invalid_argument_for_definable(self) -> None:
+        """
+        Test the argument 'categories' may not have a length of zero.
+
+        Returns:
+            None
+        """
+        with pytest.raises(ValueError):
+            self.knowledge_base.definable("R", frozenset({}))

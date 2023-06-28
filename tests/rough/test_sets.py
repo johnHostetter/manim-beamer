@@ -43,7 +43,8 @@ class TestRoughSets(unittest.TestCase):
 
     def test_lower_approximation(self):
         """
-        Test that the 'lower approximation' of a set is correctly calculated.
+        Test that the 'lower approximation' (i.e., positive region) of a set is correctly
+        calculated.
 
         Returns:
             None
@@ -51,18 +52,20 @@ class TestRoughSets(unittest.TestCase):
         set_x_1 = frozenset({"x1", "x4", "x7"})
         set_x_2 = frozenset({"x2", "x8"})
 
-        assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset()
-        assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset()
-        assert self.knowledge_base.lower_approximation(
-            "R", set_x_1.union(set_x_2)
-        ) == frozenset(self.set_e_1)
-        assert (
-            self.knowledge_base.lower_approximation("R", set_x_1)
-            .union(self.knowledge_base.lower_approximation("R", set_x_2))
-            .issubset(
-                self.knowledge_base.lower_approximation("R", set_x_1.union(set_x_2))
+        for approximation_method in [
+            self.knowledge_base.lower_approximation,
+            self.knowledge_base.positive_region,
+        ]:
+            assert approximation_method("R", set_x_1) == frozenset()
+            assert approximation_method("R", set_x_2) == frozenset()
+            assert approximation_method("R", set_x_1.union(set_x_2)) == frozenset(
+                self.set_e_1
             )
-        )
+            assert (
+                approximation_method("R", set_x_1)
+                .union(approximation_method("R", set_x_2))
+                .issubset(approximation_method("R", set_x_1.union(set_x_2)))
+            )
 
     def test_upper_approximation(self):
         """

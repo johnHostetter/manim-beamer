@@ -48,6 +48,7 @@ class TestEquivalenceRelation(unittest.TestCase):
         knowledge_base = KnowledgeBase()
         example_knowledge_base(knowledge_base, self.universe)
 
+        # test that the equivalence relation is correctly stored.
         assert knowledge_base / "R1" == frozenset(
             {
                 frozenset({"x8", "x6", "x5"}),
@@ -55,6 +56,7 @@ class TestEquivalenceRelation(unittest.TestCase):
                 frozenset({"x2", "x4"}),
             }
         )
+        # test that the equivalence relation is correctly stored.
         assert knowledge_base / "R2" == frozenset(
             {
                 frozenset({"x2", "x6"}),
@@ -62,6 +64,7 @@ class TestEquivalenceRelation(unittest.TestCase):
                 frozenset({"x3", "x8", "x4", "x7"}),
             }
         )
+        # test that the equivalence relation is correctly stored.
         assert knowledge_base / "R3" == frozenset(
             {frozenset({"x2", "x8", "x7"}), frozenset({"x1", "x4", "x5", "x3", "x6"})}
         )
@@ -72,6 +75,7 @@ class TestEquivalenceRelation(unittest.TestCase):
             "R3": frozenset({"x3", "x1", "x4", "x5", "x6"}),
         }
 
+        # test that the element "x1" belongs to the correct equivalence classes.
         assert knowledge_base["x1"] == expected_indexing_result
 
         assert knowledge_base["x1"]["R1"].intersection(
@@ -138,6 +142,9 @@ class TestIndiscernibilityRelation(unittest.TestCase):
         knowledge_base = KnowledgeBase()
         example_knowledge_base(knowledge_base, self.universe)
 
+        # the given equivalence relation argument must have at least one element
+        self.assertRaises(ValueError, knowledge_base.indiscernibility, [])
+        # test that the indiscernibility relation is calculated correctly
         assert knowledge_base.indiscernibility(["R1", "R2"]) == {
             frozenset({"x2"}),
             frozenset({"x5"}),
@@ -167,7 +174,7 @@ class TestRoughEqualityOfSets(unittest.TestCase):
             "R", (self.set_e_1, self.set_e_2, self.set_e_3, self.set_e_4)
         )
 
-    def test_bottom_rough_equal(self):
+    def test_bottom_rough_equal(self) -> None:
         """
         Test the rough bottom equality of sets is correctly calculated.
 
@@ -176,15 +183,19 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         """
         set_x_1 = frozenset({"x1", "x2", "x3"})
         set_x_2 = frozenset({"x2", "x3", "x7"})
+        # test that the lower approximation is calculated correctly for the given set
         assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset(
             self.set_e_1
         )
+        # test that the lower approximation is calculated correctly for the given set
         assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset(
             self.set_e_1
         )
+        # test that the rough bottom equality is calculated correctly for the given sets,
+        # since the lower approximation of both sets is the same, they are bottom-roughly equal
         assert self.knowledge_base.roughly_equal("R", set_x_1, set_x_2, mode="bottom")
 
-    def test_top_rough_equal(self):
+    def test_top_rough_equal(self) -> None:
         """
         Test the rough top equality of sets is correctly calculated.
 
@@ -193,15 +204,20 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         """
         set_y_1 = frozenset({"x1", "x2", "x7"})
         set_y_2 = frozenset({"x2", "x3", "x4", "x8"})
+        # test that the upper approximation is calculated correctly for the given set
         assert self.knowledge_base.upper_approximation("R", set_y_1) == frozenset(
             self.set_e_1
         ).union(self.set_e_2).union(self.set_e_4)
+        # test that the upper approximation is calculated correctly for the given set
         assert self.knowledge_base.upper_approximation("R", set_y_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_2).union(self.set_e_4)
+        # test that the rough top equality is calculated correctly, since the upper approximation
+        # of the first set is equal to the upper approximation of the second set, then the sets
+        # are top-roughly equal
         assert self.knowledge_base.roughly_equal("R", set_y_1, set_y_2, mode="top")
 
-    def test_rough_equal(self):
+    def test_rough_equal(self) -> None:
         """
         Test the rough equality of sets is correctly calculated.
 
@@ -210,19 +226,38 @@ class TestRoughEqualityOfSets(unittest.TestCase):
         """
         set_z_1 = frozenset({"x1", "x2", "x6"})
         set_z_2 = frozenset({"x3", "x4", "x6"})
+        # test that the lower approximation is calculated correctly for the given set
         assert self.knowledge_base.lower_approximation("R", set_z_1) == frozenset(
             self.set_e_3
         )
+        # test that the lower approximation is calculated correctly for the given set
         assert self.knowledge_base.lower_approximation("R", set_z_2) == frozenset(
             self.set_e_3
         )
+        # test that the upper approximation is calculated correctly for the given set
         assert self.knowledge_base.upper_approximation("R", set_z_1) == frozenset(
             self.set_e_1
         ).union(self.set_e_2).union(self.set_e_3)
+        # test that the upper approximation is calculated correctly for the given set
         assert self.knowledge_base.upper_approximation("R", set_z_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_2).union(self.set_e_3)
+        # test that the rough equality is calculated correctly, since the lower and upper
+        # approximations are equal, the sets are roughly equal
         assert self.knowledge_base.roughly_equal("R", set_z_1, set_z_2)
+
+    def test_invalid_mode_argument(self) -> None:
+        """
+        Test that an invalid mode argument raises a ValueError.
+
+        Returns:
+            None
+        """
+        set_z_1 = frozenset({"x1", "x2", "x6"})
+        set_z_2 = frozenset({"x3", "x4", "x6"})
+        self.assertRaises(
+            ValueError, self.knowledge_base.roughly_equal, "R", set_z_1, set_z_2, "invalid"
+        )
 
 
 class TestRoughInclusionOfSets(unittest.TestCase):
@@ -243,7 +278,7 @@ class TestRoughInclusionOfSets(unittest.TestCase):
             "R", (self.set_e_1, self.set_e_2, self.set_e_3, self.set_e_4)
         )
 
-    def test_bottom_rough_included(self):
+    def test_bottom_rough_included(self) -> None:
         """
         Test the rough bottom inclusion of sets is correctly calculated.
 
@@ -252,17 +287,22 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         """
         set_x_1 = frozenset({"x2", "x4", "x6", "x7"})
         set_x_2 = frozenset({"x2", "x3", "x4", "x6"})
+        # test that the lower approximation is calculated correctly for the given set
         assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset(
             self.set_e_3
         )
+        # test that the lower approximation is calculated correctly for the given set
         assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_3)
+        # test that the rough bottom inclusion is calculated correctly, since the lower
+        # approximation of the first set is roughly included in the lower approximation of
+        # the second set, then the first set is bottom-roughly included in the second set
         assert self.knowledge_base.roughly_included(
             "R", set_x_1, set_x_2, mode="bottom"
         )
 
-    def test_top_rough_included(self):
+    def test_top_rough_included(self) -> None:
         """
         Test the rough top inclusion of sets is correctly calculated.
 
@@ -271,15 +311,20 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         """
         set_y_1 = frozenset({"x2", "x3", "x7"})
         set_y_2 = frozenset({"x1", "x2", "x7"})
+        # test that the upper approximation is calculated correctly for the given set
         assert self.knowledge_base.upper_approximation("R", set_y_1) == frozenset(
             self.set_e_1
         ).union(self.set_e_4)
+        # test that the upper approximation is calculated correctly for the given set
         assert self.knowledge_base.upper_approximation("R", set_y_2) == frozenset(
             self.set_e_1
         ).union(self.set_e_2).union(self.set_e_4)
+        # test that the rough top inclusion is calculated correctly, since the upper
+        # approximation of the first set is roughly included in the upper approximation of
+        # the second set, then the first set is top-roughly included in the second set
         assert self.knowledge_base.roughly_included("R", set_y_1, set_y_2, mode="top")
 
-    def test_rough_included(self):
+    def test_rough_included(self) -> None:
         """
         Test the rough inclusion of sets is correctly calculated.
 
@@ -288,4 +333,37 @@ class TestRoughInclusionOfSets(unittest.TestCase):
         """
         set_z_1 = frozenset({"x2", "x3"})
         set_z_2 = frozenset({"x1", "x2", "x3", "x7"})
+        # test that the lower approximation is calculated correctly for the given set
+        assert self.knowledge_base.lower_approximation("R", set_z_1) == frozenset(
+            self.set_e_1
+        )
+        # test that the lower approximation is calculated correctly for the given set
+        assert self.knowledge_base.lower_approximation("R", set_z_2) == frozenset(
+            self.set_e_1
+        )
+        # test that the upper approximation is calculated correctly for the given set
+        assert self.knowledge_base.upper_approximation("R", set_z_1) == frozenset(
+            self.set_e_1
+        )
+        # test that the upper approximation is calculated correctly for the given set
+        assert self.knowledge_base.upper_approximation("R", set_z_2) == frozenset(
+            self.set_e_1
+        ).union(self.set_e_2).union(self.set_e_4)
+        # test that the rough inclusion is calculated correctly, since the lower
+        # approximation of the first set is roughly included in the lower approximation of
+        # the second set and the upper approximation of the first set is roughly included
+        # in the upper approximation of the second set, then the first set is roughly
+        # included in the second set
         assert self.knowledge_base.roughly_included("R", set_z_1, set_z_2)
+
+    def test_invalid_mode_argument(self) -> None:
+        """
+        Test the rough inclusion throws a ValueError if the mode argument is invalid.
+
+        Returns:
+            None
+        """
+        set_z_1 = frozenset({"x2", "x3"})
+        set_z_2 = frozenset({"x1", "x2", "x3", "x7"})
+        with self.assertRaises(ValueError):
+            self.knowledge_base.roughly_included("R", set_z_1, set_z_2, mode="invalid")
