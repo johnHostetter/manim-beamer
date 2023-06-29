@@ -35,10 +35,10 @@ def big_data_example(
 
     Args:
         seed: Random number generator seed.
-        configuration: YACS.yacs.Config
+        configuration: The configuration dictionary.
 
     Returns:
-        pd.DataFrame, soft.computing.knowledge.KnowledgeBase
+        The data and the knowledge base.
     """
     set_rng(seed)
     dataframe = pd.DataFrame(np.random.rand(4000, 4))
@@ -51,7 +51,7 @@ def big_data_example(
     }
 
     knowledge_base = expert_design(
-        variables.values(), consequents={}, rules=[], config=configuration
+        list(variables.values()), consequents=[], rules=[], config=configuration
     )
     return dataframe, knowledge_base
 
