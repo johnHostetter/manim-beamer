@@ -8,7 +8,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import load_configuration
+from soft.utilities.reproducibility import load_configuration
 from soft.fuzzy.online.unsupervised.cluster.ecm import (
     apply_evolving_clustering_method as ECM,
     general_euclidean_distance,

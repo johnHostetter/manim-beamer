@@ -8,7 +8,7 @@ import numpy as np
 
 import torch
 
-from utils.reproducibility import set_rng
+from soft.utilities.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian, Triangular  # pyTorch implementations
 
 

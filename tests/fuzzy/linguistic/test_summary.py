@@ -9,7 +9,7 @@ import pygad
 import numpy as np
 
 from YACS.yacs import Config
-from utils.reproducibility import set_rng, load_configuration
+from soft.utilities.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.logic.rules.creation import Rule

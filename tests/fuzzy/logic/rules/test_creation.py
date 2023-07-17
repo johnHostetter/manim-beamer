@@ -3,7 +3,7 @@ Test the various mechanisms in which a fuzzy logic rule can be created.
 """
 import unittest
 
-from utils.reproducibility import load_configuration
+from soft.utilities.reproducibility import load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct

@@ -8,7 +8,7 @@ import torch
 
 from YACS.yacs import Config
 from examples.fuzzy.supervised.demo_flcs import toy_tsk
-from utils.reproducibility import set_rng, load_configuration
+from soft.utilities.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule
 from soft.fuzzy.sets.continuous import Gaussian

@@ -10,7 +10,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng, load_configuration
+from soft.utilities.reproducibility import set_rng, load_configuration
 from soft.computing.organize import stack_granules
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import SelfOrganize, expert_design

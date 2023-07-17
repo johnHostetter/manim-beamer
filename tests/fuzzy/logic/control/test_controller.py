@@ -11,7 +11,7 @@ from soft.computing.design import expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.logic.controller import ZeroOrderTSK, Mamdani
-from utils.reproducibility import set_rng, load_configuration
+from soft.utilities.reproducibility import set_rng, load_configuration
 from examples.fuzzy.supervised.demo_flcs import toy_mamdani
 
 set_rng(0)
