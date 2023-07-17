@@ -3,9 +3,26 @@ Test the functions related to reproducibility.
 """
 import unittest
 
+import gym
 import numpy as np
 
-from soft.utils.reproducibility import load_configuration, parse_configuration
+from soft.utils.reproducibility import env_seed, load_configuration, parse_configuration
+
+
+class TestEnvironment(unittest.TestCase):
+    """
+    Test the functions related to the environment configuration.
+    """
+    def test_environment_seed(self) -> None:
+        """
+        Test that the environment seed is set correctly.
+
+        Returns:
+            None
+        """
+        env = gym.make("CartPole-v1")
+        env_seed(env=env, seed=42)
+        self.assertEqual(env.action_space._np_random.random(), 0.3741433781083283)
 
 
 class TestConfiguration(unittest.TestCase):
