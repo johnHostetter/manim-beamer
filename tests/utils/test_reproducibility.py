@@ -13,6 +13,7 @@ class TestEnvironment(unittest.TestCase):
     """
     Test the functions related to the environment configuration.
     """
+
     def test_environment_seed(self) -> None:
         """
         Test that the environment seed is set correctly.
@@ -29,6 +30,7 @@ class TestConfiguration(unittest.TestCase):
     """
     Test the functions related to the configuration settings.
     """
+
     def test_load_configuration(self) -> None:
         """
         Test that the configuration is loaded correctly.
