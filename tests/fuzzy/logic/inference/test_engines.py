@@ -7,7 +7,7 @@ from typing import Tuple, Dict
 import torch
 
 from YACS.yacs import Config
-from examples.fuzzy.supervised.demo_flcs import toy_tsk
+from soft.examples.fuzzy.supervised.demo_flcs import toy_tsk
 from soft.utilities.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule

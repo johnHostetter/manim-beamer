@@ -1,0 +1,52 @@
+device: cpu
+
+output:
+  name: log
+  scorer: True
+  verbose: True
+
+fuzzy:
+  t_norm:
+    yager: golden
+
+inference:
+  type: TSK
+  order: 0
+
+reproducibility:
+  seed: 0  # this seed is used to initialize the RNG for everything
+
+training:
+  reinforcement:
+    gamma: 0.99
+    conservative_alpha: 0.2  # i.e., the alpha value used by Conservative Q-learning
+  total_time_steps: 1000  # e.g., the total time steps to train a policy on environment
+  learning_rate: 1e-4
+  optimizer: adam
+  epochs: 12
+  loss: mse
+  data:
+    batch: 32
+
+validation:
+  data:
+    batch: 32
+
+evaluation:
+  online:
+    reinforcement:
+      num_episodes: 100  # num of episodes to evaluate model on online environment
+
+clustering:
+  distance_threshold: 0.7  # e.g., ECM
+
+association_rule_mining:  # e.g., FTARM
+  min_support: 0.3
+  min_confidence: 0.8
+
+auto_encoder:
+  dimensionality: 2
+
+fuzzy_antecedents_generation:  # e.g., CLIP
+  alpha: 0.2
+  beta: 0.6
