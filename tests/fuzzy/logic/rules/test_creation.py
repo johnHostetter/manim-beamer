@@ -7,7 +7,7 @@ from soft.utilities.reproducibility import load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
-from soft.examples.fuzzy.supervised.demo_flcs import toy_mamdani
+from examples.fuzzy.supervised.demo_flcs import toy_mamdani
 
 
 class TestFuzzyLogicRule(unittest.TestCase):

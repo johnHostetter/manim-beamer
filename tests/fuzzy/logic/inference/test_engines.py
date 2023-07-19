@@ -7,13 +7,13 @@ from typing import Tuple, Dict
 import torch
 
 from YACS.yacs import Config
-from soft.examples.fuzzy.supervised.demo_flcs import toy_tsk
 from soft.utilities.reproducibility import set_rng, load_configuration
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.inference.engines import TSKProductInference, TSKMinimumInference
+from examples.fuzzy.supervised.demo_flcs import toy_tsk
 
 
 def make_test_scenario(

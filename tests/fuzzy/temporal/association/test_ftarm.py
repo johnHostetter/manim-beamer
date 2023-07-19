@@ -12,7 +12,6 @@ import pandas as pd
 
 from YACS.yacs import Config
 from soft.utilities.reproducibility import set_rng, load_configuration
-from soft.examples.fuzzy.temporal.association.ftarm.demo import make_example
 from soft.computing.knowledge import KnowledgeBase
 from soft.computing.design import expert_design
 from soft.computing.organize import add_stacked_granule
@@ -23,6 +22,7 @@ from soft.fuzzy.temporal.association.ftarm import (
     FuzzyTemporalAssocationRuleMining as FTARM,
     AssociationRule,
 )
+from examples.fuzzy.temporal.association.ftarm.demo import make_example
 
 set_rng(5)
 
