@@ -21,7 +21,7 @@ class TestDiscernibility(unittest.TestCase):
         self.knowledge_base.add_parent_relation("c", ({2, 4, 5}, {3}, {1}))
         self.knowledge_base.add_parent_relation("d", ({1, 3}, {4}, {2, 5}))
 
-    def test_discernibility_matrix(self):
+    def test_discernibility_matrix(self) -> None:
         """
         Test the discernibility matrix is correctly built.
 
@@ -56,7 +56,7 @@ class TestDiscernibility(unittest.TestCase):
             frozenset({4, 5}): frozenset({"a", "d"}),
         }
 
-    def test_discernibility_matrix_on_decision_attribute(self):
+    def test_discernibility_matrix_on_decision_attribute(self) -> None:
         """
         Test the discernibility matrix is correctly built when there is a decision attribute.
 

@@ -11,7 +11,7 @@ from soft.computing.design import expert_design
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.logic.controller import ZeroOrderTSK, Mamdani
-from utils.reproducibility import set_rng, load_configuration
+from soft.utilities.reproducibility import set_rng, load_configuration
 from examples.fuzzy.supervised.demo_flcs import toy_mamdani
 
 set_rng(0)
@@ -26,7 +26,7 @@ class TestTSK(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_gradient_1(self):
+    def test_gradient_1(self) -> None:
         """
         First test that the gradient of PyTorch is working as intended.
 
@@ -51,7 +51,7 @@ class TestTSK(unittest.TestCase):
 
         assert torch.isclose(actual_result, expected_result).all()
 
-    def test_gradient_2(self):
+    def test_gradient_2(self) -> None:
         """
         Second test that the gradient of PyTorch is working as intended.
 
@@ -62,7 +62,7 @@ class TestTSK(unittest.TestCase):
         value_3 = 2**value_1
         assert value_3.grad_fn is not None
 
-    def test_tsk(self):
+    def test_tsk(self) -> None:
         """
         Test the zero-order TSK neuro-fuzzy network.
 
@@ -115,6 +115,7 @@ class TestTSK(unittest.TestCase):
                 implication=AlgebraicProduct,
             ),
         }
+        # check that rules were correctly created
         knowledge_base = expert_design(
             antecedents, consequents=[], rules=rules, config=self.config
         )
@@ -141,14 +142,17 @@ class TestTSK(unittest.TestCase):
         # the rules we have added should exist how we expected them
         assert knowledge_base.get_fuzzy_logic_rules() == rules
 
+        # check that the zero-order TSK neuro-fuzzy network was correctly created
         flc = ZeroOrderTSK(
             out_features=actual_y.ndim,
             knowledge_base=knowledge_base,
             input_trainable=True,
         )
+        # check that the output is correct
         predicted_y = flc(input_data)
         assert (predicted_y == torch.zeros(input_data.shape[0])).all()
 
+        # check that the input granulation was correctly created
         assert (
             flc.input_granulation.centers
             == torch.tensor(
@@ -161,6 +165,7 @@ class TestTSK(unittest.TestCase):
                 [[0.1000, 0.4000, 0.6000, 0.8000], [0.4000, 0.4000, 0.5000, 0.4500]]
             )
         ).all()
+        # check that the output granulation was correctly created
         assert (
             flc.consequences() == torch.zeros((len(rules), flc.out_features()))
         ).all()
@@ -179,7 +184,7 @@ class TestMamdani(unittest.TestCase):
             self.antecedents, self.consequents, rules=self.rules, config=self.config
         )
 
-    def test_mamdani(self):
+    def test_mamdani(self) -> None:
         """
         Test the Mamdani neuro-fuzzy network.
 

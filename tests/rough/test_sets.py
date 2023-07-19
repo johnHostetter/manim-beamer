@@ -25,9 +25,9 @@ class TestRoughSets(unittest.TestCase):
             "R", (self.set_e_1, self.set_e_2, self.set_e_3, self.set_e_4)
         )
 
-    def test_equivalence_classes(self):
+    def test_equivalence_classes(self) -> None:
         """
-        Test that the 'equivalence classes' of a family of relations is correctly calculated.
+        Test that the "equivalence classes" of a family of relations is correctly calculated.
 
         Returns:
             None
@@ -41,9 +41,10 @@ class TestRoughSets(unittest.TestCase):
             }
         )
 
-    def test_lower_approximation(self):
+    def test_lower_approximation(self) -> None:
         """
-        Test that the 'lower approximation' of a set is correctly calculated.
+        Test that the "lower approximation" (i.e., positive region) of a set is correctly
+        calculated.
 
         Returns:
             None
@@ -51,11 +52,23 @@ class TestRoughSets(unittest.TestCase):
         set_x_1 = frozenset({"x1", "x4", "x7"})
         set_x_2 = frozenset({"x2", "x8"})
 
-        assert self.knowledge_base.lower_approximation("R", set_x_1) == frozenset()
-        assert self.knowledge_base.lower_approximation("R", set_x_2) == frozenset()
-        assert self.knowledge_base.lower_approximation(
-            "R", set_x_1.union(set_x_2)
-        ) == frozenset(self.set_e_1)
+        # test that the lower approximation of a set is the union of the lower approximations
+        # of its elements; test the positive region as well (they should be the same)
+        assert (
+            self.knowledge_base.lower_approximation("R", set_x_1)
+            == self.knowledge_base.positive_region("R", set_x_1)
+            == frozenset()
+        )
+        assert (
+            self.knowledge_base.lower_approximation("R", set_x_2)
+            == self.knowledge_base.positive_region("R", set_x_2)
+            == frozenset()
+        )
+        assert (
+            self.knowledge_base.lower_approximation("R", set_x_1.union(set_x_2))
+            == self.knowledge_base.positive_region("R", set_x_1.union(set_x_2))
+            == frozenset(self.set_e_1)
+        )
         assert (
             self.knowledge_base.lower_approximation("R", set_x_1)
             .union(self.knowledge_base.lower_approximation("R", set_x_2))
@@ -63,10 +76,15 @@ class TestRoughSets(unittest.TestCase):
                 self.knowledge_base.lower_approximation("R", set_x_1.union(set_x_2))
             )
         )
+        assert (
+            self.knowledge_base.positive_region("R", set_x_1)
+            .union(self.knowledge_base.positive_region("R", set_x_2))
+            .issubset(self.knowledge_base.positive_region("R", set_x_1.union(set_x_2)))
+        )
 
-    def test_upper_approximation(self):
+    def test_upper_approximation(self) -> None:
         """
-        Test that the 'upper approximation' of a set is correctly calculated.
+        Test that the "upper approximation" of a set is correctly calculated.
 
         Returns:
             None
@@ -92,9 +110,9 @@ class TestRoughSets(unittest.TestCase):
             )
         )
 
-    def test_boundary(self):
+    def test_boundary_region(self) -> None:
         """
-        Test that the 'boundary' of a set is correctly calculated.
+        Test that the "boundary" of a set is correctly calculated.
 
         Returns:
             None
@@ -113,9 +131,9 @@ class TestRoughSets(unittest.TestCase):
             self.set_e_1
         )
 
-    def test_negative(self):
+    def test_negative_region(self) -> None:
         """
-        Test that the 'negative' of a set is correctly calculated.
+        Test that the "negative" of a set is correctly calculated.
 
         Returns:
             None
@@ -134,9 +152,9 @@ class TestRoughSets(unittest.TestCase):
             self.set_e_2
         )
 
-    def test_accuracy(self):
+    def test_accuracy(self) -> None:
         """
-        Test that the 'accuracy' of a set is correctly calculated.
+        Test that the "accuracy" of a set is correctly calculated.
 
         Returns:
             None
@@ -149,9 +167,9 @@ class TestRoughSets(unittest.TestCase):
         assert self.knowledge_base.accuracy("R", set_x_2) == 0.25
         assert self.knowledge_base.accuracy("R", set_x_3) == 0.4
 
-    def test_roughness(self):
+    def test_roughness(self) -> None:
         """
-        Test that the 'roughness' of a set is correctly calculated.
+        Test that the "roughness" of a set is correctly calculated.
 
         Returns:
             None
@@ -183,7 +201,7 @@ class TestApproximationOfClassifications(unittest.TestCase):
             "R", (self.set_x_1, self.set_x_2, self.set_x_3)
         )
 
-    def test_classifications_1(self):
+    def test_classifications_1(self) -> None:
         """
         Example 1.
 
@@ -208,7 +226,7 @@ class TestApproximationOfClassifications(unittest.TestCase):
             != self.universe
         )
 
-    def test_classifications_2(self):
+    def test_classifications_2(self) -> None:
         """
         Example 2.
 

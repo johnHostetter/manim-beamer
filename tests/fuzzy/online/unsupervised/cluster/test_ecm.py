@@ -8,7 +8,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import load_configuration
+from soft.utilities.reproducibility import load_configuration
 from soft.fuzzy.online.unsupervised.cluster.ecm import (
     apply_evolving_clustering_method as ECM,
     general_euclidean_distance,
@@ -26,7 +26,7 @@ class TestECM(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_general_euclidean_distance(self):
+    def test_general_euclidean_distance(self) -> None:
         """
         The regulator function implemented using PyTorch should perform
         identical functionality to the one implemented in Numpy.
@@ -42,7 +42,7 @@ class TestECM(unittest.TestCase):
         expected_distance = torch.tensor([1.2349089]).float()
         assert torch.isclose(distance, expected_distance).all()
 
-    def test_ecm_output(self):
+    def test_ecm_output(self) -> None:
         """
         The ECM that is originally defined without using PyTorch should identify the same
         number of exemplars as the PyTorch implementation (i.e., the new ECM directly induces

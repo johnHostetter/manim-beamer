@@ -13,7 +13,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
     Unit tests that check the ordered weighted averaging operator is working as intended.
     """
 
-    def test_in_features_not_equal_to_weight_vector(self):
+    def test_in_features_not_equal_to_weight_vector(self) -> None:
         """
         Test that when trying to create a OrderedWeightedAveraging object with a weights vector
         that does not equal the number of input features specified, that an AttributeError is
@@ -32,7 +32,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
             # an AttributeError exception should be thrown when the weights vector != in_features
             assert True
 
-    def test_weight_vector_sums_to_one(self):
+    def test_weight_vector_sums_to_one(self) -> None:
         """
         An OWA operator module should be created when given a weights vector that sums to 1.
 
@@ -45,7 +45,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         owa = OWA(in_features, weights)
         assert torch.isclose(owa.weights, weights).all()
 
-    def test_weight_vector_not_sum_to_one(self):
+    def test_weight_vector_not_sum_to_one(self) -> None:
         """
         Attempting to create a OWA with a weight vector that does
         not sum to 1 should throw an AttributeError exception.
@@ -63,7 +63,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
             # an AttributeError exception should be thrown when the weights do not sum to 1
             assert True
 
-    def test_owa_calculation_1(self):
+    def test_owa_calculation_1(self) -> None:
         """
         A OWA operator should sort the argument vector to produce an 'ordered argument vector',
         then calculate the dot product between the weights vector and ordered argument vector.
@@ -81,7 +81,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         argument_vector = torch.tensor([0.6, 1.0, 0.3, 0.5])
         assert torch.isclose(owa(argument_vector), torch.tensor(0.55))
 
-    def test_owa_calculation_2(self):
+    def test_owa_calculation_2(self) -> None:
         """
         A OWA operator should sort the argument vector to produce an 'ordered argument vector',
         then calculate the dot product between the weights vector and ordered argument vector.
@@ -99,7 +99,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         argument_vector = torch.tensor([0, 0.7, 1.0, 0.2])
         assert torch.isclose(owa(argument_vector), torch.tensor(0.43))
 
-    def test_orness_1(self):
+    def test_orness_1(self) -> None:
         """
         The degree to which the Ordered Weighted Averaging (OWA) operator is the 'or' operator.
 
@@ -119,7 +119,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         assert torch.isclose(owa.weights, weights).all()
         assert owa.orness() == 1.0
 
-    def test_orness_2(self):
+    def test_orness_2(self) -> None:
         """
         The degree to which the Ordered Weighted Averaging (OWA) operator is the 'or' operator.
 
@@ -139,7 +139,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         assert torch.isclose(owa.weights, weights).all()
         assert owa.orness() == 0.0
 
-    def test_orness_3(self):
+    def test_orness_3(self) -> None:
         """
         The degree to which the Ordered Weighted Averaging (OWA) operator is the 'or' operator.
 
@@ -162,7 +162,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         # consists of 1/number_of_elements values
         assert owa.orness() == 0.5
 
-    def test_orness_4(self):
+    def test_orness_4(self) -> None:
         """
         The 'orness' measure can be misleading when Ordered Weighted Averaging operators are
         defined with certain weights vectors as illustrated here. Both weights vectors should
@@ -192,7 +192,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         assert owa2.orness() == 0.5
         assert owa1.orness() == owa2.orness()
 
-    def test_dispersion_1(self):
+    def test_dispersion_1(self) -> None:
         """
         This scenario represents the minimum dispersion.
 
@@ -207,7 +207,7 @@ class TestOrderedWeightedAggregation(unittest.TestCase):
         assert torch.isclose(owa.weights, weights).all()
         assert owa.dispersion() == 0.0
 
-    def test_dispersion_2(self):
+    def test_dispersion_2(self) -> None:
         """
         This scenario represents the maximum dispersion and occurs when the entries in the
         weights vector are 1/number_of_elements where number_of_elements is the number of

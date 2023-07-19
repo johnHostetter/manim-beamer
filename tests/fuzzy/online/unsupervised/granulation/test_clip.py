@@ -9,7 +9,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng, load_configuration
+from soft.utilities.reproducibility import set_rng, load_configuration
 from soft.fuzzy.sets.continuous import Gaussian
 from soft.fuzzy.online.unsupervised.granulation.clip import (
     find_indices_to_closest_neighbors,
@@ -30,7 +30,7 @@ class TestCLIP(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_regulator(self):
+    def test_regulator(self) -> None:
         """
         The regulator function implemented using PyTorch should perform
         identical functionality to the one implemented in Numpy.
@@ -44,7 +44,7 @@ class TestCLIP(unittest.TestCase):
         assert regulator(sigma_1=0.5, sigma_2=0.5) == 0.5
         assert regulator(sigma_1=0, sigma_2=1.0) == 0.5
 
-    def test_find_indices_to_closest_neighbors(self):
+    def test_find_indices_to_closest_neighbors(self) -> None:
         """
         Test that the 'find_indices_to_closest_neighbors' function correctly identifies the
         data observation's left and right neighbor indices.
@@ -63,7 +63,7 @@ class TestCLIP(unittest.TestCase):
         assert left_neighbor_idx == 1
         assert right_neighbor_idx == 2
 
-    def test_clip_on_random_data(self):
+    def test_clip_on_random_data(self) -> None:
         """
         Testing how CLIP performs when given some random data.
 

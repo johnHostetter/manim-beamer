@@ -8,11 +8,11 @@ import numpy as np
 
 import torch
 
-from utils.reproducibility import set_rng
+from soft.utilities.reproducibility import set_rng
 from soft.fuzzy.sets.continuous import Gaussian, Triangular  # pyTorch implementations
 
 
-def gaussian_numpy(element, center, sigma):
+def gaussian_numpy(element: torch.Tensor, center: np.ndarray, sigma: np.ndarray):
     """
         Gaussian membership function that receives an 'element' value, and uses
         the 'center' and 'sigma' to determine a degree of membership for 'element'.
@@ -29,7 +29,7 @@ def gaussian_numpy(element, center, sigma):
     return np.exp(-1.0 * (np.power(element - center, 2) / np.power(sigma, 2)))
 
 
-def triangular_numpy(element, center, width):
+def triangular_numpy(element: torch.Tensor, center: np.ndarray, width: np.ndarray):
     """
         Triangular membership function that receives an 'element' value, and uses
         the 'center' and 'width' to determine a degree of membership for 'element'.
@@ -55,7 +55,7 @@ class TestGaussian(unittest.TestCase):
     Test the Gaussian fuzzy set (i.e., membership function).
     """
 
-    def test_single_input(self):
+    def test_single_input(self) -> None:
         """
         Test that single input works for the Gaussian membership function.
 
@@ -77,7 +77,7 @@ class TestGaussian(unittest.TestCase):
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, rtol=1e-6).all()
 
-    def test_multi_input(self):
+    def test_multi_input(self) -> None:
         """
         Test that multiple input works for the Gaussian membership function.
 
@@ -104,7 +104,7 @@ class TestGaussian(unittest.TestCase):
             mu_pytorch.squeeze(dim=1).detach().numpy(), mu_numpy, rtol=1e-6
         ).all()
 
-    def test_multi_input_with_centers_given(self):
+    def test_multi_input_with_centers_given(self) -> None:
         """
         Test that multiple input works for the Gaussian membership function when centers are
         specified for the fuzzy sets.
@@ -135,7 +135,7 @@ class TestGaussian(unittest.TestCase):
         )
         assert torch.isclose(gaussian_mf.area(), expected_areas).all()
 
-    def test_multi_input_with_sigmas_given(self):
+    def test_multi_input_with_sigmas_given(self) -> None:
         """
         Test that multiple input works for the Gaussian membership function when sigmas are
         specified for the fuzzy sets.
@@ -163,7 +163,7 @@ class TestGaussian(unittest.TestCase):
             mu_pytorch.squeeze(dim=1).detach().numpy(), mu_numpy, rtol=1e-6
         ).all()
 
-    def test_multi_input_with_both_given(self):
+    def test_multi_input_with_both_given(self) -> None:
         """
         Test that multiple input works for the Gaussian membership function when centers and
         sigmas are specified for the fuzzy sets.
@@ -193,7 +193,7 @@ class TestGaussian(unittest.TestCase):
             mu_pytorch.squeeze(dim=1).detach().numpy(), mu_numpy, rtol=1e-6
         ).all()
 
-    def test_consistency(self):
+    def test_consistency(self) -> None:
         """
         Test that the results are consistent with the expected membership degrees.
 
@@ -248,7 +248,7 @@ class TestTriangular(unittest.TestCase):
     Test the Triangular fuzzy set (i.e., membership function).
     """
 
-    def test_single_input(self):
+    def test_single_input(self) -> None:
         """
         Test that single input works for the Triangular membership function.
 
@@ -270,7 +270,7 @@ class TestTriangular(unittest.TestCase):
         # the outputs of the PyTorch and Numpy versions should be approx. equal
         assert np.isclose(mu_pytorch.detach().numpy(), mu_numpy, atol=1e-2).all()
 
-    def test_multi_input(self):
+    def test_multi_input(self) -> None:
         """
         Test that multiple input works for the Triangular membership function.
 
@@ -297,7 +297,7 @@ class TestTriangular(unittest.TestCase):
             mu_pytorch.squeeze(dim=1).detach().numpy(), mu_numpy, atol=1e-2
         ).all()
 
-    def test_multi_input_with_centers_given(self):
+    def test_multi_input_with_centers_given(self) -> None:
         """
         Test that multiple input works for the Triangular membership function when centers are
         specified for the fuzzy sets.
@@ -323,7 +323,7 @@ class TestTriangular(unittest.TestCase):
             mu_pytorch.squeeze(dim=1).detach().numpy(), mu_numpy, atol=1e-2
         ).all()
 
-    def test_multi_input_with_widths_given(self):
+    def test_multi_input_with_widths_given(self) -> None:
         """
         Test that multiple input works for the Triangular membership function when widths are
         specified for the fuzzy sets.
@@ -351,7 +351,7 @@ class TestTriangular(unittest.TestCase):
             mu_pytorch.squeeze(dim=1).detach().numpy(), mu_numpy, atol=1e-2
         ).all()
 
-    def test_multi_input_with_both_given(self):
+    def test_multi_input_with_both_given(self) -> None:
         """
         Test that multiple input works for the Triangular membership function when centers
         and widths are specified for the fuzzy sets.

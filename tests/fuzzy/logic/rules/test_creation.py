@@ -3,7 +3,7 @@ Test the various mechanisms in which a fuzzy logic rule can be created.
 """
 import unittest
 
-from utils.reproducibility import load_configuration
+from soft.utilities.reproducibility import load_configuration
 from soft.computing.design import expert_design
 from soft.fuzzy.logic.rules.creation import Rule
 from soft.fuzzy.relation.tnorm import AlgebraicProduct
@@ -19,7 +19,7 @@ class TestFuzzyLogicRule(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.config = load_configuration()
 
-    def test_constructor(self):
+    def test_constructor(self) -> None:
         """
         Test that a (Mamdani) fuzzy logic rule is correctly created.
 
@@ -38,7 +38,7 @@ class TestFuzzyLogicRule(unittest.TestCase):
         assert rule.consequence == consequents
         assert rule.implication == AlgebraicProduct
 
-    def test_add_mamdani_rules_to_knowledge_base(self):
+    def test_add_mamdani_rules_to_knowledge_base(self) -> None:
         """
         Test that adding Mamdani fuzzy logic rules to a KnowledgeBase object does not break things.
 

@@ -3,11 +3,12 @@ Test the KnowledgeBase correctly handles fundamental rough set theory operations
 calculations of cores, reducts, dispensability, etc.
 """
 import unittest
+from typing import Tuple
 
 from soft.computing.knowledge import KnowledgeBase
 
 
-def make_example():
+def make_example() -> Tuple[frozenset, KnowledgeBase]:
     """
     Make an example that is commonly used between different test scenarios.
 
@@ -34,7 +35,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe, self.knowledge_base = make_example()
 
-    def test_exemplary_partitions(self):
+    def test_exemplary_partitions(self) -> None:
         """
         Test the exemplary partitions of the KnowledgeBase, which are calculated using the
         indiscernibility relation.
@@ -69,7 +70,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({4}),
         }
 
-    def test_set_approximations(self):
+    def test_set_approximations(self) -> None:
         """
         Test that set approximations with lower, upper, and boundary are correctly calculated.
 
@@ -87,7 +88,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         # unable to decide if 2 or 8 belong to the set set_x or not, using attributes set_c
         assert self.knowledge_base.boundary_region(set_c, set_x) == frozenset({2, 8})
 
-    def test_dispensability(self):
+    def test_dispensability(self) -> None:
         """
         Test attribute dispensability.
 
@@ -112,7 +113,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             set_c, "c", mode=self.knowledge_base.indiscernibility
         )
 
-    def test_reduct(self):
+    def test_reduct(self) -> None:
         """
         Test that the reduct is correctly calculated.
 
@@ -126,7 +127,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             {frozenset({"a", "b"})}
         )
 
-    def test_core(self):
+    def test_core(self) -> None:
         """
         Test that the core is correctly calculated.
 
@@ -138,7 +139,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         # only one core in the set set_c
         assert self.knowledge_base.find_core(set_c) == frozenset({"a", "b"})
 
-    def test_dependency(self):
+    def test_dependency(self) -> None:
         """
         Test that dependency is correctly calculated.
 
@@ -162,7 +163,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
             frozenset({3, 4, 6}),
         }
 
-    def test_attribute_dependency(self):
+    def test_attribute_dependency(self) -> None:
         """
         Test the dependency between two groups of attributes.
 
@@ -236,7 +237,7 @@ class TestKnowledgeRepresentationSystem(unittest.TestCase):
         assert self.knowledge_base.partial_depends_on({"a", "b"}, {"d", "e"}) > 0
         assert self.knowledge_base.partial_depends_on({"a", "c"}, {"d", "e"}) > 0
 
-    def test_significance_of_attributes(self):
+    def test_significance_of_attributes(self) -> None:
         """
         Test that the significance of attributes is correctly calculated. The attribute's
         significance is determined by whether the partial dependency changes after its removal.

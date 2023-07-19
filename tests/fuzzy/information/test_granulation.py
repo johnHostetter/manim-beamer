@@ -20,7 +20,7 @@ class TestGranulation(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.granules = [Gaussian(8), Gaussian(4), Gaussian(6)]
 
-    def test_add_granules(self):
+    def test_add_granules(self) -> None:
         """
         Test that adding granules to a KnowledgeBase will store the granules correctly.
 
@@ -55,7 +55,7 @@ class TestGranulation(unittest.TestCase):
             vertex["type"] for vertex in knowledge_base.graph.vs.select(layer_eq=1)
         } == expected_nodes
 
-    def test_add_rules(self):
+    def test_add_rules(self) -> None:
         """
         Test that adding rules using the granules will be stored correctly in a KnowledgeBase
         instance.

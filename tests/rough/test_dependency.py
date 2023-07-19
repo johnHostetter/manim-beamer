@@ -16,7 +16,7 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         super().__init__(*args, **kwargs)
         self.universe = frozenset(range(1, 9))
 
-    def test_depends_on(self):
+    def test_depends_on(self) -> None:
         """
         Demonstrates that if Q depends on P, then knowledge Q is
         superfluous within the knowledge base in the sense that
@@ -44,7 +44,7 @@ class TestDependenciesInKnowledgeBase(unittest.TestCase):
         for set_x in knowledge_base / "Q":  # aka 'lower' of IND(P)set_x
             assert knowledge_base.lower_approximation({"P"}, set_x)
 
-    def test_partial_depends_on(self):
+    def test_partial_depends_on(self) -> None:
         """
         Test the partial dependency relation.
 

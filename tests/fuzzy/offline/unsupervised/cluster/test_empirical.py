@@ -9,7 +9,7 @@ import unittest
 import torch
 import numpy as np
 
-from utils.reproducibility import set_rng
+from soft.utilities.reproducibility import set_rng
 from soft.fuzzy.offline.unsupervised.cluster.empirical import (
     multimodal_density,
     find_local_maxima,
@@ -19,7 +19,7 @@ from soft.fuzzy.offline.unsupervised.cluster.empirical import (
 )
 
 
-def simple_example():
+def simple_example() -> torch.Tensor:
     """
     Creates simple data to be used for an example.
 
@@ -40,7 +40,7 @@ def simple_example():
     )
 
 
-def iris_example():
+def iris_example() -> torch.Tensor:
     """
     Creates Iris data to be used for an example.
 
@@ -57,7 +57,7 @@ class TestEDA(unittest.TestCase):
     Test the Empirical Data Analysis code.
     """
 
-    def test_frequencies(self):
+    def test_frequencies(self) -> None:
         """
         Test that the calculation of frequencies is correct.
 
@@ -84,7 +84,7 @@ class TestEDA(unittest.TestCase):
         assert np.isclose(unique_observations, expected_observations).all()
         assert np.isclose(frequencies, expected_frequencies).all()
 
-    def test_multimodal_density(self):
+    def test_multimodal_density(self) -> None:
         """
         Test that the multimodal density is calculated correctly.
 
@@ -98,7 +98,7 @@ class TestEDA(unittest.TestCase):
         )
         assert torch.isclose(results.densities, expected_densities).all()
 
-    def test_local_maxima(self):
+    def test_local_maxima(self) -> None:
         """
         Test the local maxima is correctly identified.
 
@@ -232,7 +232,7 @@ class TestEDA(unittest.TestCase):
         )
         assert torch.isclose(local_maxima.float(), expected_local_maxima.float()).all()
 
-    def test_select_prototypes(self):
+    def test_select_prototypes(self) -> None:
         """
         Test that the selected prototypes are correct.
 
@@ -282,7 +282,7 @@ class TestEDA(unittest.TestCase):
         )
         assert torch.isclose(prototypes.float(), expected_prototypes.float()).all()
 
-    def test_reduce_partitioning(self):
+    def test_reduce_partitioning(self) -> None:
         """
         Test reducing the number of identified prototypes by only keeping those that strongly
         envelop their nearby prototypes.
@@ -340,7 +340,7 @@ class TestEDA(unittest.TestCase):
             atol=1e-1,
         ).all()
 
-    def test_empirical_fuzzy_sets(self):
+    def test_empirical_fuzzy_sets(self) -> None:
         """
         Test the full procedure of generating Empirical Fuzzy Sets.
 
