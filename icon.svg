@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="100mm"
-   height="30mm"
-   viewBox="0 0 100 30"
+   width="130mm"
+   height="55mm"
+   viewBox="0 0 130 55"
    version="1.1"
    id="svg5"
    sodipodi:docname="icon.svg"
@@ -30,9 +30,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="1.9704153"
-     inkscape:cx="202.24162"
-     inkscape:cy="30.95794"
+     inkscape:zoom="1.3932941"
+     inkscape:cx="292.47236"
+     inkscape:cy="32.297561"
      inkscape:window-width="1920"
      inkscape:window-height="1043"
      inkscape:window-x="0"
@@ -53,9 +53,9 @@
        inkscape:collect="always"
        xlink:href="#linearGradient2526"
        id="linearGradient2528"
-       x1="17.484492"
+       x1="17.484491"
        y1="11.571532"
-       x2="58.104415"
+       x2="58.104416"
        y2="11.571532"
        gradientUnits="userSpaceOnUse" />
     <meshgradient
@@ -123,64 +123,64 @@
      id="layer1">
     <path
        id="path2020"
-       style="stroke-width:0.911343"
-       d="m 66.698309,11.571536 a 5.1666667,5.1666667 0 0 1 -5.166667,5.166666 5.1666667,5.1666667 0 0 1 -5.166666,-5.166666 5.1666667,5.1666667 0 0 1 5.166666,-5.1666655 5.1666667,5.1666667 0 0 1 5.166667,5.1666655 z" />
+       style="stroke-width:1.85734"
+       d="M 99.298495,21.131179 A 10.529788,10.529788 0 0 1 88.768703,31.660966 10.529788,10.529788 0 0 1 78.23892,21.131179 10.529788,10.529788 0 0 1 88.768703,10.601394 10.529788,10.529788 0 0 1 99.298495,21.131179 Z" />
     <path
        id="path217"
-       style="stroke-width:0.881943"
-       d="m 66.531642,11.571536 a 5,5 0 0 1 -5,4.999999 5,5 0 0 1 -5,-4.999999 5,5 0 0 1 5,-4.9999988 5,5 0 0 1 5,4.9999988 z" />
+       style="stroke-width:1.79742"
+       d="M 98.958819,21.131179 A 10.190118,10.190118 0 0 1 88.768703,31.321295 10.190118,10.190118 0 0 1 78.57859,21.131179 10.190118,10.190118 0 0 1 88.768703,10.941064 10.190118,10.190118 0 0 1 98.958819,21.131179 Z" />
     <path
        id="circle219"
-       style="fill:#ffffff;stroke-width:3.33333;stroke-dasharray:none"
-       d="m 61.532489,6.5709805 a 5,5 0 0 0 -0.158467,0.005 c -1.30714,0.081467 -2.342666,1.1683033 -2.342666,2.4959733 0,1.3807122 1.120426,2.4994152 2.50114,2.4994152 1.380713,0 2.499416,1.118703 2.499416,2.499416 0,1.32767 -1.035526,2.414497 -2.342663,2.495974 a 5,5 0 0 0 4.842073,-4.995223 5,5 0 0 0 -4.998833,-5.0005555 z" />
+       style="fill:#ffffff;stroke-width:6.7934;stroke-dasharray:none"
+       d="m 88.770433,10.93993 a 10.190118,10.190118 0 0 0 -0.322963,0.01019 c -2.663983,0.166031 -4.774409,2.381029 -4.774409,5.086852 0,2.813924 2.283461,5.093867 5.097381,5.093867 2.81393,0 5.093875,2.279943 5.093875,5.093868 0,2.705823 -2.110426,4.920803 -4.7744,5.086855 A 10.190118,10.190118 0 0 0 98.958172,21.131179 10.190118,10.190118 0 0 0 88.770433,10.93993 Z" />
     <path
        id="circle1066"
-       style="fill:#ffffff;stroke-width:0.220485"
-       d="m 62.156642,14.071535 a 0.625,0.625 0 0 1 -0.625,0.625 0.625,0.625 0 0 1 -0.625,-0.625 0.625,0.625 0 0 1 0.625,-0.625 0.625,0.625 0 0 1 0.625,0.625 z" />
+       style="fill:#ffffff;stroke-width:0.449354"
+       d="M 90.042469,26.226236 A 1.2737647,1.2737647 0 0 1 88.768703,27.5 a 1.2737647,1.2737647 0 0 1 -1.273765,-1.273764 1.2737647,1.2737647 0 0 1 1.273765,-1.273765 1.2737647,1.2737647 0 0 1 1.273766,1.273765 z" />
     <path
        id="circle1068"
-       style="fill:#000000;stroke-width:0.220485"
-       d="m 62.156642,9.0715372 a 0.625,0.625 0 0 1 -0.625,0.625 0.625,0.625 0 0 1 -0.625,-0.625 0.625,0.625 0 0 1 0.625,-0.625 0.625,0.625 0 0 1 0.625,0.625 z" />
+       style="fill:#000000;stroke-width:0.449354"
+       d="m 90.042469,16.036123 a 1.2737647,1.2737647 0 0 1 -1.273766,1.273765 1.2737647,1.2737647 0 0 1 -1.273765,-1.273765 1.2737647,1.2737647 0 0 1 1.273765,-1.273765 1.2737647,1.2737647 0 0 1 1.273766,1.273765 z" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.1667px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.5;stroke-dasharray:none;stroke:#000000;stroke-opacity:1;fill-opacity:1"
-       x="18.410322"
-       y="16.863207"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:43.1383px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.01901;stroke-dasharray:none;stroke-opacity:1"
+       x="0.88644415"
+       y="31.915728"
        id="text2274"><tspan
          sodipodi:role="line"
          id="tspan2272"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.1667px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.5;stroke:#000000;stroke-opacity:1;fill:#ffffff;fill-opacity:1;stroke-dasharray:none"
-         x="18.410322"
-         y="16.863207">PyS</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:43.1383px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.01901;stroke-dasharray:none;stroke-opacity:1"
+         x="0.88644415"
+         y="31.915728">PyS</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.1667px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.5;stroke-dasharray:none;fill-opacity:1;stroke:#000000;stroke-opacity:1"
-       x="65.884758"
-       y="16.860613"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:43.1383px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.01901;stroke-dasharray:none;stroke-opacity:1"
+       x="97.640457"
+       y="31.910442"
        id="text2274-4"><tspan
          sodipodi:role="line"
          id="tspan2272-0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.1667px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.5;fill-opacity:1;fill:#ffffff;stroke-dasharray:none;stroke:#000000;stroke-opacity:1"
-         x="65.884758"
-         y="16.860613">ft</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:43.1383px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.01901;stroke-dasharray:none;stroke-opacity:1"
+         x="97.640457"
+         y="31.910442">ft</tspan></text>
     <rect
-       style="fill:#ffffff;stroke:#000000;stroke-width:0.499038;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.544762;stroke-dasharray:none;stroke-opacity:1"
        id="rect2369"
-       width="99.500961"
-       height="0.8342948"
-       x="0.24951901"
-       y="21.936886" />
+       width="125.44473"
+       height="0.78857082"
+       x="2.1591609"
+       y="44.119507" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.1667px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke:#000000;stroke-width:0.25;stroke-dasharray:none;stroke-opacity:1"
-       x="3.2793376"
-       y="27.383308"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke:#000000;stroke-width:0.25;stroke-dasharray:none;stroke-opacity:1"
+       x="1.8085834"
+       y="52.033775"
        id="text2373"><tspan
          sodipodi:role="line"
          id="tspan2371"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.7037px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke:#000000;stroke-width:0.25;stroke-dasharray:none;stroke-opacity:1"
-         x="3.2793376"
-         y="27.383308">A Python Soft Computing Library, Est. 2020</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke:#000000;stroke-width:0.25;stroke-dasharray:none;stroke-opacity:1"
+         x="1.8085834"
+         y="52.033775">A Python Soft Computing Library, Est. 2020</tspan></text>
   </g>
   <metadata
      id="metadata2455">
