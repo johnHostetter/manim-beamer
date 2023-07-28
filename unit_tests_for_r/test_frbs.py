@@ -19,8 +19,6 @@ class TestRoughSets(unittest.TestCase):
         utils.chooseCRANmirror(ind=1)
         utils.install_packages("frbs")
         self.frbs_package = importr("frbs")
-        # self.rs_data = data(self.frbs_package).fetch("RoughSetData")["RoughSetData"]
-        # print(f"Available datasets: {list(self.rs_data.names)}")
 
     def test_frbs(self) -> None:
         """
