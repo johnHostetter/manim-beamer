@@ -12,12 +12,13 @@ class TestRoughSets(unittest.TestCase):
     """
     Test the RoughSets package written in R.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        utils = rpackages.importr('utils')
+        utils = rpackages.importr("utils")
         utils.chooseCRANmirror(ind=1)
-        utils.install_packages('RoughSets')
-        self.rs_package = importr('RoughSets')
+        utils.install_packages("RoughSets")
+        self.rs_package = importr("RoughSets")
         self.rs_data = data(self.rs_package).fetch("RoughSetData")["RoughSetData"]
         print(f"Available datasets: {list(self.rs_data.names)}")
 
@@ -63,22 +64,24 @@ class TestRoughSets(unittest.TestCase):
         rs_hiring_data = self.rs_data[0]  # index 0 is the hiring.dt dataset
         rs_hiring_table = self.rs_package.SF_asDecisionTable(rs_hiring_data)
         indiscernibility_relation = self.rs_package.BC_IND_relation_RST(
-            rs_hiring_table, feature_set=robjects.r['c'](2)
+            rs_hiring_table, feature_set=robjects.r["c"](2)
         )
         roughset = self.rs_package.BC_LU_approximation_RST(
             rs_hiring_data, indiscernibility_relation
         )
         print(f"Possible approximations for the rough set: {list(roughset.names)}")
         # the zero index refers to the first option, which is the lower approximation
-        print(f"Possible outcomes for the lower approximation: {list(roughset[0].names)}")
+        print(
+            f"Possible outcomes for the lower approximation: {list(roughset[0].names)}"
+        )
         # the indexing of [0][0] refers to the first option, which is Accept
         # and the indexing of [0][1] refers to the second option, which is Reject
         self.assertTrue(list(roughset[0][0]), [2, 3, 4])  # Accept
         self.assertTrue(list(roughset[0][1]), [2, 3, 4])  # Reject
 
-        pos_boundary = self.rs_package.BC_boundary_reg_RST(
-            rs_hiring_data, roughset
+        pos_boundary = self.rs_package.BC_boundary_reg_RST(rs_hiring_data, roughset)
+        print(
+            f"Possible variables for the positive boundary: {list(pos_boundary.names)}"
         )
-        print(f"Possible variables for the positive boundary: {list(pos_boundary.names)}")
         self.assertTrue(list(pos_boundary[0]), [1, 7])
         self.assertTrue(pos_boundary[1][0], 0.25)
