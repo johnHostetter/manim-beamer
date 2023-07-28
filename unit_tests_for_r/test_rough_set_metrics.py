@@ -1,5 +1,12 @@
 """
 Test that the RoughSets package written in R can be imported and used from Python.
+
+The following may be necessary on Windows to set the 'R_HOME' for rpy2 correctly:
+
+    from rpy2 import situation
+    import os
+    os.environ['R_HOME'] = situation.r_home_from_registry()
+    situation.get_r_home()
 """
 import unittest
 
