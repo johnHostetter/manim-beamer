@@ -10,6 +10,7 @@ import torch
 import numpy as np
 
 from YACS.yacs import Config
+from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
 
 
 def set_rng(seed: int) -> None:
@@ -92,25 +93,47 @@ def load_configuration(
     return config
 
 
-def parse_configuration(config: Config) -> Config:
+def parse_configuration(config: Config, reverse=False) -> Config:
     """
     Given the configuration, parse through its values and convert them to their true values.
     For example, convert "golden" into the golden ratio.
 
     Args:
         config: The configuration settings.
+        reverse: Reverse the parsing of the configuration values; used for when saving
+            configuration settings of a KnowledgeBase.
 
     Returns:
         The updated configuration settings.
     """
     with config.unfreeze():
-        if config.fuzzy.t_norm.yager.lower() == "euler":
-            w_parameter = np.e
-        elif config.fuzzy.t_norm.yager.lower() == "golden":
-            w_parameter = (1 + 5**0.5) / 2
+        if reverse:
+            if isinstance(config.fuzzy.t_norm.yager, float):
+                if np.isclose(config.fuzzy.t_norm.yager, np.e):
+                    w_parameter = "euler"
+                elif np.isclose(config.fuzzy.t_norm.yager, (1 + 5 ** 0.5) / 2):
+                    w_parameter = "golden"
+            config.fuzzy.t_norm.yager = w_parameter
+
+            if config.fuzzy.inference.t_norm == AlgebraicProduct:
+                config.fuzzy.inference.t_norm = "algebraic_product"
+            elif config.fuzzy.inference.t_norm == Minimum:
+                config.fuzzy.inference.t_norm = "minimum"
         else:
-            w_parameter = float(config.fuzzy.t_norm.yager)
-        config.fuzzy.t_norm.yager = w_parameter
+            if isinstance(config.fuzzy.t_norm.yager, str):
+                if config.fuzzy.t_norm.yager.lower() == "euler":
+                    w_parameter = np.e
+                elif config.fuzzy.t_norm.yager.lower() == "golden":
+                    w_parameter = (1 + 5**0.5) / 2
+            else:
+                w_parameter = float(config.fuzzy.t_norm.yager)
+            config.fuzzy.t_norm.yager = w_parameter
+
+            if config.fuzzy.inference.t_norm == "algebraic_product":
+                config.fuzzy.inference.t_norm = AlgebraicProduct
+            elif config.fuzzy.inference.t_norm == "minimum":
+                config.fuzzy.inference.t_norm = Minimum
+
     return config
 
 
