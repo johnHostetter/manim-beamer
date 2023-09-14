@@ -4,6 +4,9 @@ Utility functions, such as for getting the powerset of an iterable.
 from collections.abc import Iterable
 from itertools import chain, combinations
 
+import torch
+import numpy as np
+
 
 def powerset(iterable: Iterable, min_items: int):
     """
@@ -21,3 +24,18 @@ def powerset(iterable: Iterable, min_items: int):
         combinations(list(iterable), r)
         for r in range(min_items, len(list(iterable)) + 1)
     )
+
+
+def convert_to_tensor(values: np.ndarray) -> torch.Tensor:
+    """
+    If the given values are not torch.Tensor, convert them to torch.Tensor.
+
+    Args:
+        values: Values such as the centers or widths of a fuzzy set.
+
+    Returns:
+        torch.tensor(np.array(values))
+    """
+    if isinstance(values, torch.Tensor):
+        return values
+    return torch.tensor(np.array(values)).float()
