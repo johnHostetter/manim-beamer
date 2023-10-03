@@ -113,6 +113,10 @@ def parse_configuration(config: Config, reverse=False) -> Config:
                     w_parameter = "euler"
                 elif np.isclose(config.fuzzy.t_norm.yager, (1 + 5 ** 0.5) / 2):
                     w_parameter = "golden"
+                else:
+                    w_parameter = config.fuzzy.t_norm.yager
+            else:
+                w_parameter = config.fuzzy.t_norm.yager
             config.fuzzy.t_norm.yager = w_parameter
 
             if config.fuzzy.inference.t_norm == AlgebraicProduct:
@@ -125,6 +129,8 @@ def parse_configuration(config: Config, reverse=False) -> Config:
                     w_parameter = np.e
                 elif config.fuzzy.t_norm.yager.lower() == "golden":
                     w_parameter = (1 + 5**0.5) / 2
+                else:
+                    w_parameter = config.fuzzy.t_norm.yager
             else:
                 w_parameter = float(config.fuzzy.t_norm.yager)
             config.fuzzy.t_norm.yager = w_parameter
