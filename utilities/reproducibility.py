@@ -163,6 +163,6 @@ def load_and_override_default_configuration(path: pathlib.Path) -> Config:
     # the custom configuration
     custom_configuration = load_configuration(path, convert_data_types=False)
     configuration.merge(custom_configuration, exclusive=False)
-    if configuration.output.verbose:
-        configuration.print(ignored_keys=())
+    # if configuration.output.verbose:
+    #     configuration.print(ignored_keys=())
     return configuration
