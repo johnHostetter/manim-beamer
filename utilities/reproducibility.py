@@ -107,6 +107,7 @@ def parse_configuration(config: Config, reverse=False) -> Config:
         The updated configuration settings.
     """
     with config.unfreeze():
+        config.training.learning_rate = float(config.training.learning_rate)
         if reverse:
             if isinstance(config.fuzzy.t_norm.yager, float):
                 if np.isclose(config.fuzzy.t_norm.yager, np.e):
