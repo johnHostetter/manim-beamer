@@ -112,7 +112,7 @@ def parse_configuration(config: Config, reverse=False) -> Config:
             if isinstance(config.fuzzy.t_norm.yager, float):
                 if np.isclose(config.fuzzy.t_norm.yager, np.e):
                     w_parameter = "euler"
-                elif np.isclose(config.fuzzy.t_norm.yager, (1 + 5 ** 0.5) / 2):
+                elif np.isclose(config.fuzzy.t_norm.yager, (1 + 5**0.5) / 2):
                     w_parameter = "golden"
                 else:
                     w_parameter = config.fuzzy.t_norm.yager
