@@ -39,3 +39,19 @@ def convert_to_tensor(values: np.ndarray) -> torch.Tensor:
     if isinstance(values, torch.Tensor):
         return values
     return torch.tensor(np.array(values)).float()
+
+
+class GaussianDropout(torch.nn.Module):
+    def __init__(self, p=0.5):
+        super(GaussianDropout, self).__init__()
+        if p <= 0 or p >= 1:
+            raise Exception("p value should accomplish 0 < p < 1")
+        self.p = p
+
+    def forward(self, x):
+        if self.training:
+            standard_deviation = (self.p / (1.0 - self.p)) ** 0.5
+            epsilon = torch.rand_like(x) * standard_deviation
+            return x * epsilon
+        else:
+            return x
