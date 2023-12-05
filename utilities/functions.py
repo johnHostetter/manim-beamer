@@ -55,3 +55,22 @@ class GaussianDropout(torch.nn.Module):
             return x * epsilon
         else:
             return x
+
+
+def raw_dropout(x, p):
+    # generate a binary mask based on the dropout probability
+    s = list(x.shape)
+    s[-1] = 2
+
+    weights = torch.empty(s, dtype=torch.float)
+    weights[:, :, 0] = p
+    weights[:, :, 1] = 1 - p
+    mask = torch.multinomial(
+        weights.view(-1, 2),
+        num_samples=x.shape[-1],
+        replacement=True,
+    ).view(x.shape)
+
+    # apply the mask to the input tensor
+    return x * mask  # my defn, weight balancing
+    # return (x * mask) / (1 - p)
