@@ -83,22 +83,26 @@ def evaluate_on_environment(
     is_image = len(observation_shape) == 3
 
     def scorer(algo: AlgoProtocol, *args: Any) -> float:
-        algo.impl._q_func.q_funcs[0]._encoder.flc.eval()
+        # algo.impl._q_func.q_funcs[0]._encoder.flc.eval()
 
         if is_image:
             stacked_observation = StackedObservation(observation_shape, algo.n_frames)
 
+        unique_observations = set()
         episode_rewards = []
-        for _ in range(n_trials):
+        for trial_idx in range(n_trials):
             observation = env.reset()
             episode_reward = 0.0
-
             # frame stacking
             if is_image:
                 stacked_observation.clear()
                 stacked_observation.append(observation)
 
+            idx = 0
+
             while True:
+                unique_observations.add(tuple(observation.flatten()))
+
                 # take action
                 if np.random.random() < epsilon:
                     action = env.action_space.sample()
@@ -108,7 +112,19 @@ def evaluate_on_environment(
                             action = algo.predict([stacked_observation.eval()])[0]
                     else:
                         with torch.no_grad():
-                            action = algo.predict([observation])[0]
+                            try:
+                                action = algo.predict([observation])[0]
+                            except RuntimeError:
+                                action = algo.predict(observation[None, None, :])[0]
+
+                if idx == 0:
+                    action = env.action_space.sample()
+                idx += 1
+
+                # if idx % 100 == 0:
+                print(
+                    f"trial_idx: {trial_idx} / {n_trials}, idx: {idx}, action: {action}, uniques: {len(unique_observations)}"
+                )
 
                 observation, reward, done, _ = env.step(action)
                 episode_reward += reward
@@ -116,13 +132,13 @@ def evaluate_on_environment(
                 if is_image:
                     stacked_observation.append(observation)
 
-                if render:
-                    env.render()
+                # if render or True:
+                #     env.render()
 
                 if done:
                     break
             episode_rewards.append(episode_reward)
-        algo.impl._q_func.q_funcs[0]._encoder.flc.train()
+        # algo.impl._q_func.q_funcs[0]._encoder.flc.train()
         return float(np.mean(episode_rewards))
 
     return scorer
