@@ -8,8 +8,9 @@ from typing import Any, Callable
 import gym
 import torch
 import numpy as np
-from d3rlpy.metrics.scorer import AlgoProtocol
-from d3rlpy.preprocessing.stack import StackedObservation
+
+# from d3rlpy.metrics.scorer import AlgoProtocol
+# from d3rlpy.preprocessing.stack import StackedObservation
 
 
 # https://stackoverflow.com/questions/38634988/check-if-program-runs-in-debug-mode
@@ -82,11 +83,11 @@ def evaluate_on_environment(
     observation_shape = env.observation_space.shape
     is_image = len(observation_shape) == 3
 
-    def scorer(algo: AlgoProtocol, *args: Any) -> float:
+    def scorer(algo, *args: Any) -> float:
         # algo.impl._q_func.q_funcs[0]._encoder.flc.eval()
 
-        if is_image:
-            stacked_observation = StackedObservation(observation_shape, algo.n_frames)
+        # if is_image:
+        #     stacked_observation = StackedObservation(observation_shape, algo.n_frames)
 
         unique_observations = set()
         episode_rewards = []
