@@ -10,7 +10,7 @@ import torch
 import numpy as np
 
 from YACS.yacs import Config
-from soft.fuzzy.relation.tnorm import AlgebraicProduct, Minimum
+from soft.fuzzy.relation.continuous.tnorm import AlgebraicProduct, Minimum
 
 
 def set_rng(seed: int) -> None:
