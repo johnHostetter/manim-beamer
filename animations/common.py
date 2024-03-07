@@ -30,7 +30,7 @@ def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
             stroke_width=3,
             numbers_to_exclude=[0],
             include_numbers=True,
-            decimal_number_config=dict(color=BACKGROUND_ITEM)
+            decimal_number_config=dict(color=BACKGROUND_ITEM),
         ),
         # # Alternatively, you can specify configuration for just one
         # # of them, like this.
@@ -54,13 +54,13 @@ def add_labels_to_axes(ax, x_label, y_label):
 
 
 def get_data_and_env(n_samples=100):
-    data, _ = get_cartpole(dataset_type='replay')
+    data, _ = get_cartpole(dataset_type="replay")
     X = torch.tensor(np.vstack(([episode.observations for episode in data.episodes])))
     X = X[np.lexsort((X[:, 0], X[:, 2]), axis=0)]
     idx = np.round(np.linspace(0, len(X) - 1, 100)).astype(int)
     X = X[idx]
     np.random.shuffle(X)
-    env = gym.make('CartPole-v1', render_mode='rgb_array')
+    env = gym.make("CartPole-v1", render_mode="rgb_array")
     env = env.unwrapped
     env.reset()
     return X[:n_samples], env
@@ -70,13 +70,20 @@ def display_cart_pole(env, state, add_border=True):
     env.state = state
     img = plt.imshow(env.render())
     plt.grid(False)
-    plt.axis('off')
+    plt.axis("off")
     plt.tight_layout()
-    plt.savefig('media/images/cartpole.png', dpi=100)
+    plt.savefig("media/images/cartpole.png", dpi=100)
 
     if add_border:  # add a black border to the image
-        img = cv2.imread('media/images/cartpole.png')
-        img = cv2.copyMakeBorder(src=img, top=15, bottom=15, left=15, right=15, borderType=cv2.BORDER_CONSTANT)
-        cv2.imwrite('media/images/cartpole.png', img)
+        img = cv2.imread("media/images/cartpole.png")
+        img = cv2.copyMakeBorder(
+            src=img,
+            top=15,
+            bottom=15,
+            left=15,
+            right=15,
+            borderType=cv2.BORDER_CONSTANT,
+        )
+        cv2.imwrite("media/images/cartpole.png", img)
 
-    return ImageMobject('media/images/cartpole.png')
+    return ImageMobject("media/images/cartpole.png")
