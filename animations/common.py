@@ -1,3 +1,5 @@
+from enum import Enum
+
 import cv2  # pip install opencv-python
 import numpy as np
 import torch
@@ -5,10 +7,17 @@ import gymnasium as gym
 import matplotlib.pyplot as plt
 
 from manim import *
-from colors import *
 from d3rlpy.datasets import get_cartpole
 
 from experiments.reinforcement.common import CustomDataset
+
+
+class ItemColor(Enum):
+    ACTIVE_1: str = "#FD56DC"  # hot pink
+    INACTIVE_1: str = "#FFB9CB"  # light pink
+    ACTIVE_2: str = "#68EF00"  # hot pink
+    INACTIVE_2: str = "#01D3FC"  # light pink
+    BACKGROUND: str = "#025393"  # dark blue
 
 
 def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
@@ -26,11 +35,11 @@ def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
         # Axes is made of two NumberLine objects.  You can specify
         # their configuration with axis_config
         axis_config=dict(
-            stroke_color=BACKGROUND_ITEM,
+            stroke_color=ItemColor.BACKGROUND,
             stroke_width=3,
             numbers_to_exclude=[0],
             include_numbers=True,
-            decimal_number_config=dict(color=BACKGROUND_ITEM),
+            decimal_number_config=dict(color=ItemColor.BACKGROUND),
         ),
         # # Alternatively, you can specify configuration for just one
         # # of them, like this.
@@ -44,8 +53,8 @@ def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
 
 
 def add_labels_to_axes(ax, x_label, y_label):
-    x_axis_lbl = Text(x_label, font_size=24, color=BACKGROUND_ITEM)
-    y_axis_lbl = Text(y_label, font_size=24, color=BACKGROUND_ITEM)
+    x_axis_lbl = Text(x_label, font_size=24, color=str(ItemColor.BACKGROUND))
+    y_axis_lbl = Text(y_label, font_size=24, color=str(ItemColor.BACKGROUND))
 
     x_axis_lbl.next_to(ax, DOWN)
     y_axis_lbl.rotate(1.5708)
