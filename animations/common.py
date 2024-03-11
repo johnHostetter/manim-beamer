@@ -1,4 +1,4 @@
-from enum import Enum
+from dataclasses import dataclass
 
 import cv2  # pip install opencv-python
 import numpy as np
@@ -12,7 +12,8 @@ from d3rlpy.datasets import get_cartpole
 from experiments.reinforcement.common import CustomDataset
 
 
-class ItemColor(Enum):
+@dataclass
+class ItemColor:
     ACTIVE_1: str = "#FD56DC"  # hot pink
     INACTIVE_1: str = "#FFB9CB"  # light pink
     ACTIVE_2: str = "#68EF00"  # hot pink
