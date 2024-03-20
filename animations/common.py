@@ -21,7 +21,17 @@ class ItemColor:
     BACKGROUND: str = "#025393"  # dark blue
 
 
-def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
+def make_axes(
+    scene,
+    min_x,
+    max_x,
+    step_x,
+    min_y,
+    max_y,
+    step_y,
+    stroke_width=3,
+    axes_color=ItemColor.BACKGROUND,
+):
     axes = Axes(
         # x-axis ranges from -1 to 10, with a default step size of 1
         x_range=(min_x, max_x, step_x),
@@ -36,11 +46,12 @@ def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
         # Axes is made of two NumberLine objects.  You can specify
         # their configuration with axis_config
         axis_config=dict(
-            stroke_color=ItemColor.BACKGROUND,
-            stroke_width=3,
+            tip_shape=StealthTip,
+            stroke_color=axes_color,
+            stroke_width=stroke_width,
             numbers_to_exclude=[0],
             include_numbers=True,
-            decimal_number_config=dict(color=ItemColor.BACKGROUND),
+            decimal_number_config=dict(color=axes_color),
         ),
         # # Alternatively, you can specify configuration for just one
         # # of them, like this.
@@ -53,9 +64,9 @@ def make_axes(scene, min_x, max_x, step_x, min_y, max_y, step_y):
     return axes
 
 
-def add_labels_to_axes(ax, x_label, y_label):
-    x_axis_lbl = Text(x_label, font_size=24, color=str(ItemColor.BACKGROUND))
-    y_axis_lbl = Text(y_label, font_size=24, color=str(ItemColor.BACKGROUND))
+def add_labels_to_axes(ax, x_label, y_label, text_color=ItemColor.BACKGROUND):
+    x_axis_lbl = Text(x_label, font_size=24, color=str(text_color))
+    y_axis_lbl = Text(y_label, font_size=24, color=str(text_color))
 
     x_axis_lbl.next_to(ax, DOWN)
     y_axis_lbl.rotate(1.5708)
