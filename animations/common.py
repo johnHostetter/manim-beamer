@@ -1,7 +1,7 @@
+from typing import Tuple
 from dataclasses import dataclass
 
 import cv2  # pip install opencv-python
-import numpy as np
 import torch
 import gymnasium as gym
 import matplotlib.pyplot as plt
@@ -21,28 +21,31 @@ class ItemColor:
     BACKGROUND: str = "#025393"  # dark blue
 
 
+class AxisConfig:
+    def __init__(self, min_value: float, max_value: float, step: float, length: float = 10.0):
+        self.min_value = min_value
+        self.max_value = max_value
+        self.step = step
+        self.length = length
+
+    def get_range(self) -> Tuple[float, float, float]:
+        return self.min_value, self.max_value, self.step
+
+
 def make_axes(
     scene,
-    min_x,
-    max_x,
-    step_x,
-    min_y,
-    max_y,
-    step_y,
+    x_axis_config: AxisConfig,
+    y_axis_config: AxisConfig,
     stroke_width=3,
     axes_color=ItemColor.BACKGROUND,
 ):
     axes = Axes(
-        # x-axis ranges from -1 to 10, with a default step size of 1
-        x_range=(min_x, max_x, step_x),
-        # y-axis ranges from -2 to 2 with a step size of 0.5
-        y_range=(min_y, max_y, step_y),
-        x_length=10,
-        y_length=5.5,
+        x_range=x_axis_config.get_range(),
+        y_range=y_axis_config.get_range(),
+        x_length=x_axis_config.length,
+        y_length=y_axis_config.length,
         # The axes will be stretched to match the specified
         # height and width
-        # height=6,
-        # width=10,
         # Axes is made of two NumberLine objects.  You can specify
         # their configuration with axis_config
         axis_config=dict(
@@ -60,7 +63,7 @@ def make_axes(
         # )
     )
 
-    scene.add(axes)
+    # scene.add(axes)
     return axes
 
 
