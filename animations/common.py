@@ -22,7 +22,9 @@ class ItemColor:
 
 
 class AxisConfig:
-    def __init__(self, min_value: float, max_value: float, step: float, length: float = 10.0):
+    def __init__(
+        self, min_value: float, max_value: float, step: float, length: float = 10.0
+    ):
         self.min_value = min_value
         self.max_value = max_value
         self.step = step
