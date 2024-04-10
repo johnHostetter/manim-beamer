@@ -11,6 +11,8 @@ from d3rlpy.datasets import get_cartpole
 
 from experiments.reinforcement.common import CustomDataset
 
+MANIM_BLUE = ManimColor("#58C4DD")
+
 
 @dataclass
 class ItemColor:
@@ -104,10 +106,10 @@ def display_cart_pole(env, state, add_border=True):
         img = cv2.imread("media/images/cartpole.png")
         img = cv2.copyMakeBorder(
             src=img,
-            top=15,
-            bottom=15,
-            left=15,
-            right=15,
+            top=10,
+            bottom=10,
+            left=10,
+            right=10,
             borderType=cv2.BORDER_CONSTANT,
         )
         cv2.imwrite("media/images/cartpole.png", img)
