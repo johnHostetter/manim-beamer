@@ -1,81 +1,15 @@
+from typing import Union as U
 from abc import abstractmethod
 
 from manim import *
 
+from animations.beamer.lists import BeamerList
 
 config.background_color = WHITE
 light_theme_style = {
     "fill_color": BLACK,
     "background_stroke_color": WHITE,
 }
-
-
-class BeamerList:
-    def __init__(self, items, font_size=30, list_color=BLACK):
-        super().__init__()
-        self.items = items
-        self.font_size = font_size
-        self._list_color = list_color
-        self.arrow = Arrow(
-            LEFT,
-            RIGHT,
-            color=self.list_color,
-            max_stroke_width_to_length_ratio=0.0,
-            stroke_opacity=0.1
-        ).scale(0.1)
-        self.max_allowed_lists = 3  # this includes the main list and all sublists
-
-    @property
-    def list_color(self):
-        return self._list_color
-
-    @list_color.setter
-    def list_color(self, value):
-        self._list_color = value
-        self.arrow = Arrow(
-            LEFT,
-            RIGHT,
-            color=self.list_color,
-            max_stroke_width_to_length_ratio=0.0,
-            stroke_opacity=0.1
-        ).scale(0.1)
-
-    @list_color.deleter
-    def list_color(self):
-        del self._list_color
-
-    def get_list(self, depth=0):
-        # Create a VGroup to contain the items and arrows
-        list_group_lst = []
-        list_group = VGroup()
-        for index, item in enumerate(self.items):
-            if isinstance(item, str):
-                text = Text(f"{item}", color=BLACK, font_size=self.font_size)
-                arrow = self.arrow.copy()
-                arrow.set_opacity(1.0 - (depth / (self.max_allowed_lists + 1)))
-                arrow.next_to(text, LEFT, buff=0.25)
-                item_group = VGroup(text, arrow)
-                # item_group.arrange(DOWN, aligned_edge=LEFT, buff=0.25)
-                list_group_lst.append(item_group)
-            elif isinstance(item, BeamerList):
-                item_group = item.get_list(depth=depth + 1)
-                # item_group = item
-            else:
-                raise ValueError("Invalid item type. Must be a string or a BeamerList object")
-            list_group.add(item_group)
-
-        # Arrange the items vertically
-        list_group.arrange(DOWN, aligned_edge=LEFT, buff=0.5)
-        for m_object in list_group:
-            if isinstance(m_object, VGroup):
-                m_object.shift(0.5 * RIGHT)
-                # m_object[-1].set_opacity(0.75)
-                for sub_object in m_object:
-                    if isinstance(sub_object, VGroup):
-                        sub_object.shift(RIGHT)
-                        # sub_object[-1].set_opacity(0.5)
-
-        return list_group
 
 
 class BlockTitle(Title):
@@ -89,23 +23,26 @@ class BlockTitle(Title):
 
 
 class Block:
-    def __init__(self, title: str, content: str):
+    def __init__(self, title: str, content: U[str, BeamerList]):
         if isinstance(title, str):
             # automatically convert the str title to a RemarkTitle object
             self.title = BlockTitle(
                 title,
                 underline_color=self.get_foreground_color(),
                 color=ManimColor(self.get_foreground_color()),
-                underline_buff=0.1
+                underline_buff=0.1,
             )
         else:
-            assert isinstance(title, Title), \
-                "The argument \'title\' must be a \'string\' or a \'Title\' object"
+            assert isinstance(
+                title, Title
+            ), "The argument 'title' must be a 'string' or a 'Title' object"
 
         self.content = content
         if isinstance(content, str):
             # automatically convert the str content to a Text object
-            self.content = Text(content, font="TeX Gyre Termes", color=BLACK, font_size=30)
+            self.content = Text(
+                content, font="TeX Gyre Termes", color=BLACK, font_size=30
+            )
         elif isinstance(content, BeamerList):
             self.update_beamer_list_color(content)
             self.content = content.get_list()
@@ -122,8 +59,10 @@ class Block:
             fill_color=ManimColor(self.get_background_color()),
             fill_opacity=1,
             corner_radius=0.25,
-            buff=0.1  # controls the top and bottom buffer
-        ).scale(1.025)  # controls the left and right buffer
+            buff=0.1,  # controls the top and bottom buffer
+        ).scale(
+            1.025
+        )  # controls the left and right buffer
 
     @abstractmethod
     def get_foreground_color(self) -> str:
@@ -140,10 +79,33 @@ class Block:
                 item.list_color = self.get_foreground_color()
                 self.update_beamer_list_color(item)
 
-    def add_to_scene(self, scene: Scene) -> None:
+    def get_animation(self, below=None) -> LaggedStart:
+        if below is None:
+            return LaggedStart(
+                Create(self.block_background),
+                Create(self.text_group),
+            )
+        elif isinstance(below, Block):
+            return LaggedStart(
+                Create(self.block_background.next_to(below.block_background, DOWN, buff=0.5)),
+                Create(self.text_group.next_to(below.block_background, DOWN, buff=0.65)),
+            )
+        else:  # e.g. isinstance(below, Text)
+            return LaggedStart(
+                Create(self.block_background.next_to(below, DOWN, buff=0.5)),
+                Create(self.text_group.next_to(below, DOWN, buff=0.65)),
+            )
+
+    def add_to_scene(self, scene: Scene, below=None) -> None:
         # order matters, add the block background first otherwise the text will be hidden
-        scene.add(self.block_background)
-        scene.add(self.text_group)
+        if below is not None:
+            scene.add(
+                self.block_background.next_to(below.block_background, DOWN, buff=0.5)
+            )
+            scene.add(self.text_group.next_to(below.block_background, DOWN, buff=0.65))
+        else:
+            scene.add(self.block_background)
+            scene.add(self.text_group)
 
 
 class RemarkBlock(Block):
