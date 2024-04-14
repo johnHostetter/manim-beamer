@@ -50,7 +50,9 @@ class BeamerList:
             list_group.add(item_group)
 
         # Arrange the items vertically, and appropriately indent if it's a sublist
-        list_group.arrange(self.item_vertical_spacing * DOWN, aligned_edge=LEFT, buff=0.5)
+        list_group.arrange(
+            self.item_vertical_spacing * DOWN, aligned_edge=LEFT, buff=0.5
+        )
         for m_object in list_group:
             if isinstance(m_object, VGroup):
                 m_object.shift(0.5 * RIGHT)
