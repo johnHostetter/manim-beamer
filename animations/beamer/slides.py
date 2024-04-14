@@ -6,6 +6,38 @@ from manim_slides import Slide
 from animations.beamer.blocks import Block
 
 
+class PromptSlide(Slide):
+    def __init__(self, prompt: str, skip: bool = False, **kwargs):
+        super().__init__(**kwargs)
+        # self.title_str: str = title
+        self.prompt_str: str = prompt
+        self.skip: bool = skip  # whether to not focus on the slide
+
+        # # create the manim objects for the slide title
+        # self.title_text: Text = Text(
+        #     self.title_str,
+        #     font="TeX Gyre Termes",
+        #     color=BLACK,
+        #     font_size=60,
+        #     weight=BOLD,
+        # ).to_edge(UP)
+        # # create the overall contents of the slide
+        # self.contents: VGroup = VGroup(self.title_text)
+
+    def construct(self):
+        self.draw(origin=ORIGIN, scale=1.0)
+        self.play(FadeOut(Group(*self.mobjects)))
+        self.wait(2)
+
+    def draw(self, origin, scale, target_scene=None):
+        if target_scene is None:
+            target_scene = self
+        target_scene.play(
+            Write(Text(self.prompt_str, color=BLACK, slant=ITALIC).move_to(origin).scale(scale))
+        )
+        target_scene.wait(2)
+
+
 class SlideWithBlocks(MovingCameraScene, Slide):
     def __init__(self, title: str, blocks: List[Type[Block]], **kwargs):
         super().__init__(**kwargs)
