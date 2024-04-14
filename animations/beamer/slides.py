@@ -33,7 +33,7 @@ class SlideWithBlocks(MovingCameraScene, Slide):
         if target_scene is None:
             target_scene = self
         target_scene.play(
-            block.get_animation(scale=1.0, below=below),
+            block.get_animation(scale_factor=scale, below=below),
             target_scene.camera.frame.animate.move_to(
                 block.block_background.get_center()
             ).set(
@@ -50,8 +50,8 @@ class SlideWithBlocks(MovingCameraScene, Slide):
             target_scene = self
 
         # position the slide correctly
-        # self.contents.move_to(origin)
-        # self.contents.scale(scale)
+        self.contents.move_to(origin)
+        self.contents.scale(scale)
 
         target_scene.wait(1)
         target_scene.next_slide()
@@ -66,7 +66,7 @@ class SlideWithBlocks(MovingCameraScene, Slide):
             if isinstance(block, Block):
                 self.make_block_and_focus(
                     block,
-                    scale=1.0,
+                    scale=scale,
                     below=m_object_to_be_below,
                     target_scene=target_scene,
                 )
