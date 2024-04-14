@@ -79,33 +79,39 @@ class Block:
                 item.list_color = self.get_foreground_color()
                 self.update_beamer_list_color(item)
 
-    def get_animation(self, below=None) -> LaggedStart:
+    def get_vgroup(self) -> VGroup:
+        return VGroup(self.block_background, self.text_group)
+
+    def get_animation(self, scale: float, below=None) -> LaggedStart:
         if below is None:
             return LaggedStart(
-                Create(self.block_background),
-                Create(self.text_group),
+                Create(self.block_background),  # .scale(scale)),
+                Create(self.text_group),  # .scale(scale)),
             )
         elif isinstance(below, Block):
             return LaggedStart(
-                Create(self.block_background.next_to(below.block_background, DOWN, buff=0.5)),
-                Create(self.text_group.next_to(below.block_background, DOWN, buff=0.65)),
+                Create(
+                    self.block_background.next_to(
+                        below.block_background, DOWN, buff=0.5
+                    )  # .scale(scale)
+                ),
+                Create(
+                    self.text_group.next_to(
+                        below.block_background, DOWN, buff=0.65
+                    )  # .scale(scale)
+                ),
             )
         else:  # e.g. isinstance(below, Text)
             return LaggedStart(
-                Create(self.block_background.next_to(below, DOWN, buff=0.5)),
-                Create(self.text_group.next_to(below, DOWN, buff=0.65)),
+                Create(
+                    self.block_background.next_to(
+                        below, DOWN, buff=0.5
+                    )  # .scale(scale)
+                ),
+                Create(
+                    self.text_group.next_to(below, DOWN, buff=0.65)
+                ),  # .scale(scale)),
             )
-
-    def add_to_scene(self, scene: Scene, below=None) -> None:
-        # order matters, add the block background first otherwise the text will be hidden
-        if below is not None:
-            scene.add(
-                self.block_background.next_to(below.block_background, DOWN, buff=0.5)
-            )
-            scene.add(self.text_group.next_to(below.block_background, DOWN, buff=0.65))
-        else:
-            scene.add(self.block_background)
-            scene.add(self.text_group)
 
 
 class RemarkBlock(Block):
