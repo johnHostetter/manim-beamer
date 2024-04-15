@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 import bibtexparser
 from bibtexparser.model import Entry
@@ -84,6 +84,23 @@ class BibTexManager:
         return f"[{BibTexManager.get_author_last_names_only(entry)} ({entry['year']})]"
 
     @staticmethod
+    def wrap_by_word(string_to_parse, num_of_words) -> str:
+        """
+        Return a string where \\n is inserted between every n words.
+        https://www.reddit.com/r/learnpython/comments/4i2z4u/how_to_add_a_new_line_after_every_nth_word/
+
+        Args:
+            string_to_parse: The string to wrap.
+            num_of_words: The number of words to wrap by.
+        """
+        a: List[str] = string_to_parse.split()
+        wrapped_text: str = ""
+        for i in range(0, len(a), num_of_words):
+            wrapped_text += ' '.join(a[i:i + num_of_words]) + '\n'
+
+        return wrapped_text
+
+    @staticmethod
     def cite_entry(entry: Entry) -> str:
         """
         Convert a bibtex entry to a citation string.
@@ -95,7 +112,12 @@ class BibTexManager:
             The citation string for the entry. Format is "Author et al. (Year)".
         """
         # cite the paper as "Paper title (Author et al., Year)"
-        return f"{entry['title']} ({BibTexManager.get_author_last_names_only(entry)}, {entry['year']})"
+        title = BibTexManager.wrap_by_word(
+            entry["title"].replace("{", "").replace("}", ""), num_of_words=8
+        )
+        if "year" not in entry:
+            return f"{title} ({BibTexManager.get_author_last_names_only(entry)})"
+        return f"{title} ({BibTexManager.get_author_last_names_only(entry)}, {entry['year']})"
 
     def slide_short_cite(
         self, key: str, item_marker_opacity: float = 0.0
