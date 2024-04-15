@@ -13,7 +13,9 @@ light_theme_style = {
 
 
 class BlockTitle(Title):
-    def __init__(self, text, underline_color: str, underline_thickness: float = 4.0, **kwargs):
+    def __init__(
+        self, text, underline_color: str, underline_thickness: float = 4.0, **kwargs
+    ):
         super().__init__(text, **kwargs)
         # override the default underline color from white to #bf0040
         self.underline.set_color(ManimColor(underline_color))
@@ -24,10 +26,10 @@ class BlockTitle(Title):
 
 
 class Block:
-    def __init__(self, title: str, content: U[str, BeamerList]):
-        if isinstance(title, str):
+    def __init__(self, title: U[None, str], content: U[str, BeamerList]):
+        if title is None or isinstance(title, str):
             # automatically convert the str title to a RemarkTitle object
-            self.title_str: str = title
+            self.title_str: U[None, str] = title
         else:
             assert isinstance(
                 title, Title
@@ -69,21 +71,29 @@ class Block:
                 self.update_beamer_list_color(item)
 
     def update_position_and_scale(self, scale_factor: float) -> None:
-        if self.title is None and self.text_group is None and self.block_background is None:
-            self.title = BlockTitle(
-                self.title_str,
-                underline_color=self.get_foreground_color(),
-                underline_thickness=4.0 * scale_factor,
-                color=ManimColor(self.get_foreground_color()),
-                underline_buff=0.1
-            )
+        if (
+            self.title is None
+            and self.text_group is None
+            and self.block_background is None
+        ):
+            if self.title_str is not None:
+                self.title = BlockTitle(
+                    self.title_str,
+                    underline_color=self.get_foreground_color(),
+                    underline_thickness=4.0 * scale_factor,
+                    color=ManimColor(self.get_foreground_color()),
+                    underline_buff=0.1,
+                )
 
             content = self.content
             if isinstance(self.content, BeamerList):
                 content = self.content.get_list(scale_factor=scale_factor)
 
-            content.next_to(self.title, (DOWN * scale_factor))
-            self.text_group = VGroup(self.title, content)
+            if self.title is not None:
+                content.next_to(self.title, (DOWN * scale_factor))
+                self.text_group = VGroup(self.title, content)
+            else:
+                self.text_group = VGroup(content)
             # left align the title and content
             self.text_group.arrange((DOWN * scale_factor), aligned_edge=LEFT, buff=0.25)
             # create a surrounding rectangle around the title and content
@@ -118,12 +128,16 @@ class Block:
             return LaggedStart(
                 Create(
                     self.block_background.scale(scale_factor).next_to(
-                        below.block_background, (DOWN * scale_factor), buff=title_header_buff
+                        below.block_background,
+                        (DOWN * scale_factor),
+                        buff=title_header_buff,
                     )
                 ),
                 Create(
                     self.text_group.scale(scale_factor).next_to(
-                        below.block_background, (DOWN * scale_factor), buff=content_block_buff
+                        below.block_background,
+                        (DOWN * scale_factor),
+                        buff=content_block_buff,
                     )
                 ),
             )
@@ -138,7 +152,7 @@ class Block:
                     self.text_group.scale(scale_factor).next_to(
                         below, (DOWN * scale_factor), buff=content_block_buff
                     )
-                )
+                ),
             )
 
 
