@@ -31,16 +31,20 @@ class BeamerList:
     def get_list(self, scale_factor: float, depth=0):
         # Create a VGroup to contain the items and item_markers
         list_group = VGroup()
-        font_color = BLACK
         for index, item in enumerate(self.items):
+            # default values for the font color and opacity of the item marker
+            font_color = BLACK
+            item_marker_opacity: float = 1.0 - (depth / (self.max_allowed_lists + 1))
+
             if isinstance(item, tuple):
-                # if the item is a tuple, it should contain the text and the font color
-                item, font_color = item[0], item[1]
+                # if the item is a tuple, it should contain the text, font color, and
+                # opacity of the item marker
+                item, font_color, item_marker_opacity = item[0], item[1], item[2]
             if isinstance(item, str):
                 text = Text(f"{item}", color=font_color, font_size=self.font_size)
                 item_marker = self.get_item_marker(scale_factor=scale_factor).copy()
                 # set the opacity of the item_marker based on the depth of the list
-                item_marker.set_opacity(1.0 - (depth / (self.max_allowed_lists + 1)))
+                item_marker.set_opacity(item_marker_opacity)
                 item_marker.next_to(text, LEFT, buff=0.25)
                 item_group = VGroup(text, item_marker)
             elif isinstance(item, BeamerList):

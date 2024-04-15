@@ -33,15 +33,22 @@ class PromptSlide(Slide):
         if target_scene is None:
             target_scene = self
         target_scene.play(
-            Write(Text(self.prompt_str, color=BLACK, slant=ITALIC).move_to(origin).scale(scale))
+            Write(
+                Text(self.prompt_str, color=BLACK, slant=ITALIC)
+                .move_to(origin)
+                .scale(scale)
+            )
         )
         target_scene.wait(2)
 
 
 class SlideWithBlocks(MovingCameraScene, Slide):
-    def __init__(self, title: str, blocks: List[Type[Block]], **kwargs):
+    def __init__(
+        self, title: str, subtitle: U[None, str], blocks: List[Type[Block]], **kwargs
+    ):
         super().__init__(**kwargs)
         self.title_str: str = title
+        self.subtitle_str: str = subtitle
         self.blocks: List[Type[Block]] = blocks
 
         # create the manim objects for the slide title
@@ -52,8 +59,18 @@ class SlideWithBlocks(MovingCameraScene, Slide):
             font_size=60,
             weight=BOLD,
         ).to_edge(UP)
+        if self.subtitle_str is not None:
+            self.subtitle_text: Text = Text(
+                self.subtitle_str,
+                font="TeX Gyre Termes",
+                color=BLACK,
+                font_size=30,
+                slant=ITALIC,
+            ).next_to(self.title_text, DOWN)
         # create the overall contents of the slide
         self.contents: VGroup = VGroup(self.title_text)
+        if self.subtitle_str is not None:
+            self.contents.add(self.subtitle_text)
 
     def make_block_and_focus(
         self,
@@ -89,9 +106,16 @@ class SlideWithBlocks(MovingCameraScene, Slide):
         target_scene.next_slide()
         target_scene.play(Write(self.title_text))
 
+        if self.subtitle_str is not None:
+            target_scene.play(Write(self.subtitle_text))
+            target_scene.wait(1)
+            target_scene.next_slide()
+
         self.wait(1)
         self.next_slide()
-        m_object_to_be_below = self.title_text
+        m_object_to_be_below = (
+            self.title_text if self.subtitle_str is None else self.subtitle_text
+        )
         # iterate over the blocks and create them
         for block in self.blocks:
             # for block in self.contents[1:]:

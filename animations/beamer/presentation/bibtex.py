@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple
 
 import bibtexparser
 from bibtexparser.model import Entry
+from manim import DARK_BLUE
 
 from soft.utilities.reproducibility import path_to_project_root
 
@@ -10,7 +11,13 @@ from soft.utilities.reproducibility import path_to_project_root
 class BibTexManager:
     def __init__(self, path: Union[None, Path] = None):
         if path is None:
-            path = path_to_project_root() / "animations" / "beamer" / "presentation" / "ref.bib"
+            path = (
+                path_to_project_root()
+                / "animations"
+                / "beamer"
+                / "presentation"
+                / "ref.bib"
+            )
         self.path: Path = path
 
         # We want to add three new middleware layers to our parse stack:
@@ -18,7 +25,7 @@ class BibTexManager:
             bibtexparser.middlewares.MonthIntMiddleware(),
             # Months should be represented as int (0-12)
             bibtexparser.middlewares.SeparateCoAuthors(),  # Co-authors should be separated
-            bibtexparser.middlewares.SplitNameParts()
+            bibtexparser.middlewares.SplitNameParts(),
             # Names should be split into first, von, last, jr parts
         ]
 
@@ -54,15 +61,17 @@ class BibTexManager:
             The last names of the authors.
         """
         # the result is that within Entry, the author field is a list of NameParts objects
+
+        # note: the author last name is still a list of strings, hence the [0] at the end
         if len(entry["author"]) == 1:
-            return entry["author"][0].last
+            return entry["author"][0].last[0]
         elif len(entry["author"]) == 2:
             return " and ".join([name_parts.last[0] for name_parts in entry["author"]])
         else:
-            return entry["author"][0].last + " et al."
+            return entry["author"][0].last[0] + " et al."
 
     @staticmethod
-    def convert_entry_to_citation(entry: Entry) -> str:
+    def cite_short_entry(entry: Entry) -> str:
         """
         Convert a bibtex entry to a citation string (for presentation slides).
 
@@ -73,3 +82,33 @@ class BibTexManager:
             The citation string for the entry. Format is "[Author et al. (Year)]".
         """
         return f"[{BibTexManager.get_author_last_names_only(entry)} ({entry['year']})]"
+
+    @staticmethod
+    def cite_entry(entry: Entry) -> str:
+        """
+        Convert a bibtex entry to a citation string.
+
+        Args:
+            entry: The bibtex entry.
+
+        Returns:
+            The citation string for the entry. Format is "Author et al. (Year)".
+        """
+        # cite the paper as "Paper title (Author et al., Year)"
+        return f"{entry['title']} ({BibTexManager.get_author_last_names_only(entry)}, {entry['year']})"
+
+    def slide_short_cite(
+        self, key: str, item_marker_opacity: float = 0.0
+    ) -> Tuple[str, str, float]:
+        """
+        Get the citation string for a bibtex entry in a format suitable for a slide using
+        a BeamerList.
+
+        Args:
+            key: The key of the bibtex entry.
+            item_marker_opacity: The opacity of the item marker within the BeamerList.
+
+        Returns:
+            The citation string for the entry. Format is "[Author et al., Year]".
+        """
+        return self.cite_short_entry(self[key]), DARK_BLUE, item_marker_opacity
