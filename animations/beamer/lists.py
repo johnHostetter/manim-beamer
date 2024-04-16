@@ -72,13 +72,14 @@ class BeamerList:
 class ItemizedList(BeamerList):
     def get_item_marker(self, scale_factor: float = 1.0):
         return Arrow(
-            LEFT,
-            RIGHT,
+            LEFT * scale_factor,
+            RIGHT * scale_factor,
             color=self.list_color,
             max_stroke_width_to_length_ratio=0.0,
-            max_tip_length_to_length_ratio=(0.15 * scale_factor),
+            max_tip_length_to_length_ratio=(0.1 * scale_factor),
             stroke_opacity=0.1,
             tip_shape=StealthTip,
+            buff=0,
         ).scale(0.1 * scale_factor)
 
 
