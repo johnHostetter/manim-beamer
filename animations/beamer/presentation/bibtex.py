@@ -64,11 +64,13 @@ class BibTexManager:
 
         # note: the author last name is still a list of strings, hence the [0] at the end
         if len(entry["author"]) == 1:
-            return entry["author"][0].last[0]
+            return entry["author"][0].last[0].replace("{", "").replace("}", "")
         elif len(entry["author"]) == 2:
-            return " and ".join([name_parts.last[0] for name_parts in entry["author"]])
+            return " and ".join(
+                [name_parts.last[0] for name_parts in entry["author"]]
+            ).replace("{", "").replace("}", "")
         else:
-            return entry["author"][0].last[0] + " et al."
+            return entry["author"][0].last[0] + " et al.".replace("{", "").replace("}", "")
 
     @staticmethod
     def cite_short_entry(entry: Entry) -> str:
@@ -84,7 +86,7 @@ class BibTexManager:
         return f"[{BibTexManager.get_author_last_names_only(entry)} ({entry['year']})]"
 
     @staticmethod
-    def wrap_by_word(string_to_parse, num_of_words) -> str:
+    def wrap_by_word(string_to_parse, num_of_words: int) -> str:
         """
         Return a string where \\n is inserted between every n words.
         https://www.reddit.com/r/learnpython/comments/4i2z4u/how_to_add_a_new_line_after_every_nth_word/
@@ -101,19 +103,20 @@ class BibTexManager:
         return wrapped_text
 
     @staticmethod
-    def cite_entry(entry: Entry) -> str:
+    def cite_entry(entry: Entry, num_of_words: int = 6) -> str:
         """
         Convert a bibtex entry to a citation string.
 
         Args:
             entry: The bibtex entry.
+            num_of_words: The number of words to wrap by.
 
         Returns:
             The citation string for the entry. Format is "Author et al. (Year)".
         """
         # cite the paper as "Paper title (Author et al., Year)"
         title = BibTexManager.wrap_by_word(
-            entry["title"].replace("{", "").replace("}", ""), num_of_words=8
+            entry["title"].replace("{", "").replace("}", ""), num_of_words=num_of_words
         )
         if "year" not in entry:
             return f"{title} ({BibTexManager.get_author_last_names_only(entry)})"
