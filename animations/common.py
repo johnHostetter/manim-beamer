@@ -94,7 +94,7 @@ def get_data_and_env(n_samples=100):
     return X[:n_samples], env
 
 
-def display_cart_pole(env, state, add_border=True):
+def display_cart_pole(env, state, scale, add_border=True):
     env.state = state
     img = plt.imshow(env.render())
     plt.grid(False)
@@ -106,10 +106,10 @@ def display_cart_pole(env, state, add_border=True):
         img = cv2.imread("media/images/cartpole.png")
         img = cv2.copyMakeBorder(
             src=img,
-            top=10,
-            bottom=10,
-            left=10,
-            right=10,
+            top=5,
+            bottom=5,
+            left=5,
+            right=5,
             borderType=cv2.BORDER_CONSTANT,
         )
         cv2.imwrite("media/images/cartpole.png", img)
