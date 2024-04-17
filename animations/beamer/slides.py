@@ -117,7 +117,7 @@ class SlideWithList(BeamerSlide):
     def draw(self, origin, scale: float, target_scene: U[None, Slide]):
         m_object_to_be_below = self.inner_draw(origin, scale, target_scene=target_scene)
         # create the list object
-        list_group = self.beamer_list.get_list(scale_factor=scale, scale_down_text=False)
+        list_group = self.beamer_list.get_list(scale_factor=scale)
         buffer_with_prev_object = 0.5
         list_group.scale(scale_factor=scale).next_to(
             m_object_to_be_below, DOWN, buff=buffer_with_prev_object * scale

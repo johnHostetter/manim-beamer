@@ -25,10 +25,10 @@ class BeamerList:
         del self._list_color
 
     @abstractmethod
-    def get_item_marker(self, scale_factor: float, scale_down_text: bool = False):
+    def get_item_marker(self, scale_factor: float):
         raise NotImplementedError("This method must be implemented in a subclass")
 
-    def get_list(self, scale_factor: float, depth=0, scale_down_text: bool = False):
+    def get_list(self, scale_factor: float, depth=0):
         # Create a VGroup to contain the items and item_markers
         list_group = VGroup()
         for index, item in enumerate(self.items):
@@ -42,26 +42,16 @@ class BeamerList:
                 item, font_color, item_marker_opacity = item[0], item[1], item[2]
             if isinstance(item, str):
                 text = Text(f"{item}", color=font_color, font_size=self.font_size)
-                if scale_down_text:
-                    # beamer blocks already scale the text down, so we only need to scale it down
-                    # if using a list outside a block
-                    text.scale(
-                        scale_factor=scale_factor
-                    )
                 item_marker = self.get_item_marker(
                     scale_factor=scale_factor,
-                    scale_down_text=scale_down_text,
                 ).copy()
                 # set the opacity of the item_marker based on the depth of the list
                 item_marker.set_opacity(item_marker_opacity)
-                buffer_with_marker = 0.25
-                if scale_down_text:
-                    buffer_with_marker *= scale_factor
-                item_marker.next_to(text, LEFT, buff=buffer_with_marker)
+                item_marker.next_to(text, LEFT, buff=0.25)
                 item_group = VGroup(text, item_marker)
             elif isinstance(item, BeamerList):
                 item_group = item.get_list(
-                    scale_factor=scale_factor, depth=depth + 1, scale_down_text=scale_down_text
+                    scale_factor=scale_factor, depth=depth + 1,
                 )
             else:
                 raise ValueError(
@@ -70,33 +60,21 @@ class BeamerList:
             list_group.add(item_group)
 
         # Arrange the items vertically, and appropriately indent if it's a sublist
-        item_vertical_spacing = self.item_vertical_spacing * DOWN
-        aligned_edge = LEFT
-        list_group_buff = 0.5
-
-        if scale_down_text:
-            # item_vertical_spacing *= scale_factor
-            aligned_edge *= scale_factor
-            list_group_buff *= scale_factor
-
         list_group.arrange(
-            item_vertical_spacing, aligned_edge=aligned_edge, buff=list_group_buff
+            self.item_vertical_spacing * DOWN, aligned_edge=LEFT, buff=0.5
         )
-        right_shift = RIGHT
-        if scale_down_text:
-            right_shift *= scale_factor
         for m_object in list_group:
             if isinstance(m_object, VGroup):
-                m_object.shift(0.5 * right_shift)
+                m_object.shift(0.5 * RIGHT)
                 for sub_object in m_object:
                     if isinstance(sub_object, VGroup):
-                        sub_object.shift(right_shift)
+                        sub_object.shift(RIGHT)
 
         return list_group
 
 
 class ItemizedList(BeamerList):
-    def get_item_marker(self, scale_factor: float = 1.0, scale_down_text: bool = False):
+    def get_item_marker(self, scale_factor: float = 1.0):
         return Arrow(
             LEFT * scale_factor,
             RIGHT * scale_factor,
@@ -110,24 +88,15 @@ class ItemizedList(BeamerList):
 
 
 class BulletedList(BeamerList):
-    def get_item_marker(self, scale_factor: float = 1.0, scale_down_text: bool = False):
-        marker = Text("•", color=self.list_color, font_size=self.font_size).scale(1.5)
-        if scale_down_text:
-            marker.scale(scale_factor)
-        return marker
+    def get_item_marker(self, scale_factor: float = 1.0):
+        return Text("•", color=self.list_color, font_size=self.font_size).scale(1.5)
 
 
 class AdvantagesList(BeamerList):
-    def get_item_marker(self, scale_factor: float = 1.0, scale_down_text: bool = False):
-        marker = Text("+", color=self.list_color, font_size=self.font_size).scale(1.25)
-        if scale_down_text:
-            marker.scale(scale_factor)
-        return marker
+    def get_item_marker(self, scale_factor: float = 1.0):
+        return Text("+", color=self.list_color, font_size=self.font_size).scale(1.25)
 
 
 class DisadvantagesList(BeamerList):
-    def get_item_marker(self, scale_factor: float = 1.0, scale_down_text: bool = False):
-        marker = Text("-", color=self.list_color, font_size=self.font_size).scale(1.25)
-        if scale_down_text:
-            marker.scale(scale_factor)
-        return marker
+    def get_item_marker(self, scale_factor: float = 1.0):
+        return Text("-", color=self.list_color, font_size=self.font_size).scale(1.25)
