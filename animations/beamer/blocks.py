@@ -14,7 +14,7 @@ light_theme_style = {
 
 class BlockTitle(Title):
     def __init__(
-            self, text, underline_color: str, underline_thickness: float = 4.0, **kwargs
+        self, text, underline_color: str, underline_thickness: float = 4.0, **kwargs
     ):
         super().__init__(text, **kwargs)
         # override the default underline color from white to #bf0040
@@ -72,9 +72,9 @@ class Block:
 
     def update_position_and_scale(self, scale_factor: float) -> None:
         if (
-                self.title is None
-                and self.text_group is None
-                and self.block_background is None
+            self.title is None
+            and self.text_group is None
+            and self.block_background is None
         ):
             if self.title_str is not None:
                 self.title = BlockTitle(
@@ -113,7 +113,7 @@ class Block:
         return VGroup(self.block_background, self.text_group)
 
     def get_animation(
-            self, scale_factor: float, below=None, animate=True
+        self, scale_factor: float, below=None, animate=True
     ) -> U[LaggedStart, VGroup]:
         title_header_buff = self.title_header_buff  # * scale_factor
         content_block_buff = self.content_block_buff  # * scale_factor
