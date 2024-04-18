@@ -95,10 +95,10 @@ class BeamerSlide(MovingCameraScene, Slide):
         self.contents.move_to(origin)
         self.contents.scale(scale)
 
-        target_scene.wait(1)
-        target_scene.next_slide()
-        # position the camera correctly
         if animate:
+            target_scene.wait(1)
+            target_scene.next_slide()
+            # position the camera correctly
             self.play(
                 Succession(
                     target_scene.camera.frame.animate.set(
@@ -190,8 +190,10 @@ class SlideWithBlocks(BeamerSlide):
             target_scene.add(block_vgroup[1])  # add the text group
 
     def construct(self):
-        self.draw(ORIGIN, 1.0, target_scene=self, animate=False)
-        self.play(self.camera.frame.animate.move_to(ORIGIN))
+        animate = True
+        self.draw(ORIGIN, 1.0, target_scene=self, animate=animate)
+        if not animate:
+            self.play(self.camera.frame.animate.move_to(ORIGIN))
 
     def draw(self, origin, scale, target_scene: U[None, Slide], animate=True):
         m_object_to_be_below = self.inner_draw(
@@ -206,7 +208,7 @@ class SlideWithBlocks(BeamerSlide):
                     scale=scale,
                     below=m_object_to_be_below,
                     target_scene=target_scene,
-                    animate=animate
+                    animate=animate,
                 )
                 self.contents.add(block.get_vgroup())
                 m_object_to_be_below = block.block_background
@@ -220,8 +222,8 @@ class SlideWithBlocks(BeamerSlide):
         if animate:
             # focus the camera on the entire slide
             target_scene.play(
-                target_scene.camera.frame.animate.move_to(self.contents.get_center()).set(
-                    height=self.contents.height + 1
-                )
+                target_scene.camera.frame.animate.move_to(
+                    self.contents.get_center()
+                ).set(height=self.contents.height + 1)
             )
             target_scene.wait(3)
