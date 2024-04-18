@@ -70,7 +70,7 @@ class BeamerSlide(MovingCameraScene, Slide):
         if self.subtitle_str is not None:
             self.contents.add(self.subtitle_text)
 
-    def inner_draw(self, origin, scale, target_scene=None) -> Text:
+    def inner_draw(self, origin, scale, target_scene=None) -> VGroup:
         """
         Draw the slide contents (title and subtitle - if applicable) on the scene
         and then return the last displayed text object.
@@ -81,7 +81,7 @@ class BeamerSlide(MovingCameraScene, Slide):
             target_scene: The scene to draw the slide on. If None, the current scene is used.
 
         Returns:
-            The last displayed text object.
+            The current text objects displayed on the scene.
         """
         if target_scene is None:
             target_scene = self
@@ -92,7 +92,15 @@ class BeamerSlide(MovingCameraScene, Slide):
 
         target_scene.wait(1)
         target_scene.next_slide()
-        target_scene.play(Write(self.title_text))
+        # position the camera correctly
+        self.play(
+            Succession(
+                target_scene.camera.frame.animate.set(
+                    width=self.contents.width + 2, #height=self.contents.height + 1
+                ),
+                Write(self.title_text),
+            )
+        )
 
         if self.subtitle_str is not None:
             target_scene.play(Write(self.subtitle_text))
@@ -101,9 +109,7 @@ class BeamerSlide(MovingCameraScene, Slide):
 
         self.wait(1)
         self.next_slide()
-        return (
-            self.title_text if self.subtitle_str is None else self.subtitle_text
-        )
+        return self.contents
 
 
 class SlideWithList(BeamerSlide):
@@ -122,7 +128,13 @@ class SlideWithList(BeamerSlide):
         list_group.scale(scale_factor=scale).next_to(
             m_object_to_be_below, DOWN, buff=buffer_with_prev_object * scale
         )
-        target_scene.play(Create(list_group))
+        all_content = VGroup(m_object_to_be_below, list_group)
+        target_scene.play(
+            Create(list_group),
+            self.camera.frame.animate.move_to(all_content.get_center()).set(
+                width=all_content.width + 2, height=all_content.height + 2
+            )
+        )
         target_scene.wait(2)
         target_scene.next_slide()
         target_scene.wait(2)
