@@ -55,8 +55,12 @@ class BeamerList:
                     for sub_item in item:
                         if isinstance(sub_item, str):
                             # if the item is a string, create a Text object
-                            sub_text = Text(f"{item}", color=font_color, font_size=self.font_size)
-                        elif isinstance(sub_item, Text) or isinstance(sub_item, MathTex):
+                            sub_text = Text(
+                                f"{item}", color=font_color, font_size=self.font_size
+                            )
+                        elif isinstance(sub_item, Text) or isinstance(
+                            sub_item, MathTex
+                        ):
                             sub_text = sub_item
                             sub_text.set_color(font_color)
                             sub_text.set_font_size(self.font_size)
@@ -81,7 +85,8 @@ class BeamerList:
                 item_group = VGroup(text, item_marker)
             elif isinstance(item, BeamerList):
                 item_group = item.get_list(
-                    scale_factor=scale_factor, depth=depth + 1,
+                    scale_factor=scale_factor,
+                    depth=depth + 1,
                 )
             else:
                 raise ValueError(
@@ -95,10 +100,16 @@ class BeamerList:
         )
         for m_object in list_group:
             if isinstance(m_object, VGroup) and not isinstance(m_object, TextWithMath):
-                m_object.shift(0.5 * RIGHT)  # shift only the nested list (not TextWithMath)
+                m_object.shift(
+                    0.5 * RIGHT
+                )  # shift only the nested list (not TextWithMath)
                 for sub_object in m_object:
-                    if isinstance(sub_object, VGroup) and not isinstance(sub_object, TextWithMath):
-                        sub_object.shift(RIGHT)  # shift only the nested list (not TextWithMath)
+                    if isinstance(sub_object, VGroup) and not isinstance(
+                        sub_object, TextWithMath
+                    ):
+                        sub_object.shift(
+                            RIGHT
+                        )  # shift only the nested list (not TextWithMath)
 
         return list_group
 

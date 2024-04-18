@@ -66,11 +66,15 @@ class BibTexManager:
         if len(entry["author"]) == 1:
             return entry["author"][0].last[0].replace("{", "").replace("}", "")
         elif len(entry["author"]) == 2:
-            return " and ".join(
-                [name_parts.last[0] for name_parts in entry["author"]]
-            ).replace("{", "").replace("}", "")
+            return (
+                " and ".join([name_parts.last[0] for name_parts in entry["author"]])
+                .replace("{", "")
+                .replace("}", "")
+            )
         else:
-            return entry["author"][0].last[0] + " et al.".replace("{", "").replace("}", "")
+            return entry["author"][0].last[0] + " et al.".replace("{", "").replace(
+                "}", ""
+            )
 
     @staticmethod
     def cite_short_entry(entry: Entry) -> str:
@@ -98,7 +102,7 @@ class BibTexManager:
         a: List[str] = string_to_parse.split()
         wrapped_text: str = ""
         for i in range(0, len(a), num_of_words):
-            wrapped_text += ' '.join(a[i:i + num_of_words]) + '\n'
+            wrapped_text += " ".join(a[i : i + num_of_words]) + "\n"
 
         return wrapped_text
 
