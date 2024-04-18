@@ -3,6 +3,11 @@ from abc import abstractmethod
 from manim import *
 
 
+class TextWithMath(VGroup):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class BeamerList:
     def __init__(self, items, font_size=30, list_color=BLACK):
         super().__init__()
@@ -40,8 +45,33 @@ class BeamerList:
                 # if the item is a tuple, it should contain the text, font color, and
                 # opacity of the item marker
                 item, font_color, item_marker_opacity = item[0], item[1], item[2]
-            if isinstance(item, str):
-                text = Text(f"{item}", color=font_color, font_size=self.font_size)
+            if isinstance(item, str) or isinstance(item, VGroup):
+                if isinstance(item, str):
+                    # if the item is a string, create a Text object
+                    text = Text(f"{item}", color=font_color, font_size=self.font_size)
+                else:
+                    text = TextWithMath()
+                    prev_sub_text = None
+                    for sub_item in item:
+                        if isinstance(sub_item, str):
+                            # if the item is a string, create a Text object
+                            sub_text = Text(f"{item}", color=font_color, font_size=self.font_size)
+                        elif isinstance(sub_item, Text) or isinstance(sub_item, MathTex):
+                            sub_text = sub_item
+                            sub_text.set_color(font_color)
+                            sub_text.set_font_size(self.font_size)
+                            if isinstance(sub_text, MathTex):
+                                # math text is smaller than regular text
+                                sub_text.set_font_size(self.font_size * 1.5)
+                        else:
+                            raise ValueError(
+                                "Invalid item type. Must be a string or a Text object"
+                            )
+                        if prev_sub_text is not None:
+                            sub_text.next_to(prev_sub_text, RIGHT, buff=0.2)
+                        prev_sub_text = sub_text
+                        text.add(sub_text)
+
                 item_marker = self.get_item_marker(
                     scale_factor=scale_factor,
                 ).copy()
@@ -64,11 +94,11 @@ class BeamerList:
             self.item_vertical_spacing * DOWN, aligned_edge=LEFT, buff=0.5
         )
         for m_object in list_group:
-            if isinstance(m_object, VGroup):
-                m_object.shift(0.5 * RIGHT)
+            if isinstance(m_object, VGroup) and not isinstance(m_object, TextWithMath):
+                m_object.shift(0.5 * RIGHT)  # shift only the nested list (not TextWithMath)
                 for sub_object in m_object:
-                    if isinstance(sub_object, VGroup):
-                        sub_object.shift(RIGHT)
+                    if isinstance(sub_object, VGroup) and not isinstance(sub_object, TextWithMath):
+                        sub_object.shift(RIGHT)  # shift only the nested list (not TextWithMath)
 
         return list_group
 
