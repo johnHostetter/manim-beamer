@@ -14,7 +14,7 @@ light_theme_style = {
 
 class BlockTitle(Title):
     def __init__(
-        self, text, underline_color: str, underline_thickness: float = 4.0, **kwargs
+            self, text, underline_color: str, underline_thickness: float = 4.0, **kwargs
     ):
         super().__init__(text, **kwargs)
         # override the default underline color from white to #bf0040
@@ -72,9 +72,9 @@ class Block:
 
     def update_position_and_scale(self, scale_factor: float) -> None:
         if (
-            self.title is None
-            and self.text_group is None
-            and self.block_background is None
+                self.title is None
+                and self.text_group is None
+                and self.block_background is None
         ):
             if self.title_str is not None:
                 self.title = BlockTitle(
@@ -112,48 +112,57 @@ class Block:
     def get_vgroup(self) -> VGroup:
         return VGroup(self.block_background, self.text_group)
 
-    def get_animation(self, scale_factor: float, below=None) -> LaggedStart:
+    def get_animation(
+            self, scale_factor: float, below=None, animate=True
+    ) -> U[LaggedStart, VGroup]:
         title_header_buff = self.title_header_buff  # * scale_factor
         content_block_buff = self.content_block_buff  # * scale_factor
         self.update_position_and_scale(scale_factor)
 
         if below is None:
-            return LaggedStart(
-                Create(self.block_background.scale(scale_factor)),
-                Create(self.text_group.scale(scale_factor)),
-            )
+            block_background = self.block_background.scale(scale_factor)
+            text_group = self.text_group.scale(scale_factor)
+            if animate:
+                return LaggedStart(
+                    Create(block_background),
+                    Create(text_group),
+                )
+            else:
+                return VGroup(block_background, text_group)
         # scale the block FIRST before positioning it below the previous block
         # otherwise it will not be positioned correctly
         elif isinstance(below, Block):
-            return LaggedStart(
-                Create(
-                    self.block_background.scale(scale_factor).next_to(
-                        below.block_background,
-                        (DOWN * scale_factor),
-                        buff=title_header_buff,
-                    )
-                ),
-                Create(
-                    self.text_group.scale(scale_factor).next_to(
-                        below.block_background,
-                        (DOWN * scale_factor),
-                        buff=content_block_buff,
-                    )
-                ),
+            block_background = self.block_background.scale(scale_factor).next_to(
+                below.block_background,
+                (DOWN * scale_factor),
+                buff=title_header_buff,
             )
+            text_group = self.text_group.scale(scale_factor).next_to(
+                below.block_background,
+                (DOWN * scale_factor),
+                buff=content_block_buff,
+            )
+            if animate:
+                return LaggedStart(
+                    Create(block_background),
+                    Create(text_group),
+                )
+            else:
+                return VGroup(block_background, text_group)
         else:  # e.g. isinstance(below, Text)
-            return LaggedStart(
-                Create(
-                    self.block_background.scale(scale_factor).next_to(
-                        below, (DOWN * scale_factor), buff=title_header_buff
-                    )
-                ),
-                Create(
-                    self.text_group.scale(scale_factor).next_to(
-                        below, (DOWN * scale_factor), buff=content_block_buff
-                    )
-                ),
+            block_background = self.block_background.scale(scale_factor).next_to(
+                below, (DOWN * scale_factor), buff=title_header_buff
             )
+            text_group = self.text_group.scale(scale_factor).next_to(
+                below, (DOWN * scale_factor), buff=content_block_buff
+            )
+            if animate:
+                return LaggedStart(
+                    Create(block_background),
+                    Create(text_group),
+                )
+            else:
+                return VGroup(block_background, text_group)
 
 
 class RemarkBlock(Block):

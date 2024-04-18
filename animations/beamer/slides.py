@@ -30,17 +30,21 @@ class PromptSlide(Slide):
         self.play(FadeOut(Group(*self.mobjects)))
         self.wait(2)
 
-    def draw(self, origin, scale, target_scene=None):
+    def draw(self, origin, scale, target_scene=None, animate=True):
         if target_scene is None:
             target_scene = self
-        target_scene.play(
-            Write(
-                Text(self.prompt_str, color=BLACK, slant=ITALIC)
-                .move_to(origin)
-                .scale(scale)
-            )
+
+        prompt_text = (
+            Text(self.prompt_str, color=BLACK, slant=ITALIC)
+            .move_to(origin)
+            .scale(scale)
         )
-        target_scene.wait(2)
+
+        if animate:
+            target_scene.play(Write(prompt_text))
+            target_scene.wait(2)
+        else:
+            target_scene.add(prompt_text)
 
 
 class BeamerSlide(MovingCameraScene, Slide):
@@ -70,7 +74,7 @@ class BeamerSlide(MovingCameraScene, Slide):
         if self.subtitle_str is not None:
             self.contents.add(self.subtitle_text)
 
-    def inner_draw(self, origin, scale, target_scene=None) -> VGroup:
+    def inner_draw(self, origin, scale, target_scene=None, animate=True) -> VGroup:
         """
         Draw the slide contents (title and subtitle - if applicable) on the scene
         and then return the last displayed text object.
@@ -79,6 +83,7 @@ class BeamerSlide(MovingCameraScene, Slide):
             origin: The origin of the slide.
             scale: The scale factor to apply to the slide contents.
             target_scene: The scene to draw the slide on. If None, the current scene is used.
+            animate: Whether to animate the drawing of the slide.
 
         Returns:
             The current text objects displayed on the scene.
@@ -93,22 +98,30 @@ class BeamerSlide(MovingCameraScene, Slide):
         target_scene.wait(1)
         target_scene.next_slide()
         # position the camera correctly
-        self.play(
-            Succession(
-                target_scene.camera.frame.animate.set(
-                    width=self.contents.width + 2, #height=self.contents.height + 1
-                ),
-                Write(self.title_text),
+        if animate:
+            self.play(
+                Succession(
+                    target_scene.camera.frame.animate.set(
+                        width=self.contents.width
+                        + 2,  # height=self.contents.height + 1
+                    ),
+                    Write(self.title_text),
+                )
             )
-        )
+        else:
+            target_scene.add(self.title_text)
 
         if self.subtitle_str is not None:
-            target_scene.play(Write(self.subtitle_text))
-            target_scene.wait(1)
-            target_scene.next_slide()
+            if animate:
+                target_scene.play(Write(self.subtitle_text))
+                target_scene.wait(1)
+                target_scene.next_slide()
+            else:
+                target_scene.add(self.subtitle_text)
 
-        self.wait(1)
-        self.next_slide()
+        if animate:
+            target_scene.wait(1)
+            self.next_slide()
         return self.contents
 
 
@@ -120,7 +133,7 @@ class SlideWithList(BeamerSlide):
     def construct(self):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
-    def draw(self, origin, scale: float, target_scene: U[None, Slide]):
+    def draw(self, origin, scale: float, target_scene: U[None, Slide], animate=True):
         m_object_to_be_below = self.inner_draw(origin, scale, target_scene=target_scene)
         # create the list object
         list_group = self.beamer_list.get_list(scale_factor=scale)
@@ -129,21 +142,22 @@ class SlideWithList(BeamerSlide):
             m_object_to_be_below, DOWN, buff=buffer_with_prev_object * scale
         )
         all_content = VGroup(m_object_to_be_below, list_group)
-        target_scene.play(
-            Create(list_group),
-            self.camera.frame.animate.move_to(all_content.get_center()).set(
-                width=all_content.width + 2, height=all_content.height + 2
+        if animate:
+            target_scene.play(
+                Create(list_group),
+                self.camera.frame.animate.move_to(all_content.get_center()).set(
+                    width=all_content.width + 2, height=all_content.height + 2
+                ),
             )
-        )
-        target_scene.wait(2)
-        target_scene.next_slide()
-        target_scene.wait(2)
+            target_scene.wait(2)
+            target_scene.next_slide()
+            target_scene.wait(2)
+        else:
+            target_scene.add(list_group)
 
 
 class SlideWithBlocks(BeamerSlide):
-    def __init__(
-        self, title: str, subtitle: U[None, str], blocks: List[Type[Block]]
-    ):
+    def __init__(self, title: str, subtitle: U[None, str], blocks: List[Type[Block]]):
         super().__init__(title=title, subtitle=subtitle)
         self.blocks: List[Type[Block]] = blocks
 
@@ -153,24 +167,36 @@ class SlideWithBlocks(BeamerSlide):
         scale: float,
         below: U[None, Text, Block],
         target_scene: U[None, Slide],
+        animate=True,
     ):
         if target_scene is None:
             target_scene = self
-        target_scene.play(
-            block.get_animation(scale_factor=scale, below=below),
-            target_scene.camera.frame.animate.move_to(
-                block.block_background.get_center()
-            ).set(
-                width=block.block_background.width + 3,
-                # height=block.block_background.height + 3
-            ),
-        )
+        if animate:
+            target_scene.play(
+                block.get_animation(scale_factor=scale, below=below, animate=animate),
+                target_scene.camera.frame.animate.move_to(
+                    block.block_background.get_center()
+                ).set(
+                    width=block.block_background.width + 3,
+                    # height=block.block_background.height + 3
+                ),
+            )
+        else:
+            # this returns a VGroup instead of an animation and then adds it to the scene
+            block_vgroup: VGroup = block.get_animation(
+                scale_factor=scale, below=below, animate=animate
+            )
+            target_scene.add(block_vgroup[0])  # add the background first
+            target_scene.add(block_vgroup[1])  # add the text group
 
     def construct(self):
-        self.draw(ORIGIN, 1.0, target_scene=self)
+        self.draw(ORIGIN, 1.0, target_scene=self, animate=False)
+        self.play(self.camera.frame.animate.move_to(ORIGIN))
 
-    def draw(self, origin, scale, target_scene: U[None, Slide]):
-        m_object_to_be_below = self.inner_draw(origin, scale, target_scene=target_scene)
+    def draw(self, origin, scale, target_scene: U[None, Slide], animate=True):
+        m_object_to_be_below = self.inner_draw(
+            origin, scale, target_scene=target_scene, animate=animate
+        )
         # iterate over the blocks and create them
         for block in self.blocks:
             # for block in self.contents[1:]:
@@ -180,18 +206,22 @@ class SlideWithBlocks(BeamerSlide):
                     scale=scale,
                     below=m_object_to_be_below,
                     target_scene=target_scene,
+                    animate=animate
                 )
                 self.contents.add(block.get_vgroup())
                 m_object_to_be_below = block.block_background
             else:
                 # raise an error if the block is not a 'Block' object
                 raise ValueError("Invalid block type. Must be a 'Block' object")
-            target_scene.wait(1)
-            target_scene.next_slide()
-        # focus the camera on the entire slide
-        target_scene.play(
-            target_scene.camera.frame.animate.move_to(self.contents.get_center()).set(
-                height=self.contents.height + 1
+            if animate:
+                target_scene.wait(1)
+                target_scene.next_slide()
+
+        if animate:
+            # focus the camera on the entire slide
+            target_scene.play(
+                target_scene.camera.frame.animate.move_to(self.contents.get_center()).set(
+                    height=self.contents.height + 1
+                )
             )
-        )
-        target_scene.wait(3)
+            target_scene.wait(3)
