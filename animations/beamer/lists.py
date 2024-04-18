@@ -50,31 +50,7 @@ class BeamerList:
                     # if the item is a string, create a Text object
                     text = Text(f"{item}", color=font_color, font_size=self.font_size)
                 else:
-                    text = TextWithMath()
-                    prev_sub_text = None
-                    for sub_item in item:
-                        if isinstance(sub_item, str):
-                            # if the item is a string, create a Text object
-                            sub_text = Text(
-                                f"{item}", color=font_color, font_size=self.font_size
-                            )
-                        elif isinstance(sub_item, Text) or isinstance(
-                            sub_item, MathTex
-                        ):
-                            sub_text = sub_item
-                            sub_text.set_color(font_color)
-                            sub_text.set_font_size(self.font_size)
-                            if isinstance(sub_text, MathTex):
-                                # math text is smaller than regular text
-                                sub_text.set_font_size(self.font_size * 1.5)
-                        else:
-                            raise ValueError(
-                                "Invalid item type. Must be a string or a Text object"
-                            )
-                        if prev_sub_text is not None:
-                            sub_text.next_to(prev_sub_text, RIGHT, buff=0.2)
-                        prev_sub_text = sub_text
-                        text.add(sub_text)
+                    text = self.parse_vgroup(font_color, item)
 
                 item_marker = self.get_item_marker(
                     scale_factor=scale_factor,
@@ -90,7 +66,7 @@ class BeamerList:
                 )
             else:
                 raise ValueError(
-                    "Invalid item type. Must be a string or a BeamerList object"
+                    f"Invalid item type {type(item)}. Must be a string or a BeamerList object"
                 )
             list_group.add(item_group)
 
@@ -112,6 +88,38 @@ class BeamerList:
                         )  # shift only the nested list (not TextWithMath)
 
         return list_group
+
+    def parse_vgroup(self, font_color, item):
+        text = TextWithMath()
+        if isinstance(item, Cross):
+            # useful for substituting \cross with a cross symbol
+            item.set_color(font_color)
+            text.add(item)
+            return text
+        prev_sub_text = None
+        for sub_item in item:
+            if isinstance(sub_item, str):
+                # if the item is a string, create a Text object
+                sub_text = Text(f"{item}", color=font_color, font_size=self.font_size)
+            elif isinstance(sub_item, Text) or isinstance(sub_item, MathTex):
+                sub_text = sub_item
+                sub_text.set_color(font_color)
+                sub_text.set_font_size(self.font_size)
+                if isinstance(sub_text, MathTex):
+                    # math text is smaller than regular text
+                    sub_text.set_font_size(self.font_size * 1.5)
+            elif isinstance(sub_item, VGroup):
+                # recursive call
+                sub_text = self.parse_vgroup(font_color, sub_item)
+            else:
+                raise ValueError(
+                    f"Invalid item type {type(item)}. Must be a string or a BeamerList object"
+                )
+            if prev_sub_text is not None:
+                sub_text.next_to(prev_sub_text, RIGHT, buff=0.2)
+            prev_sub_text = sub_text
+            text.add(sub_text)
+        return text
 
 
 class ItemizedList(BeamerList):
