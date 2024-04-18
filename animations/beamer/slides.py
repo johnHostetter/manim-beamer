@@ -146,7 +146,7 @@ class SlideWithList(BeamerSlide):
             target_scene.play(
                 Create(list_group),
                 self.camera.frame.animate.move_to(all_content.get_center()).set(
-                    width=all_content.width + 2, height=all_content.height + 2
+                    width=all_content.width + 2,  # height=all_content.height + 2
                 ),
             )
             target_scene.wait(2)
@@ -157,9 +157,18 @@ class SlideWithList(BeamerSlide):
 
 
 class SlideWithBlocks(BeamerSlide):
-    def __init__(self, title: str, subtitle: U[None, str], blocks: List[Type[Block]]):
+    def __init__(
+        self,
+        title: str,
+        subtitle: U[None, str],
+        blocks: List[Type[Block]],
+        width_buffer: float = 3.0,
+        height_buffer: float = 1.0,
+    ):
         super().__init__(title=title, subtitle=subtitle)
         self.blocks: List[Type[Block]] = blocks
+        self.width_buffer = width_buffer
+        self.height_buffer = height_buffer
 
     def make_block_and_focus(
         self,
@@ -177,7 +186,7 @@ class SlideWithBlocks(BeamerSlide):
                 target_scene.camera.frame.animate.move_to(
                     block.block_background.get_center()
                 ).set(
-                    width=block.block_background.width + 3,
+                    width=block.block_background.width + self.width_buffer,
                     # height=block.block_background.height + 3
                 ),
             )
@@ -212,6 +221,21 @@ class SlideWithBlocks(BeamerSlide):
                 )
                 self.contents.add(block.get_vgroup())
                 m_object_to_be_below = block.block_background
+            elif (
+                isinstance(block, Text)
+                or isinstance(block, MathTex)
+                or isinstance(block, VGroup)
+            ):
+                block.scale(scale_factor=scale).next_to(
+                    m_object_to_be_below, DOWN, buff=0.5
+                )
+                if animate:
+                    target_scene.play(Write(block))
+                    target_scene.wait(1)
+                else:
+                    target_scene.add(block)
+                self.contents.add(block)
+                m_object_to_be_below = block
             else:
                 # raise an error if the block is not a 'Block' object
                 raise ValueError("Invalid block type. Must be a 'Block' object")
@@ -224,6 +248,6 @@ class SlideWithBlocks(BeamerSlide):
             target_scene.play(
                 target_scene.camera.frame.animate.move_to(
                     self.contents.get_center()
-                ).set(height=self.contents.height + 1)
+                ).set(height=self.contents.height + self.height_buffer)
             )
             target_scene.wait(3)
