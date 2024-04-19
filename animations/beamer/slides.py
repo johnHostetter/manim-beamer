@@ -14,9 +14,10 @@ class SlideShow(Slide, MovingCameraScene):
     A class to create a slide show of multiple Slide objects.
     """
 
-    def __init__(self, slides, **kwargs):
+    def __init__(self, slides, zoom_with_height: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.slides: List[Type[Slide]] = slides
+        self.zoom_with_height: bool = zoom_with_height
 
     def construct(self):
         for slide in self.slides:
@@ -27,8 +28,10 @@ class SlideShow(Slide, MovingCameraScene):
             if content is not None:
                 # focus the camera on the entire slide
                 self.camera.frame.move_to(content.get_center()).set(
-                    width=content.width + 6,  # height=content.height + 3
+                    width=content.width * 3.0,  # height=content.height + 3
                 )
+                # if self.zoom_with_height:
+                #     self.camera.frame.set(height=content.height * 7.0)
             # draw the slide but ignore the returned content
             _ = slide.draw(
                 origin=ORIGIN, scale=1.0, target_scene=self, animate=True
@@ -331,6 +334,8 @@ class SlideWithBlocks(BeamerSlide):
             self.play(self.camera.frame.animate.move_to(ORIGIN))
 
     def draw(self, origin, scale, target_scene: U[None, Slide], animate=True):
+        if target_scene is None:
+            target_scene = self
         content: VGroup = self.inner_draw(
             origin, scale, target_scene=target_scene, animate=animate
         )
