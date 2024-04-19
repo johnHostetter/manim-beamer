@@ -6,18 +6,29 @@ from manim_slides import Slide
 from animations.common import MANIM_BLUE
 from animations.beamer.blocks import Block
 from animations.beamer.lists import BeamerList
+from animations.demos.ww2 import CaptionedJPG
 
 
 class SlideShow(Slide, MovingCameraScene):
     """
     A class to create a slide show of multiple Slide objects.
     """
+
     def __init__(self, slides, **kwargs):
         super().__init__(**kwargs)
         self.slides: List[Type[Slide]] = slides
 
     def construct(self):
         for slide in self.slides:
+            # see what the content will be like in advance
+            content = slide.draw(
+                origin=ORIGIN, scale=1.0, target_scene=None, animate=False
+            )
+            if content is not None:
+                # focus the camera on the entire slide
+                self.camera.frame.move_to(content.get_center()).set(
+                    width=content.width + 6,  # height=content.height + 3
+                )
             # draw the slide but ignore the returned content
             _ = slide.draw(
                 origin=ORIGIN, scale=1.0, target_scene=self, animate=True
@@ -158,14 +169,26 @@ class BeamerSlide(MovingCameraScene, Slide):
 
 
 class SlideWithList(BeamerSlide):
-    def __init__(self, title: str, subtitle: U[None, str], beamer_list: BeamerList):
-        super().__init__(title=title, subtitle=subtitle)
+    def __init__(
+        self,
+        title: str,
+        subtitle: U[None, str],
+        beamer_list: BeamerList,
+        width_buffer: float = 3.0,
+        height_buffer: float = 1.0,
+    ):
+        super().__init__(
+            title=title, subtitle=subtitle,
+            width_buffer=width_buffer, height_buffer=height_buffer
+        )
         self.beamer_list: BeamerList = beamer_list
 
     def construct(self):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
     def draw(self, origin, scale: float, target_scene: U[None, Slide], animate=True) -> VGroup:
+        if target_scene is None:
+            target_scene = self
         content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
         # create the list object
         list_group = self.beamer_list.get_list(scale_factor=scale)
@@ -191,14 +214,14 @@ class SlideWithList(BeamerSlide):
 
 class SlideWithTable(BeamerSlide):
     def __init__(
-        self,
-        title: str,
-        subtitle: U[None, str],
-        table: Table,
-        caption: str,
-        highlighted_columns: List[int],
-        width_buffer: float = 3.0,
-        height_buffer: float = 1.0,
+            self,
+            title: str,
+            subtitle: U[None, str],
+            table: Table,
+            caption: str,
+            highlighted_columns: List[int],
+            width_buffer: float = 3.0,
+            height_buffer: float = 1.0,
     ):
         super().__init__(
             title=title, subtitle=subtitle,
@@ -219,6 +242,8 @@ class SlideWithTable(BeamerSlide):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
     def draw(self, origin, scale: float, target_scene: U[None, Slide], animate=True) -> VGroup:
+        if target_scene is None:
+            target_scene = self
         content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
         buffer_with_prev_object = 0.5
         table = self.table.copy()
@@ -353,3 +378,31 @@ class SlideWithBlocks(BeamerSlide):
                 ).set(height=content.height + self.height_buffer)
             )
             target_scene.wait(3)
+
+
+class SlideDiagram(Slide):
+    def __init__(self, path, caption, original_image_scale, **kwargs):
+        super().__init__(**kwargs)
+        self.path = path
+        self.caption = caption
+        self.original_image_scale = original_image_scale
+        self.captioned_jpg: CaptionedJPG = self.get_diagram()
+
+    def construct(self, origin=ORIGIN, scale=1.0):
+        self.draw(origin, scale, target_scene=self)
+
+    def draw(self, origin, scale, target_scene=None, animate=True):
+        self.captioned_jpg.draw(origin, scale, target_scene=target_scene, animate=animate)
+
+    def get_diagram(self) -> CaptionedJPG:
+        """
+        Create a slide showing the diagram of the CEW systematic design process of NFNs.
+
+        Returns:
+            The slide with the diagram shown.
+        """
+        return CaptionedJPG(
+            path=self.path,
+            caption=self.caption,
+            original_image_scale=self.original_image_scale
+        )
