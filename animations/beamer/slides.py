@@ -33,9 +33,7 @@ class SlideShow(Slide, MovingCameraScene):
                 # if self.zoom_with_height:
                 #     self.camera.frame.set(height=content.height * 7.0)
             # draw the slide but ignore the returned content
-            _ = slide.draw(
-                origin=ORIGIN, scale=1.0, target_scene=self, animate=True
-            )
+            _ = slide.draw(origin=ORIGIN, scale=1.0, target_scene=self, animate=True)
             self.wait(1)
             self.next_slide()
             # fade out the slide content
@@ -84,12 +82,12 @@ class PromptSlide(Slide):
 
 class BeamerSlide(MovingCameraScene, Slide):
     def __init__(
-            self,
-            title: str,
-            subtitle: U[None, str],
-            width_buffer: float = 3.0,
-            height_buffer: float = 1.0,
-            **kwargs
+        self,
+        title: str,
+        subtitle: U[None, str],
+        width_buffer: float = 3.0,
+        height_buffer: float = 1.0,
+        **kwargs
     ):
         super().__init__(**kwargs)
         self.title_str: str = title
@@ -133,10 +131,14 @@ class BeamerSlide(MovingCameraScene, Slide):
 
         # make local copies to avoid modifying the original objects
         title_text = self.title_text.copy()
-        subtitle_text = self.subtitle_text.copy() if self.subtitle_str is not None else None
-        content = VGroup(
-            title_text, subtitle_text
-        ) if subtitle_text is not None else VGroup(title_text)
+        subtitle_text = (
+            self.subtitle_text.copy() if self.subtitle_str is not None else None
+        )
+        content = (
+            VGroup(title_text, subtitle_text)
+            if subtitle_text is not None
+            else VGroup(title_text)
+        )
 
         # position and scale the content
         content.move_to(origin)
@@ -149,7 +151,8 @@ class BeamerSlide(MovingCameraScene, Slide):
             target_scene.play(
                 Succession(
                     target_scene.camera.frame.animate.set(
-                        width=content.width + self.width_buffer,  # height=content.height + 1
+                        width=content.width
+                        + self.width_buffer,  # height=content.height + 1
                     ),
                     Write(title_text),
                 )
@@ -181,15 +184,19 @@ class SlideWithList(BeamerSlide):
         height_buffer: float = 1.0,
     ):
         super().__init__(
-            title=title, subtitle=subtitle,
-            width_buffer=width_buffer, height_buffer=height_buffer
+            title=title,
+            subtitle=subtitle,
+            width_buffer=width_buffer,
+            height_buffer=height_buffer,
         )
         self.beamer_list: BeamerList = beamer_list
 
     def construct(self):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
-    def draw(self, origin, scale: float, target_scene: U[None, Slide], animate=True) -> VGroup:
+    def draw(
+        self, origin, scale: float, target_scene: U[None, Slide], animate=True
+    ) -> VGroup:
         if target_scene is None:
             target_scene = self
         content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
@@ -236,19 +243,20 @@ def light_themed_table(table: Table) -> Table:
 
 class SlideWithTable(BeamerSlide):
     def __init__(
-            self,
-            title: str,
-            subtitle: U[None, str],
-            table: Table,
-            caption: str,
-            highlighted_columns: List[int],
-            width_buffer: float = 3.0,
-            height_buffer: float = 1.0,
+        self,
+        title: str,
+        subtitle: U[None, str],
+        table: Table,
+        caption: str,
+        highlighted_columns: List[int],
+        width_buffer: float = 3.0,
+        height_buffer: float = 1.0,
     ):
         super().__init__(
-            title=title, subtitle=subtitle,
+            title=title,
+            subtitle=subtitle,
             width_buffer=width_buffer,
-            height_buffer=height_buffer
+            height_buffer=height_buffer,
         )
         self.table: Table = light_themed_table(table)
         self.caption = caption
@@ -257,7 +265,9 @@ class SlideWithTable(BeamerSlide):
     def construct(self):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
-    def draw(self, origin, scale: float, target_scene: U[None, Slide], animate=True) -> VGroup:
+    def draw(
+        self, origin, scale: float, target_scene: U[None, Slide], animate=True
+    ) -> VGroup:
         if target_scene is None:
             target_scene = self
         content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
@@ -274,15 +284,18 @@ class SlideWithTable(BeamerSlide):
             target_scene.play(
                 Write(captioned_table),
                 target_scene.camera.frame.animate.move_to(content.get_center()).set(
-                    width=content.width + self.width_buffer,  # height=all_content.height + 2
+                    width=content.width
+                    + self.width_buffer,  # height=all_content.height + 2
                 ),
             )
             animations = []
             for col_idx in self.highlighted_columns:
                 animations.append(
                     Circumscribe(
-                        table.get_columns()[col_idx], color=MANIM_BLUE,
-                        stroke_width=15 * scale, run_time=1
+                        table.get_columns()[col_idx],
+                        color=MANIM_BLUE,
+                        stroke_width=15 * scale,
+                        run_time=1,
                     ),
                 )
             if len(animations) > 0:
@@ -302,20 +315,22 @@ class SlideWithTables(BeamerSlide):
     Identical copy to the above but with some minor changes.
     Duplicated here due to presentation deadline.
     """
+
     def __init__(
-            self,
-            title: str,
-            subtitle: U[None, str],
-            tables: Table,
-            captions: str,
-            highlighted_columns: List[int],
-            width_buffer: float = 3.0,
-            height_buffer: float = 1.0,
+        self,
+        title: str,
+        subtitle: U[None, str],
+        tables: Table,
+        captions: str,
+        highlighted_columns: List[int],
+        width_buffer: float = 3.0,
+        height_buffer: float = 1.0,
     ):
         super().__init__(
-            title=title, subtitle=subtitle,
+            title=title,
+            subtitle=subtitle,
             width_buffer=width_buffer,
-            height_buffer=height_buffer
+            height_buffer=height_buffer,
         )
         self.tables: List[Table] = []
         for table in tables:
@@ -326,7 +341,9 @@ class SlideWithTables(BeamerSlide):
     def construct(self):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
-    def draw(self, origin, scale: float, target_scene: U[None, Slide], animate=True) -> VGroup:
+    def draw(
+        self, origin, scale: float, target_scene: U[None, Slide], animate=True
+    ) -> VGroup:
         if target_scene is None:
             target_scene = self
         content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
@@ -359,7 +376,8 @@ class SlideWithTables(BeamerSlide):
                     *[Write(captioned_table) for captioned_table in captioned_tables]
                 ),
                 target_scene.camera.frame.animate.move_to(content.get_center()).set(
-                    width=content.width + self.width_buffer,  # height=all_content.height + 2
+                    width=content.width
+                    + self.width_buffer,  # height=all_content.height + 2
                 ),
             )
             # animations = []
@@ -382,28 +400,28 @@ class SlideWithTables(BeamerSlide):
 
 class SlideWithBlocks(BeamerSlide):
     def __init__(
-            self,
-            title: str,
-            subtitle: U[None, str],
-            blocks: List[Type[Block]],
-            width_buffer: float = 3.0,
-            height_buffer: float = 1.0,
+        self,
+        title: str,
+        subtitle: U[None, str],
+        blocks: List[Type[Block]],
+        width_buffer: float = 3.0,
+        height_buffer: float = 1.0,
     ):
         super().__init__(
             title=title,
             subtitle=subtitle,
             width_buffer=width_buffer,
-            height_buffer=height_buffer
+            height_buffer=height_buffer,
         )
         self.blocks: List[Type[Block]] = blocks
 
     def make_block_and_focus(
-            self,
-            block: Block,
-            scale: float,
-            below: U[None, Text, Block],
-            target_scene: U[None, Slide],
-            animate=True,
+        self,
+        block: Block,
+        scale: float,
+        below: U[None, Text, Block],
+        target_scene: U[None, Slide],
+        animate=True,
     ):
         if target_scene is None:
             target_scene = self
@@ -452,9 +470,9 @@ class SlideWithBlocks(BeamerSlide):
                 content.add(block.get_vgroup())
                 m_object_to_be_below = block.block_background
             elif (
-                    isinstance(block, Text)
-                    or isinstance(block, MathTex)
-                    or isinstance(block, VGroup)
+                isinstance(block, Text)
+                or isinstance(block, MathTex)
+                or isinstance(block, VGroup)
             ):
                 block.scale(scale_factor=scale).next_to(
                     m_object_to_be_below, DOWN, buff=0.5
@@ -476,9 +494,9 @@ class SlideWithBlocks(BeamerSlide):
         if animate:
             # focus the camera on the entire slide
             target_scene.play(
-                target_scene.camera.frame.animate.move_to(
-                    content.get_center()
-                ).set(height=content.height + self.height_buffer)
+                target_scene.camera.frame.animate.move_to(content.get_center()).set(
+                    height=content.height + self.height_buffer
+                )
             )
             target_scene.wait(3)
 
@@ -495,7 +513,9 @@ class SlideDiagram(Slide):
         self.draw(origin, scale, target_scene=self)
 
     def draw(self, origin, scale, target_scene=None, animate=True):
-        self.captioned_jpg.draw(origin, scale, target_scene=target_scene, animate=animate)
+        self.captioned_jpg.draw(
+            origin, scale, target_scene=target_scene, animate=animate
+        )
 
     def get_diagram(self) -> CaptionedJPG:
         """
@@ -507,5 +527,5 @@ class SlideDiagram(Slide):
         return CaptionedJPG(
             path=self.path,
             caption=self.caption,
-            original_image_scale=self.original_image_scale
+            original_image_scale=self.original_image_scale,
         )
