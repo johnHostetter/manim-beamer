@@ -1,9 +1,22 @@
 from typing import Union as U
 from abc import abstractmethod
 
-from manim import *
+from manim import (
+    WHITE,
+    BLACK,
+    DOWN,
+    LEFT,
+    VGroup,
+    SurroundingRectangle,
+    LaggedStart,
+    Create,
+    Text,
+    ManimColor,
+    Title,
+    config,
+)
 
-from animations.beamer.lists import BeamerList
+from beamer.lists import BeamerList
 
 config.background_color = WHITE
 light_theme_style = {

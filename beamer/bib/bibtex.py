@@ -1,23 +1,27 @@
+"""
+Implements the necessary classes and features to process and handle .bib references.
+"""
+
 from pathlib import Path
 from typing import Union, Tuple, List
 
-import bibtexparser
-from bibtexparser.model import Entry
 from manim import DARK_BLUE
 
-from soft.utilities.reproducibility import path_to_project_root
+import bibtexparser
+from bibtexparser.model import Entry
 
 
 class BibTexManager:
-    def __init__(self, path: Union[None, Path] = None):
-        if path is None:
-            path = (
-                path_to_project_root()
-                / "animations"
-                / "beamer"
-                / "presentation"
-                / "ref.bib"
-            )
+    """
+    The BibTexManager will allow convenient management, access, query and display of references
+    stored in a .bib file.
+    """
+
+    def __init__(self, path: Path):
+        """
+        Given the path to a .bib file containing the references, an instance of this class will be
+        created to efficiently manage and query it.
+        """
         self.path: Path = path
 
         # We want to add three new middleware layers to our parse stack:
@@ -47,6 +51,7 @@ class BibTexManager:
         for entry in self.library.entries:
             if entry.key == key:
                 return entry
+        return None
 
     @staticmethod
     def get_author_last_names_only(entry: Entry) -> str:
@@ -65,16 +70,13 @@ class BibTexManager:
         # note: the author last name is still a list of strings, hence the [0] at the end
         if len(entry["author"]) == 1:
             return entry["author"][0].last[0].replace("{", "").replace("}", "")
-        elif len(entry["author"]) == 2:
+        if len(entry["author"]) == 2:
             return (
                 " and ".join([name_parts.last[0] for name_parts in entry["author"]])
                 .replace("{", "")
                 .replace("}", "")
             )
-        else:
-            return entry["author"][0].last[0] + " et al.".replace("{", "").replace(
-                "}", ""
-            )
+        return entry["author"][0].last[0] + " et al.".replace("{", "").replace("}", "")
 
     @staticmethod
     def cite_short_entry(entry: Entry) -> str:
