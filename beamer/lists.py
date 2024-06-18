@@ -1,6 +1,17 @@
 from abc import abstractmethod
 
-from manim import *
+from manim import (
+    VGroup,
+    Text,
+    Arrow,
+    LEFT,
+    RIGHT,
+    DOWN,
+    BLACK,
+    MathTex,
+    Cross,
+    StealthTip,
+)
 
 
 class TextWithMath(VGroup):

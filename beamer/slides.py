@@ -1,12 +1,32 @@
-from typing import Union as U, Type
+from typing import Union, List, Type
 
-from manim import *
+from manim import (
+    ORIGIN,
+    MovingCameraScene,
+    FadeOut,
+    Text,
+    ITALIC,
+    BOLD,
+    VGroup,
+    Succession,
+    Write,
+    Circumscribe,
+    Group,
+    Create,
+    AnimationGroup,
+    BLACK,
+    UP,
+    DOWN,
+    RIGHT,
+    Table,
+    MathTex,
+)
 from manim_slides import Slide
 
-from animations.common import MANIM_BLUE
-from animations.beamer.blocks import Block
-from animations.beamer.lists import BeamerList
-from animations.demos.ww2 import CaptionedJPG
+from beamer import MANIM_BLUE
+from beamer.blocks import Block
+from beamer.lists import BeamerList
+from beamer.captioned.images import CaptionedJPG
 
 
 class SlideShow(Slide, MovingCameraScene):
@@ -84,7 +104,7 @@ class BeamerSlide(MovingCameraScene, Slide):
     def __init__(
         self,
         title: str,
-        subtitle: U[None, str],
+        subtitle: Union[None, str],
         width_buffer: float = 3.0,
         height_buffer: float = 1.0,
         **kwargs
@@ -178,7 +198,7 @@ class SlideWithList(BeamerSlide):
     def __init__(
         self,
         title: str,
-        subtitle: U[None, str],
+        subtitle: Union[None, str],
         beamer_list: BeamerList,
         width_buffer: float = 3.0,
         height_buffer: float = 1.0,
@@ -195,7 +215,7 @@ class SlideWithList(BeamerSlide):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
     def draw(
-        self, origin, scale: float, target_scene: U[None, Slide], animate=True
+        self, origin, scale: float, target_scene: Union[None, Slide], animate=True
     ) -> VGroup:
         if target_scene is None:
             target_scene = self
@@ -245,7 +265,7 @@ class SlideWithTable(BeamerSlide):
     def __init__(
         self,
         title: str,
-        subtitle: U[None, str],
+        subtitle: Union[None, str],
         table: Table,
         caption: str,
         highlighted_columns: List[int],
@@ -266,7 +286,7 @@ class SlideWithTable(BeamerSlide):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
     def draw(
-        self, origin, scale: float, target_scene: U[None, Slide], animate=True
+        self, origin, scale: float, target_scene: Union[None, Slide], animate=True
     ) -> VGroup:
         if target_scene is None:
             target_scene = self
@@ -319,7 +339,7 @@ class SlideWithTables(BeamerSlide):
     def __init__(
         self,
         title: str,
-        subtitle: U[None, str],
+        subtitle: Union[None, str],
         tables: Table,
         captions: str,
         highlighted_columns: List[int],
@@ -342,7 +362,7 @@ class SlideWithTables(BeamerSlide):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
     def draw(
-        self, origin, scale: float, target_scene: U[None, Slide], animate=True
+        self, origin, scale: float, target_scene: Union[None, Slide], animate=True
     ) -> VGroup:
         if target_scene is None:
             target_scene = self
@@ -402,7 +422,7 @@ class SlideWithBlocks(BeamerSlide):
     def __init__(
         self,
         title: str,
-        subtitle: U[None, str],
+        subtitle: Union[None, str],
         blocks: List[Type[Block]],
         width_buffer: float = 3.0,
         height_buffer: float = 1.0,
@@ -419,8 +439,8 @@ class SlideWithBlocks(BeamerSlide):
         self,
         block: Block,
         scale: float,
-        below: U[None, Text, Block],
-        target_scene: U[None, Slide],
+        below: Union[None, Text, Block],
+        target_scene: Union[None, Slide],
         animate=True,
     ):
         if target_scene is None:
@@ -449,7 +469,7 @@ class SlideWithBlocks(BeamerSlide):
         if not animate:
             self.play(self.camera.frame.animate.move_to(ORIGIN))
 
-    def draw(self, origin, scale, target_scene: U[None, Slide], animate=True):
+    def draw(self, origin, scale, target_scene: Union[None, Slide], animate=True):
         if target_scene is None:
             target_scene = self
         content: VGroup = self.inner_draw(
