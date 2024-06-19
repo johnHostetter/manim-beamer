@@ -1,3 +1,7 @@
+# manim-beamer specific files
+examples/media/
+examples/slides/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
