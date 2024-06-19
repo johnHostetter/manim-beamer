@@ -1,4 +1,4 @@
-# manim-beamer: Beamer format in manim-slides!
+# manim-beamer: Beamer format in manim-slides! :tada:
 
 This repository is meant to complement [manim-slides](https://github.com/jeertmans/manim-slides), and does not override it. 
 Contained within are a few helpful classes to emulate the [LaTeX beamer format](https://www.overleaf.com/learn/latex/Beamer) within manim-slides!
@@ -11,3 +11,12 @@ Of course, these manim-beamer List classes are also compatible with the manim-be
 
 Lastly, code is also provided that allows convenient use of slides containing captioned diagrams or tables. 
 For the tables, it is possible to highlight particular rows of interest as well. 
+
+## Troubleshooting :worried: 
+- If you are having trouble with running 'manim-slides' command with the 'mbeamer' package 
+(e.g., "qtpy.QtBindingsNotFoundError: No Qt bindings could be found"), please try the following:
+
+  `
+  pip install manim-slides[pyside6]
+  `
+  

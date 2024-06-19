@@ -22,6 +22,7 @@ ManimPango==0.5.0
 mapbox-earcut==1.0.1
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
+mbeamer==1.0
 mccabe==0.7.0
 mdurl==0.1.2
 moderngl==5.10.0
@@ -45,6 +46,9 @@ Pygments==2.18.0
 pylatexenc==2.10
 pylint==3.2.3
 pyrr==0.10.3
+PySide6==6.5.2
+PySide6-Addons==6.5.2
+PySide6-Essentials==6.5.2
 python-pptx==0.6.23
 QtPy==2.4.1
 requests==2.32.3
@@ -52,6 +56,7 @@ rich==13.7.1
 rtoml==0.10.0
 scipy==1.13.1
 screeninfo==0.8.1
+shiboken6==6.5.2
 skia-pathops==0.7.4
 srt==3.5.3
 svgelements==1.9.6
