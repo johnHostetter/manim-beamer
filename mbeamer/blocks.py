@@ -16,7 +16,7 @@ from manim import (
     config,
 )
 
-from beamer.lists import BeamerList
+from mbeamer.lists import BeamerList
 
 config.background_color = WHITE
 light_theme_style = {

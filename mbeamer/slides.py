@@ -23,10 +23,10 @@ from manim import (
 )
 from manim_slides import Slide
 
-from beamer import MANIM_BLUE
-from beamer.blocks import Block
-from beamer.lists import BeamerList
-from beamer.captioned.images import CaptionedJPG
+from mbeamer import MANIM_BLUE
+from mbeamer.blocks import Block
+from mbeamer.lists import BeamerList
+from mbeamer.captioned.images import CaptionedJPG
 
 
 class SlideShow(Slide, MovingCameraScene):
