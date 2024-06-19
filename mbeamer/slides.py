@@ -26,7 +26,7 @@ from manim_slides import Slide
 from mbeamer import MANIM_BLUE
 from mbeamer.blocks import Block
 from mbeamer.lists import BeamerList
-from mbeamer.captioned.images import CaptionedJPG
+from mbeamer.images import CaptionedJPG
 
 
 class SlideShow(Slide, MovingCameraScene):
