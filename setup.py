@@ -8,5 +8,5 @@ setup(
     version="1.0",
     author="John Wesley Hostetter",
     author_email="jhostetter16@gmail.com",
-    packages=find_packages(),
+    packages=["mbeamer"],
 )
