@@ -1,4 +1,4 @@
-from typing import Union as U
+from typing import Union
 from abc import abstractmethod
 
 from manim import (
@@ -39,10 +39,10 @@ class BlockTitle(Title):
 
 
 class Block:
-    def __init__(self, title: U[None, str], content: U[str, BeamerList]):
+    def __init__(self, title: Union[None, str], content: Union[str, BeamerList]):
         if title is None or isinstance(title, str):
             # automatically convert the str title to a RemarkTitle object
-            self.title_str: U[None, str] = title
+            self.title_str: Union[None, str] = title
         else:
             assert isinstance(
                 title, Title
@@ -127,7 +127,7 @@ class Block:
 
     def get_animation(
         self, scale_factor: float, below=None, animate=True
-    ) -> U[LaggedStart, VGroup]:
+    ) -> Union[LaggedStart, VGroup]:
         title_header_buff = self.title_header_buff  # * scale_factor
         content_block_buff = self.content_block_buff  # * scale_factor
         self.update_position_and_scale(scale_factor)
