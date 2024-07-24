@@ -9,13 +9,13 @@ The manim-beamer classes implementing these Beamer blocks already use the necess
 This repository also provides the user with code in how to implement LaTeX lists with different markers to emulate itemize, enumerate, and so on! 
 Of course, these manim-beamer List classes are also compatible with the manim-beamer Block classes as well.
 
-## A Demo of an animated Slide with Blocks and enumerated lists
+## Demo of an animated slide with blocks and itemized lists
 https://github.com/user-attachments/assets/d99e1ce3-c08c-4a0a-a5d8-035d8a577b10
 
 Lastly, code is also provided that allows convenient use of slides containing captioned diagrams or tables. 
 For the tables, it is possible to highlight particular rows of interest as well. 
 
-## Additional demos of animated slideshows with diagrams, tables, graphs, etc. 
+## Demos of animated slideshows with diagrams, tables, graphs, etc. 
 https://github.com/user-attachments/assets/63638746-ace4-428e-a92c-8af9dc045c97
 
 https://github.com/user-attachments/assets/107a5977-7136-4dd2-bf06-934e9bc962b6
