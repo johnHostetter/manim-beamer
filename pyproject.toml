@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "manim-beamer"
+version = "0.0.2"
+authors = [
+  { name="John Wesley Hostetter", email="jhostetter16@gmail.com" },
+]
+description = "Emulate LATEX beamer with Python and manim-slides."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/johnHostetter/manim-beamer"
+Issues = "https://github.com/johnHostetter/manim-beamer/issues"
