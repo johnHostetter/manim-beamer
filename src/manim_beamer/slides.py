@@ -188,9 +188,10 @@ class BeamerSlide(MovingCameraScene, Slide):
             else:
                 target_scene.add(subtitle_text)
 
-        if animate:
-            target_scene.wait(1)
-            target_scene.next_slide()
+        else:
+            if animate:
+                target_scene.wait(1)
+                target_scene.next_slide()
         return content
 
 
