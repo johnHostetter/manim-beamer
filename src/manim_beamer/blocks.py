@@ -14,6 +14,7 @@ from manim import (
     ManimColor,
     Title,
     config,
+    SVGMobject,
 )
 
 from manim_beamer.lists import BeamerList
@@ -39,7 +40,15 @@ class BlockTitle(Title):
 
 
 class Block:
-    def __init__(self, title: Union[None, str], content: Union[str, BeamerList]):
+    def __init__(
+        self,
+        title: Union[None, str],
+        content: Union[str, BeamerList],
+        default_m_object: Union[
+            None, SVGMobject
+        ] = None,  # allows for either Text or MathTex
+    ):
+        self.default_m_object = Text if default_m_object is None else default_m_object
         if title is None or isinstance(title, str):
             # automatically convert the str title to a RemarkTitle object
             self.title_str: Union[None, str] = title
@@ -51,7 +60,7 @@ class Block:
         self.content = content
         if isinstance(content, str):
             # automatically convert the str content to a Text object
-            self.content = Text(
+            self.content = self.default_m_object(
                 content, font="TeX Gyre Termes", color=BLACK, font_size=30
             )
         elif isinstance(content, BeamerList):
