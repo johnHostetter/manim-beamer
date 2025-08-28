@@ -84,12 +84,14 @@ class Block:
                 self.update_beamer_list_color(item)
 
     def update_position_and_scale(self, scale_factor: float) -> None:
+        # Override to support both string and Title as title
         if (
             self.title is None
             and self.text_group is None
             and self.block_background is None
         ):
-            if self.title_str is not None:
+            # If the title is a string, use the default logic
+            if hasattr(self, 'title_str') and self.title_str is not None:
                 self.title = BlockTitle(
                     self.title_str,
                     underline_color=self.get_foreground_color(),
@@ -97,6 +99,13 @@ class Block:
                     color=ManimColor(self.get_foreground_color()),
                     underline_buff=0.1,
                 )
+            # If the title is a Title object, use it directly
+            elif isinstance(self.title, Title):
+                # Already set, just use it
+                pass
+            elif isinstance(self.title, Text):
+                # Already set, just use it
+                pass
 
             content = self.content
             if isinstance(self.content, BeamerList):
