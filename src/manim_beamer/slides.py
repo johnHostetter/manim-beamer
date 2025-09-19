@@ -1,4 +1,4 @@
-from typing import Union, List, Type
+from typing import Union, List, Type, Tuple, Any
 
 from manim import (
     ORIGIN,
@@ -107,7 +107,7 @@ class BeamerSlide(MovingCameraScene, Slide):
         subtitle: Union[None, str],
         width_buffer: float = 3.0,
         height_buffer: float = 1.0,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.title_str: str = title
@@ -132,7 +132,9 @@ class BeamerSlide(MovingCameraScene, Slide):
                 slant=ITALIC,
             ).next_to(self.title_text, DOWN)
 
-    def inner_draw(self, origin, scale, target_scene=None, animate=True) -> VGroup:
+    def inner_draw(
+        self, origin, scale, target_scene=None, animate=True, animate_camera=False
+    ) -> Tuple[VGroup, List[Any]]:
         """
         Draw the slide content (title and subtitle - if applicable) on the scene
         and then return the last displayed text object.
@@ -142,6 +144,8 @@ class BeamerSlide(MovingCameraScene, Slide):
             scale: The scale factor to apply to the slide content.
             target_scene: The scene to draw the slide on. If None, the current scene is used.
             animate: Whether to animate the drawing of the slide.
+            animate_camera: Whether to move the camera in the animation, or have the content already in frame. Too much
+                movement of the camera can be disorienting during presentations.
 
         Returns:
             The current text objects displayed on the scene.
@@ -164,11 +168,11 @@ class BeamerSlide(MovingCameraScene, Slide):
         content.move_to(origin)
         content.scale(scale)
 
-        if animate:
-            target_scene.wait(1)
-            target_scene.next_slide()
-            # position the camera correctly
-            target_scene.play(
+        # position the camera correctly
+        animations = []
+        if animate_camera:
+            # animate moving the camera, and then write the title text
+            animations.append(
                 Succession(
                     target_scene.camera.frame.animate.set(
                         width=content.width
@@ -178,21 +182,22 @@ class BeamerSlide(MovingCameraScene, Slide):
                 )
             )
         else:
-            target_scene.add(title_text)
+            # static camera; only animate writing the title text
+            target_scene.camera.frame.set(
+                width=content.width + self.width_buffer,  # height=content.height + 1
+            )
+            if animate:
+                animations.append(Write(title_text))
+            else:
+                target_scene.add(title_text)
 
         if subtitle_text is not None:
             if animate:
-                target_scene.play(Write(subtitle_text))
-                target_scene.wait(1)
-                target_scene.next_slide()
+                animations.append(Write(subtitle_text))
             else:
                 target_scene.add(subtitle_text)
 
-        else:
-            if animate:
-                target_scene.wait(1)
-                target_scene.next_slide()
-        return content
+        return content, animations
 
 
 class SlideWithList(BeamerSlide):
@@ -216,11 +221,16 @@ class SlideWithList(BeamerSlide):
         self.draw(ORIGIN, 1.0, target_scene=self)
 
     def draw(
-        self, origin, scale: float, target_scene: Union[None, Slide], animate=True
+        self,
+        origin,
+        scale: float,
+        target_scene: Union[None, Slide],
+        animate=True,
+        animate_camera=False,
     ) -> VGroup:
         if target_scene is None:
             target_scene = self
-        content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
+        content, animations = self.inner_draw(origin, scale, target_scene=target_scene)
         # create the list object
         list_group = self.beamer_list.get_list(scale_factor=scale)
         buffer_with_prev_object = 0.5
@@ -229,15 +239,23 @@ class SlideWithList(BeamerSlide):
         )
         content.add(list_group)
         if animate:
-            target_scene.play(
-                Create(list_group),
-                self.camera.frame.animate.move_to(content.get_center()).set(
+            animations.append(Create(list_group))
+
+            if animate_camera:
+                animations.append(
+                    self.camera.frame.animate.move_to(content.get_center()).set(
+                        width=content.width + 2,  # height=all_content.height + 2
+                    )
+                )
+            else:
+                self.camera.frame.move_to(content.get_center()).set(
                     width=content.width + 2,  # height=all_content.height + 2
-                ),
-            )
-            target_scene.wait(2)
-            target_scene.next_slide()
-            target_scene.wait(2)
+                )
+
+            for animation in animations:
+                target_scene.play(animation)
+                target_scene.wait(1)
+                target_scene.next_slide()
         else:
             target_scene.add(list_group)
         return content
@@ -473,10 +491,16 @@ class SlideWithBlocks(BeamerSlide):
     def draw(self, origin, scale, target_scene: Union[None, Slide], animate=True):
         if target_scene is None:
             target_scene = self
-        content: VGroup = self.inner_draw(
+        content, animations = self.inner_draw(
             origin, scale, target_scene=target_scene, animate=animate
         )
         m_object_to_be_below = content
+
+        for animation in animations:
+            target_scene.play(animation)
+            target_scene.wait(1)
+            target_scene.next_slide()
+
         # iterate over the blocks and create them
         for block in self.blocks:
             # for block in content[1:]:
