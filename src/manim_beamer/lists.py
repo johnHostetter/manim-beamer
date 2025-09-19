@@ -52,10 +52,6 @@ class BeamerList:
             font_color = BLACK
             item_marker_opacity: float = 1.0 - (depth / (self.max_allowed_lists + 1))
 
-            if isinstance(item, tuple):
-                # if the item is a tuple, it should contain the text, font color, and
-                # opacity of the item marker
-                item, font_color, item_marker_opacity = item[0], item[1], item[2]
             if isinstance(item, str) or isinstance(item, VGroup):
                 if isinstance(item, str):
                     # if the item is a string, create a Text object
@@ -114,8 +110,6 @@ class BeamerList:
                 sub_text = Text(f"{item}", color=font_color, font_size=self.font_size)
             elif isinstance(sub_item, Text) or isinstance(sub_item, MathTex):
                 sub_text = sub_item
-                sub_text.set_color(font_color)
-                sub_text.set_font_size(self.font_size)
                 if isinstance(sub_text, MathTex):
                     # math text is smaller than regular text
                     sub_text.set_font_size(self.font_size * 1.5)
