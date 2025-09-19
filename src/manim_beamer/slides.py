@@ -20,6 +20,7 @@ from manim import (
     RIGHT,
     Table,
     MathTex,
+    SVGMobject,
 )
 from manim_slides import Slide
 
@@ -61,11 +62,20 @@ class SlideShow(Slide, MovingCameraScene):
 
 
 class PromptSlide(Slide):
-    def __init__(self, prompt: str, skip: bool = False, **kwargs):
+    def __init__(
+        self,
+        prompt: str,
+        skip: bool = False,
+        default_m_object: Union[
+            None, SVGMobject
+        ] = None,  # allows for either Text or MathTex
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         # self.title_str: str = title
         self.prompt_str: str = prompt
         self.skip: bool = skip  # whether to not focus on the slide
+        self.default_m_object = Text if default_m_object is None else default_m_object
 
         # # create the manim objects for the slide title
         # self.title_text: Text = Text(
@@ -88,7 +98,7 @@ class PromptSlide(Slide):
             target_scene = self
 
         prompt_text = (
-            Text(self.prompt_str, color=BLACK, slant=ITALIC)
+            self.default_m_object(self.prompt_str, color=BLACK, slant=ITALIC)
             .move_to(origin)
             .scale(scale)
         )
@@ -107,6 +117,9 @@ class BeamerSlide(MovingCameraScene, Slide):
         subtitle: Union[None, str],
         width_buffer: float = 3.0,
         height_buffer: float = 1.0,
+        default_m_object: Union[
+            None, SVGMobject
+        ] = None,  # allows for either Text or MathTex
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -114,9 +127,9 @@ class BeamerSlide(MovingCameraScene, Slide):
         self.subtitle_str: str = subtitle
         self.width_buffer = width_buffer
         self.height_buffer = height_buffer
-
+        self.default_m_object = Text if default_m_object is None else default_m_object
         # create the manim objects for the slide title
-        self.title_text: Text = Text(
+        self.title_text: SVGMobject = self.default_m_object(
             self.title_str,
             font="TeX Gyre Termes",
             color=BLACK,
@@ -124,7 +137,7 @@ class BeamerSlide(MovingCameraScene, Slide):
             weight=BOLD,
         ).to_edge(UP)
         if self.subtitle_str is not None:
-            self.subtitle_text: Text = Text(
+            self.subtitle_text: SVGMobject = self.default_m_object(
                 self.subtitle_str,
                 font="TeX Gyre Termes",
                 color=BLACK,
@@ -312,7 +325,7 @@ class SlideWithTable(BeamerSlide):
         content: VGroup = self.inner_draw(origin, scale, target_scene=target_scene)
         buffer_with_prev_object = 0.5
         table = self.table.copy()
-        caption = Text(self.caption, color=BLACK).scale(0.5)
+        caption = self.default_m_object(self.caption, color=BLACK).scale(0.5)
         caption.next_to(table, DOWN, buff=0.5)
         captioned_table = VGroup(table, caption)
         captioned_table.scale(scale_factor=scale).next_to(
@@ -392,7 +405,7 @@ class SlideWithTables(BeamerSlide):
         prev_table = None
         for caption, table in zip(self.captions, self.tables):
             table_copy = table.copy()
-            caption_text = Text(caption, color=BLACK)
+            caption_text = self.default_m_object(caption, color=BLACK)
             caption_text.next_to(table_copy, DOWN, buff=0.5)
             captioned_table = VGroup(table_copy, caption_text)
             captioned_table.scale(scale_factor=scale).next_to(
@@ -458,7 +471,7 @@ class SlideWithBlocks(BeamerSlide):
         self,
         block: Block,
         scale: float,
-        below: Union[None, Text, Block],
+        below: Union[None, SVGMobject, Block],
         target_scene: Union[None, Slide],
         animate=True,
     ):

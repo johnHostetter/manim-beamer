@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Union
 
 from manim import (
     VGroup,
@@ -11,6 +12,7 @@ from manim import (
     MathTex,
     Cross,
     StealthTip,
+    SVGMobject,
 )
 
 
@@ -20,13 +22,22 @@ class TextWithMath(VGroup):
 
 
 class BeamerList:
-    def __init__(self, items, font_size=30, list_color=BLACK):
+    def __init__(
+        self,
+        items,
+        font_size=30,
+        list_color=BLACK,
+        default_m_object: Union[
+            None, SVGMobject
+        ] = None,  # allows for either Text or MathTex
+    ):
         super().__init__()
         self.items = items
         self.font_size = font_size
         self._list_color = list_color
         self.max_allowed_lists = 3  # this includes the main list and all sublists
         self.item_vertical_spacing = 0.25  # vertical spacing between items in the list
+        self.default_m_object = Text if default_m_object is None else default_m_object
 
     @property
     def list_color(self):
@@ -55,7 +66,9 @@ class BeamerList:
             if isinstance(item, str) or isinstance(item, VGroup):
                 if isinstance(item, str):
                     # if the item is a string, create a Text object
-                    text = Text(f"{item}", color=font_color, font_size=self.font_size)
+                    text = self.default_m_object(
+                        f"{item}", color=font_color, font_size=self.font_size
+                    )
                 else:
                     text = self.parse_vgroup(font_color, item)
 
@@ -107,7 +120,9 @@ class BeamerList:
         for sub_item in item:
             if isinstance(sub_item, str):
                 # if the item is a string, create a Text object
-                sub_text = Text(f"{item}", color=font_color, font_size=self.font_size)
+                sub_text = self.default_m_object(
+                    f"{item}", color=font_color, font_size=self.font_size
+                )
             elif isinstance(sub_item, Text) or isinstance(sub_item, MathTex):
                 sub_text = sub_item
                 if isinstance(sub_text, MathTex):
@@ -143,14 +158,20 @@ class ItemizedList(BeamerList):
 
 class BulletedList(BeamerList):
     def get_item_marker(self, scale_factor: float = 1.0):
-        return Text("•", color=self.list_color, font_size=self.font_size).scale(1.5)
+        return self.default_m_object(
+            "•", color=self.list_color, font_size=self.font_size
+        ).scale(1.5)
 
 
 class AdvantagesList(BeamerList):
     def get_item_marker(self, scale_factor: float = 1.0):
-        return Text("+", color=self.list_color, font_size=self.font_size).scale(1.25)
+        return self.default_m_object(
+            "+", color=self.list_color, font_size=self.font_size
+        ).scale(1.25)
 
 
 class DisadvantagesList(BeamerList):
     def get_item_marker(self, scale_factor: float = 1.0):
-        return Text("-", color=self.list_color, font_size=self.font_size).scale(1.25)
+        return self.default_m_object(
+            "-", color=self.list_color, font_size=self.font_size
+        ).scale(1.25)
