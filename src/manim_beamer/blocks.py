@@ -33,6 +33,7 @@ class BlockTitle(Title):
         # override the default underline color from white to #bf0040
         self.underline.set_color(ManimColor(underline_color))
         self.underline.set_stroke(width=underline_thickness)
+        self.underline.stretch_to_fit_width(self.underline.width * 1.5)
         # Access the main text and set its alignment to left
         main_text = self.submobjects[0]
         main_text.align_to(self.get_left(), LEFT)
