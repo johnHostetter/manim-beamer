@@ -79,13 +79,14 @@ class BibTexManager:
         return None
 
     @staticmethod
-    def get_author_last_names_only(entry: Entry) -> str:
+    def get_author_last_names_only(entry: Entry, et_al: bool = True) -> str:
         """
         Get the last names of the authors of a bibtex entry. If there are more than two authors,
-        only the first author's last name is returned followed by "et al.".
+        only the first author's last name is returned followed by "et al.", but this behavior can be overriden.
 
         Args:
             entry: The bibtex entry.
+            et_al: Whether to truncate more than two authors with "et al." Default is True.
 
         Returns:
             The last names of the authors.
@@ -101,7 +102,18 @@ class BibTexManager:
                 .replace("{", "")
                 .replace("}", "")
             )
-        return entry["author"][0].last[0] + " et al.".replace("{", "").replace("}", "")
+        if et_al:
+            return entry["author"][0].last[0] + " et al.".replace("{", "").replace(
+                "}", ""
+            )
+        else:
+            names: List[str] = []
+            for idx, name_parts in enumerate(entry["author"]):
+                names.append(name_parts.last[0])
+                if idx == len(entry["author"]) - 1:
+                    # if it is the last author, add "and" before their name
+                    names[-1] = f"and {names[-1]}"
+            return ", ".join(names)
 
     @staticmethod
     def cite_short_entry_no_brackets(entry: Entry) -> str:
