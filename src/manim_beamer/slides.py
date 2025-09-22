@@ -1,5 +1,6 @@
 from typing import Union, List, Type, Tuple, Any
 
+import numpy as np
 from manim import (
     ORIGIN,
     MovingCameraScene,
@@ -8,12 +9,15 @@ from manim import (
     ITALIC,
     BOLD,
     VGroup,
-    Succession,
+    Restore,
     Write,
     Circumscribe,
     Group,
     Create,
+    Animation,
     AnimationGroup,
+    RED,
+    GREEN,
     BLACK,
     UP,
     DOWN,
@@ -21,6 +25,9 @@ from manim import (
     Table,
     MathTex,
     SVGMobject,
+    SurroundingRectangle,
+    MED_LARGE_BUFF,
+    Succession,
 )
 from manim_slides import Slide
 
@@ -28,37 +35,6 @@ from manim_beamer import MANIM_BLUE
 from manim_beamer.blocks import Block
 from manim_beamer.lists import BeamerList
 from manim_beamer.images import CaptionedJPG
-
-
-class SlideShow(Slide, MovingCameraScene):
-    """
-    A class to create a slide show of multiple Slide objects.
-    """
-
-    def __init__(self, slides, zoom_with_height: bool = False, **kwargs):
-        super().__init__(**kwargs)
-        self.slides: List[Type[Slide]] = slides
-        self.zoom_with_height: bool = zoom_with_height
-
-    def construct(self):
-        for slide in self.slides:
-            # see what the content will be like in advance
-            content = slide.draw(
-                origin=ORIGIN, scale=1.0, target_scene=None, animate=False
-            )
-            if content is not None:
-                # focus the camera on the entire slide
-                self.camera.frame.move_to(content.get_center()).set(
-                    width=content.width * 3.0,  # height=content.height + 3
-                )
-                # if self.zoom_with_height:
-                #     self.camera.frame.set(height=content.height * 7.0)
-            # draw the slide but ignore the returned content
-            _ = slide.draw(origin=ORIGIN, scale=1.0, target_scene=self, animate=True)
-            self.wait(1)
-            self.next_slide()
-            # fade out the slide content
-            self.play(*[FadeOut(m_object) for m_object in self.mobjects])
 
 
 class PromptSlide(Slide):
@@ -146,7 +122,7 @@ class BeamerSlide(MovingCameraScene, Slide):
             ).next_to(self.title_text, DOWN)
 
     def inner_draw(
-        self, origin, scale, target_scene=None, animate=True, animate_camera=False
+        self, origin, scale, target_scene=None, animate=True, animate_camera=True
     ) -> Tuple[VGroup, List[Any]]:
         """
         Draw the slide content (title and subtitle - if applicable) on the scene
@@ -183,26 +159,16 @@ class BeamerSlide(MovingCameraScene, Slide):
 
         # position the camera correctly
         animations = []
-        if animate_camera:
-            # animate moving the camera, and then write the title text
-            animations.append(
-                Succession(
-                    target_scene.camera.frame.animate.set(
-                        width=content.width
-                        + self.width_buffer,  # height=content.height + 1
-                    ),
-                    Write(title_text),
-                )
-            )
+        camera_animation = self.move_and_fit_camera_to_content(
+            content=content, target_scene=target_scene, animate_camera=animate_camera
+        )
+        if camera_animation is not None:
+            animations.append(camera_animation)
+
+        if animate:
+            animations.append(Write(title_text))
         else:
-            # static camera; only animate writing the title text
-            target_scene.camera.frame.set(
-                width=content.width + self.width_buffer,  # height=content.height + 1
-            )
-            if animate:
-                animations.append(Write(title_text))
-            else:
-                target_scene.add(title_text)
+            target_scene.add(title_text)
 
         if subtitle_text is not None:
             if animate:
@@ -211,6 +177,181 @@ class BeamerSlide(MovingCameraScene, Slide):
                 target_scene.add(subtitle_text)
 
         return content, animations
+
+    def calculate_camera_scale(
+        self, content: VGroup, target_scene: Any, padding: float = 0.1
+    ) -> Tuple[str, float]:
+        """
+        Calculates which, and how much, the camera frame's dimension should be scaled so that all content is visible
+        by the target scene's camera.
+
+        Args:
+            content: The content that should be within view of the camera.
+            target_scene: The scene/slide that the method should be applied on.
+            padding: Extra spacing between content and the screen's edge.
+
+        Returns:
+            The dimension that should be scaled, and the amount that it should be scaled by.
+        """
+        # determine what the camera width and height should be so all the content thus far is within frame
+        content_dimension: str = "width" if content.width > content.height else "height"
+        camera_scale: float = getattr(content, content_dimension) / getattr(
+            target_scene.camera.frame, content_dimension
+        )  # + padding
+        return content_dimension, camera_scale
+
+    def fit_camera_to_content(
+        self,
+        content: VGroup,
+        target_scene: Slide,
+        animate_camera: bool,
+        external_camera_scale: float = 1.0,
+    ) -> Union[None, Animation]:
+        """
+        Given the content of interest, the camera will zoom in/out to match the size of the content's scale either with
+        or without an animation. The scaling effect of the camera with respect to the content is based on the longest
+        dimension of the content's boundary. If an animation is requested, an animation will be returned, but has not
+        yet been played. Otherwise, the effect occurs immediately.
+
+        Args:
+            content: The content that the camera should fit within its frame.
+            target_scene: The scene/slide that the method should be applied on.
+            animate_camera: Whether to produce an animation illustrating this effect.
+            external_camera_scale: An external value that can be applied ad-hoc to adjust the zoom in/out effect if it
+                is not being calculated correctly or for greater fine-granular control.
+
+        Returns:
+            None if no animation is requested. Otherwise, an animation is returned that performs the adjustments.
+        """
+
+        camera_width, camera_height = (
+            target_scene.camera.frame.width,
+            target_scene.camera.frame.height,
+        )
+        padding: float = 0.1
+        for content_dimension in ["width", "height"]:
+            content_dimension_val: np.float64 = getattr(content, content_dimension)
+            if (
+                getattr(target_scene.camera.frame, content_dimension)
+                < content_dimension_val
+            ):
+                scale_camera_kwargs = {
+                    content_dimension: content_dimension_val
+                    + (content_dimension_val * padding)
+                }
+                target_scene.camera.frame.set(**scale_camera_kwargs)
+
+        scale_camera_kwargs = {
+            "width": target_scene.camera.frame.width,
+            "height": target_scene.camera.frame.height,
+        }
+
+        # target_scene.camera.frame.set(width=camera_width)
+        # target_scene.camera.frame.set(height=camera_height)
+        #
+        # content_dimension, _ = self.calculate_camera_scale(
+        #     content=content, target_scene=target_scene
+        # )
+        # scale_camera_kwargs = {
+        #     content_dimension: getattr(content, content_dimension)
+        #     # * camera_scale
+        #     # * (camera_scale * external_camera_scale)
+        # }
+
+        if animate_camera:
+            # create an animation illustrating the effect of fitting the camera to the content
+            return target_scene.camera.frame.animate.set(**scale_camera_kwargs)
+
+        # fit camera to the content without creating an animation
+        target_scene.camera.frame.set(**scale_camera_kwargs)
+
+    def move_and_fit_camera_to_content(
+        self,
+        content,
+        target_scene,
+        animate_camera: bool,
+        external_camera_scale: float = 1.0,
+    ) -> Union[None, List[Animation]]:
+        """
+        Given the content of interest, the camera will zoom in/out as well as move to display the content's entirety
+        either with or without an animation. The scaling effect of the camera with respect to the content is based on
+        the longest dimension of the content's boundary. If an animation is requested, an animation will be returned,
+        but has not yet been played. Otherwise, the effect occurs immediately.
+
+        Args:
+            content: The content that the camera should fit within its frame.
+            target_scene: The scene/slide that the method should be applied on.
+            animate_camera: Whether to produce an animation illustrating this effect.
+            external_camera_scale: An external value that can be applied ad-hoc to adjust the zoom in/out effect if it
+                is not being calculated correctly or for greater fine-granular control.
+
+        Returns:
+            None if no animation is requested. Otherwise, an animation is returned that performs the adjustments.
+        """
+        if animate_camera:
+            animations: List[Animation] = [
+                target_scene.camera.frame.animate.move_to(content)
+            ]
+            camera_fit_animation: Union[None, Animation] = self.fit_camera_to_content(
+                content=content,
+                target_scene=target_scene,
+                animate_camera=animate_camera,
+                external_camera_scale=external_camera_scale,
+            )
+            if camera_fit_animation is not None:
+                # animations.append(camera_fit_animation)
+                # animations.append()
+                return [
+                    camera_fit_animation,
+                    target_scene.camera.frame.animate.move_to(content),
+                ]
+                # target_scene.play(target_scene.camera.frame.animate.move_to(content))
+
+            # return Succession(*animations)
+        else:
+            target_scene.camera.frame.move_to(content.get_center())
+
+
+class SlideShow(BeamerSlide, MovingCameraScene):
+    """
+    A class to create a slide show of multiple Slide objects.
+    """
+
+    def __init__(self, slides, zoom_with_height: bool = False, **kwargs):
+        super().__init__(title="", subtitle="", **kwargs)
+        self.slides: List[Type[Slide]] = slides
+        self.zoom_with_height: bool = zoom_with_height
+
+    def construct(self):
+        # self.camera.frame.save_state()
+
+        for slide in self.slides:
+            # see what the content will be like in advance
+            # self.play(Restore(self.camera.frame))
+            # content = slide.draw(
+            #     origin=ORIGIN, scale=1.0, target_scene=self, animate=False
+            # )
+            # if content is not None:
+            #     # focus the camera on the entire slide
+            #     animation = self.fit_camera_to_content(
+            #         content=content,
+            #         target_scene=self,
+            #         animate_camera=True,
+            #     )
+            #     self.play(animation)
+            #     self.next_slide()
+            #     # self.camera.frame.move_to(content.get_center()).set(
+            #     #     width=content.width * 3.0,  # height=content.height + 3
+            #     # )
+            #     # # if self.zoom_with_height:
+            #     # #     self.camera.frame.set(height=content.height * 7.0)
+            # draw the slide but ignore the returned content
+            # _ = slide.draw(origin=ORIGIN, scale=3.0, target_scene=self, animate=True)
+            _ = slide.draw(origin=None, scale=1.0, target_scene=self, animate=True)
+            # self.wait(1)
+            # self.next_slide()
+            # fade out the slide content
+            self.play(*[FadeOut(m_object) for m_object in self.mobjects])
 
 
 class SlideWithList(BeamerSlide):
@@ -235,35 +376,47 @@ class SlideWithList(BeamerSlide):
 
     def draw(
         self,
-        origin,
-        scale: float,
-        target_scene: Union[None, Slide],
+        origin=None,
+        scale: float = 1.0,
+        target_scene: Union[None, Slide] = None,
         animate=True,
-        animate_camera=False,
+        animate_camera=True,
     ) -> VGroup:
         if target_scene is None:
             target_scene = self
-        content, animations = self.inner_draw(origin, scale, target_scene=target_scene)
+
+        if origin is None:
+            origin = ORIGIN
+
+        content, animations = self.inner_draw(
+            origin,
+            scale,
+            target_scene=target_scene,
+            animate=animate,
+            animate_camera=animate_camera,
+        )
         # create the list object
         list_group = self.beamer_list.get_list(scale_factor=scale)
         buffer_with_prev_object = 0.5
-        list_group.scale(scale_factor=scale).next_to(
+        list_group.scale(scale_factor=0.75).next_to(
             content, DOWN, buff=buffer_with_prev_object * scale
         )
         content.add(list_group)
         if animate:
-            animations.append(Create(list_group))
-
-            if animate_camera:
-                animations.append(
-                    self.camera.frame.animate.move_to(content.get_center()).set(
-                        width=content.width + 2,  # height=all_content.height + 2
-                    )
+            camera_animation: Union[None, List[Animation]] = (
+                self.move_and_fit_camera_to_content(
+                    content=content,
+                    target_scene=target_scene,
+                    animate_camera=animate_camera,
                 )
+            )
+            if camera_animation is not None:
+                # move camera while writing the list
+                camera_animation.append(Create(list_group))
+                animations.append(AnimationGroup(*camera_animation))
             else:
-                self.camera.frame.move_to(content.get_center()).set(
-                    width=content.width + 2,  # height=all_content.height + 2
-                )
+                # only animate writing the list
+                animations.append(Create(list_group))
 
             for animation in animations:
                 target_scene.play(animation)
@@ -455,7 +608,7 @@ class SlideWithBlocks(BeamerSlide):
         self,
         title: str,
         subtitle: Union[None, str],
-        blocks: List[Type[Block]],
+        blocks: List[Union[Type[Block], VGroup]],
         width_buffer: float = 3.0,
         height_buffer: float = 1.0,
     ):
@@ -504,6 +657,10 @@ class SlideWithBlocks(BeamerSlide):
     def draw(self, origin, scale, target_scene: Union[None, Slide], animate=True):
         if target_scene is None:
             target_scene = self
+
+        if origin is None:
+            origin = ORIGIN
+
         content, animations = self.inner_draw(
             origin, scale, target_scene=target_scene, animate=animate
         )
@@ -536,7 +693,15 @@ class SlideWithBlocks(BeamerSlide):
                     m_object_to_be_below, DOWN, buff=0.5
                 )
                 if animate:
-                    target_scene.play(Write(block))
+                    target_scene.play(
+                        Write(block),
+                        self.move_and_fit_camera_to_content(
+                            content=block,
+                            target_scene=target_scene,
+                            animate_camera=True,
+                            external_camera_scale=0.55,  # needed for CO - block boundary box is messed up
+                        ),
+                    )
                     target_scene.wait(1)
                 else:
                     target_scene.add(block)
@@ -549,14 +714,17 @@ class SlideWithBlocks(BeamerSlide):
                 target_scene.wait(1)
                 target_scene.next_slide()
 
-        if animate:
-            # focus the camera on the entire slide
-            target_scene.play(
-                target_scene.camera.frame.animate.move_to(content.get_center()).set(
-                    height=content.height + self.height_buffer
-                )
+        # display the entire slide
+
+        camera_animation: Union[None, AnimationGroup] = (
+            self.move_and_fit_camera_to_content(
+                content=content, target_scene=target_scene, animate_camera=animate
             )
-            target_scene.wait(3)
+        )
+
+        if camera_animation is not None:
+            target_scene.play(camera_animation)
+            target_scene.wait(1)
 
 
 class SlideDiagram(Slide):
