@@ -17,8 +17,6 @@ from manim import (
     Group,
     MathTex,
     MovingCameraScene,
-    Restore,
-    Succession,
     SVGMobject,
     Table,
     Text,
