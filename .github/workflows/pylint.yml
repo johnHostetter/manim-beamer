@@ -1,0 +1,36 @@
+name: Pylint
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+    - name: Checkout 📦
+      uses: actions/checkout@v4
+      with:  # https://stackoverflow.com/questions/59271919/how-to-clone-public-submodule-in-github-actions
+        submodules: true  # change to recursive if submodules require another submodule
+    - name: Set up Python ${{ matrix.python-version }} 🐍
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies 🔧
+      run: |
+        python -m pip install pip==24.0
+        python -m pip install wheel==0.42.0
+        python -m pip install setuptools==69.1.0
+        pip install pylint
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m pip install -e .
+    - name: Analysing the code with pylint 🕵️
+      run: |
+        pylint $(git ls-files 'src/*.py')
