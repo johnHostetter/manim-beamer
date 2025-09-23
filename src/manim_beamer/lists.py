@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Union
 
 from manim import (
@@ -21,7 +21,7 @@ class TextWithMath(VGroup):
         super().__init__(**kwargs)
 
 
-class BeamerList:
+class BeamerList(ABC):
     def __init__(
         self,
         items,
