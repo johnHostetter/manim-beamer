@@ -3,12 +3,36 @@ Implements the necessary classes and features to process and handle .bib referen
 """
 
 from pathlib import Path
-from typing import Union, Tuple, List
-
-from manim import DARK_BLUE
+from typing import List, Union
 
 import bibtexparser
 from bibtexparser.model import Entry
+from manim import DARK_BLUE, Tex, TexTemplate
+from manim.utils.tex import _DEFAULT_PREAMBLE
+
+
+class CitedTex(Tex):
+    """
+    This class is for LaTeX text that has been cited. It is assumed that there is no punctuation used.
+    """
+
+    template = TexTemplate(
+        documentclass="\documentclass[preview]{standalone}",
+        preamble=_DEFAULT_PREAMBLE + r"""\usepackage{ragged2e}\usepackage{adjustbox}""",
+    )
+
+    def __init__(
+        self, *tex_strings, arg_separator="", tex_environment="center", **kwargs
+    ):
+        super().__init__(
+            *tex_strings,
+            arg_separator=arg_separator,
+            tex_environment=tex_environment,
+            tex_template=CitedTex.template,
+            **kwargs,
+        )
+        for tex_string in self[1:]:
+            tex_string.set_color(DARK_BLUE)
 
 
 class BibTexManager:
@@ -54,13 +78,14 @@ class BibTexManager:
         return None
 
     @staticmethod
-    def get_author_last_names_only(entry: Entry) -> str:
+    def get_author_last_names_only(entry: Entry, et_al: bool = True) -> str:
         """
         Get the last names of the authors of a bibtex entry. If there are more than two authors,
-        only the first author's last name is returned followed by "et al.".
+        only the first author's last name is returned followed by "et al.", but this behavior can be overriden.
 
         Args:
             entry: The bibtex entry.
+            et_al: Whether to truncate more than two authors with "et al." Default is True.
 
         Returns:
             The last names of the authors.
@@ -76,7 +101,32 @@ class BibTexManager:
                 .replace("{", "")
                 .replace("}", "")
             )
-        return entry["author"][0].last[0] + " et al.".replace("{", "").replace("}", "")
+        if et_al:
+            return entry["author"][0].last[0] + " et al.".replace("{", "").replace(
+                "}", ""
+            )
+        else:
+            names: List[str] = []
+            for idx, name_parts in enumerate(entry["author"]):
+                names.append(name_parts.last[0])
+                if idx == len(entry["author"]) - 1:
+                    # if it is the last author, add "and" before their name
+                    names[-1] = f"and {names[-1]}"
+            return ", ".join(names)
+
+    @staticmethod
+    def cite_short_entry_no_brackets(entry: Entry) -> str:
+        """
+        Convert a bibtex entry to a citation string (for presentation slides),
+        but do not add the left & right square brackets.
+
+        Args:
+            entry: The bibtex entry.
+
+        Returns:
+            The citation string for the entry. Format is "Author et al. (Year)".
+        """
+        return f"{BibTexManager.get_author_last_names_only(entry)} ({entry['year']})"
 
     @staticmethod
     def cite_short_entry(entry: Entry) -> str:
@@ -89,7 +139,7 @@ class BibTexManager:
         Returns:
             The citation string for the entry. Format is "[Author et al. (Year)]".
         """
-        return f"[{BibTexManager.get_author_last_names_only(entry)} ({entry['year']})]"
+        return f"[{BibTexManager.cite_short_entry_no_brackets(entry=entry)}]"
 
     @staticmethod
     def wrap_by_word(string_to_parse, num_of_words: int) -> str:
@@ -129,17 +179,32 @@ class BibTexManager:
         return f"{title} ({BibTexManager.get_author_last_names_only(entry)}, {entry['year']})"
 
     def slide_short_cite(
-        self, key: str, item_marker_opacity: float = 0.0
-    ) -> Tuple[str, str, float]:
+        self, *keys: str, item_marker_opacity: float = 0.0
+    ) -> List[str]:
         """
-        Get the citation string for a bibtex entry in a format suitable for a slide using
-        a BeamerList.
+        Get the citation string for a bibtex entry in a format suitable for a slide using a BeamerList.
 
         Args:
-            key: The key of the bibtex entry.
+            keys: The keys of the bibtex entries.
             item_marker_opacity: The opacity of the item marker within the BeamerList.
 
         Returns:
-            The citation string for the entry. Format is "[Author et al., Year]".
+            The citation for the entry. Format is "[Author et al., Year]".
         """
-        return self.cite_short_entry(self[key]), DARK_BLUE, item_marker_opacity
+        return [self.cite_short_entry_no_brackets(self[key]) for key in keys]
+
+    def slide_short_cite_after_join_with_brackets(self, *keys: str) -> str:
+        # the \\scalebox offers true geometric scaling, both width and height
+        # single argument (e.g., \scalebox{0.75}) applies to both width and height
+        # double argument (e.g., \scalebox{0.75}[2]) changes them differently
+        # return r"\scalebox{0.75}{[" + ", ".join(self.slide_short_cite(*keys)) + "]}"
+
+        # however, the above does not work with the justifying environment, and won't allow line breaks
+        # therefore, I scale only font size (with baseline alignment preserved);
+        # first arg = font size (pt) & second arg = line spacing (baseline skip)
+
+        return (
+            r"{\fontsize{8}{9}\selectfont ["
+            + ", ".join(self.slide_short_cite(*keys))
+            + "]}"
+        )

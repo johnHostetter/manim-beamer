@@ -1,23 +1,34 @@
+from typing import Union
+
 from manim import (
-    Scene,
+    BLACK,
+    DOWN,
     ORIGIN,
+    Create,
+    FadeIn,
+    Group,
+    ImageMobject,
+    Scene,
     SVGMobject,
     Text,
-    BLACK,
     VGroup,
-    ImageMobject,
-    Group,
-    FadeIn,
-    DOWN,
-    Create,
     Write,
 )
 
 
 class CaptionedSVG(Scene):
-    def __init__(self, path, caption, **kwargs):
+    def __init__(
+        self,
+        path,
+        caption,
+        default_m_object: Union[
+            None, SVGMobject
+        ] = None,  # allows for either Text or MathTex
+        **kwargs,
+    ):
         self.path = path
         self.caption = caption
+        self.default_m_object = Text if default_m_object is None else default_m_object
         super().__init__(**kwargs)
 
     def construct(self, origin=ORIGIN, scale=1.0):
@@ -26,7 +37,7 @@ class CaptionedSVG(Scene):
     def draw(self, origin, scale, target_scene=None, animate=True):
         svg = SVGMobject(self.path).scale(2)
         text = (
-            Text(self.caption, font="TeX Gyre Termes", color=BLACK)
+            self.default_m_object(self.caption, font="TeX Gyre Termes", color=BLACK)
             .scale(0.7)
             .next_to(svg, DOWN)
         )
@@ -41,10 +52,20 @@ class CaptionedSVG(Scene):
 
 
 class CaptionedJPG(Scene):
-    def __init__(self, path, caption, original_image_scale: float = 0.25, **kwargs):
+    def __init__(
+        self,
+        path,
+        caption,
+        original_image_scale: float = 0.25,
+        default_m_object: Union[
+            None, SVGMobject
+        ] = None,  # allows for either Text or MathTex
+        **kwargs,
+    ):
         self.path = path
         self.caption = caption
         self.original_image_scale = original_image_scale
+        self.default_m_object = Text if default_m_object is None else default_m_object
         super().__init__(**kwargs)
 
     def construct(self, origin=ORIGIN, scale=1.0):
@@ -53,7 +74,7 @@ class CaptionedJPG(Scene):
     def draw(self, origin, scale, target_scene=None, animate=True):
         jpg = ImageMobject(self.path).scale(self.original_image_scale)
         text = (
-            Text(self.caption, font="TeX Gyre Termes", color=BLACK)
+            self.default_m_object(self.caption, font="TeX Gyre Termes", color=BLACK)
             .scale(0.7)
             .next_to(jpg, DOWN)
         )
