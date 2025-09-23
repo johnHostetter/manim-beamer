@@ -35,7 +35,7 @@ jobs:
         pip install pylint
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install PySide6==6.5.2
-        pip install -U "manim-slides[pyside6-full]”
+        pip install -U "manim-slides[pyside6-full]"
         sudo apt-get install -y libxcb-cursor-dev
         python -m pip install -e .
     - name: Analysing the code with pylint 🕵️
