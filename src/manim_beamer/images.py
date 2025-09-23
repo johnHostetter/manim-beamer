@@ -1,17 +1,17 @@
 from typing import Union
 
 from manim import (
-    Scene,
+    BLACK,
+    DOWN,
     ORIGIN,
+    Create,
+    FadeIn,
+    Group,
+    ImageMobject,
+    Scene,
     SVGMobject,
     Text,
-    BLACK,
     VGroup,
-    ImageMobject,
-    Group,
-    FadeIn,
-    DOWN,
-    Create,
     Write,
 )
 

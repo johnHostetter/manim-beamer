@@ -1,20 +1,20 @@
+from abc import abstractmethod, ABC
 from typing import Union
-from abc import abstractmethod
 
 from manim import (
-    WHITE,
     BLACK,
     DOWN,
     LEFT,
-    VGroup,
-    SurroundingRectangle,
-    LaggedStart,
+    WHITE,
     Create,
-    Text,
+    LaggedStart,
     ManimColor,
-    Title,
-    config,
+    SurroundingRectangle,
     SVGMobject,
+    Text,
+    Title,
+    VGroup,
+    config,
 )
 
 from manim_beamer.lists import BeamerList
@@ -40,7 +40,7 @@ class BlockTitle(Title):
         main_text.align_to(self.get_left(), LEFT)
 
 
-class Block:
+class Block(ABC):
     def __init__(
         self,
         title: Union[None, str],

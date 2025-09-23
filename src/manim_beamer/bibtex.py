@@ -3,13 +3,12 @@ Implements the necessary classes and features to process and handle .bib referen
 """
 
 from pathlib import Path
-from typing import Union, Tuple, List, NamedTuple
-
-from manim import DARK_BLUE, Tex, Text, RIGHT, DOWN, TexTemplate
-from manim.utils.tex import _DEFAULT_PREAMBLE
+from typing import List, Union
 
 import bibtexparser
 from bibtexparser.model import Entry
+from manim import DARK_BLUE, Tex, TexTemplate
+from manim.utils.tex import _DEFAULT_PREAMBLE
 
 
 class CitedTex(Tex):

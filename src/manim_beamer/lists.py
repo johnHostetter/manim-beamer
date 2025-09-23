@@ -2,17 +2,17 @@ from abc import abstractmethod
 from typing import Union
 
 from manim import (
-    VGroup,
-    Text,
-    Arrow,
+    BLACK,
+    DOWN,
     LEFT,
     RIGHT,
-    DOWN,
-    BLACK,
-    MathTex,
+    Arrow,
     Cross,
+    MathTex,
     StealthTip,
     SVGMobject,
+    Text,
+    VGroup,
 )
 
 
